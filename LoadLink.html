@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink — Phase 4 Complete</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700;9..40,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f1f5f9;color:#0f172a;-webkit-font-smoothing:antialiased}
+input,select,button,textarea{font-family:inherit}
+button{cursor:pointer;border:none}
+input,select,textarea{outline:none}
+.mono{font-family:'Space Mono',monospace}
+.hidden{display:none!important}
+
+.nav{background:#020617;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand{display:flex;align-items:center;gap:8px;background:none;color:#fff}
+.nav-logo{background:#f59e0b;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#020617;font-size:12px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.nav-role.biz{background:rgba(245,158,11,0.15);color:#fbbf24}
+.nav-role.drv{background:rgba(59,130,246,0.15);color:#60a5fa}
+.notif-btn{position:relative;background:none;color:#94a3b8;font-size:20px;padding:4px}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid #020617}
+.nav-switch{font-size:11px;color:#94a3b8;background:none;padding:4px 8px;border-radius:6px}
+.nav-switch:hover{color:#fff;background:#1e293b}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:#0f172a;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 16px 40px rgba(0,0,0,0.3);border:1px solid #334155;animation:su .3s ease}
+@keyframes su{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.container{max-width:720px;margin:0 auto;padding:0 16px}
+.card{background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px}
+.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:13px;color:#64748b;margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.form-input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #e2e8f0;font-size:14px;transition:.2s}
+.form-input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.15)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;border-radius:12px;font-size:13px;font-weight:700;transition:.2s}
+.btn-amber{background:#f59e0b;color:#fff;box-shadow:0 6px 20px rgba(245,158,11,0.2)}
+.btn-blue{background:#2563eb;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,0.2)}
+.btn-green{background:#16a34a;color:#fff}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-ghost{background:#f1f5f9;color:#475569}
+.btn-outline{background:#fff;border:1px solid #e2e8f0;color:#475569}
+.btn-purple{background:#7c3aed;color:#fff}
+.btn-red{background:#ef4444;color:#fff}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-row .btn{flex:1}
+.btn-sm{padding:9px 14px;font-size:12px;border-radius:12px;font-weight:700;width:auto}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-amber{background:#fef3c7;color:#b45309}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
+.badge-gold{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#92400e;border:1px solid #fbbf24}
+.badge-silver{background:linear-gradient(135deg,#f1f5f9,#e2e8f0);color:#475569;border:1px solid #cbd5e1}
+.badge-bronze{background:linear-gradient(135deg,#fed7aa,#fdba74);color:#9a3412;border:1px solid #fb923c}
+
+/* HOME */
+.home{min-height:100vh;padding:60px 20px 40px;background:linear-gradient(135deg,#0f172a,#1e1b4b 40%,#0f172a);text-align:center}
+.home h1{font-size:38px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:12px;letter-spacing:-1px}
+.home h1 span{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-sub{color:#94a3b8;font-size:16px;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6}
+.home-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:50px;padding:5px 14px;margin-bottom:28px}
+.home-badge-dot{width:7px;height:7px;background:#fbbf24;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:560px;margin:0 auto}
+.hcard{position:relative;border-radius:18px;padding:24px 20px;text-align:left;overflow:hidden;transition:.3s;color:#fff}
+.hcard:hover{transform:scale(1.02)}
+.hcard.biz{background:linear-gradient(135deg,#f59e0b,#ea580c);box-shadow:0 16px 32px rgba(245,158,11,0.2)}
+.hcard.drv{background:linear-gradient(135deg,#2563eb,#4338ca);box-shadow:0 16px 32px rgba(37,99,235,0.2)}
+.hcard-emoji{font-size:32px;margin-bottom:10px;display:block}
+.hcard h2{font-size:17px;font-weight:700;margin-bottom:4px}
+.hcard p{font-size:12px;opacity:.8;line-height:1.5}
+.hcard-arrow{margin-top:14px;font-size:12px;font-weight:600;opacity:.9}
+
+/* DRV HEADER */
+.drv-header{background:linear-gradient(135deg,#2563eb,#4338ca);color:#fff;padding:16px}
+.drv-header-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.drv-stats{display:flex;gap:20px;text-align:center}
+.drv-stat-n{font-size:16px;font-weight:900;font-family:'Space Mono',monospace}
+.drv-stat-l{font-size:10px;color:#93c5fd}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:42px;z-index:40;overflow-x:auto}
+.tabs-row{display:flex;max-width:720px;margin:0 auto}
+.tab{flex:none;padding:10px 8px;font-size:10px;font-weight:600;text-align:center;border-bottom:2px solid transparent;color:#64748b;background:none;transition:.2s;white-space:nowrap}
+.tab:hover{color:#334155}
+.tab.active{color:#2563eb;border-color:#2563eb;background:rgba(37,99,235,0.03)}
+.tab-badge{display:inline-block;margin-left:2px;padding:1px 5px;border-radius:20px;font-size:9px;font-weight:700}
+.tab.active .tab-badge{background:#2563eb;color:#fff}
+.tab:not(.active) .tab-badge{background:#e2e8f0;color:#64748b}
+
+/* STEPS */
+.steps-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px}
+.steps-row{display:flex;align-items:center;gap:6px;max-width:600px;margin:0 auto}
+.step-n{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:.3s}
+.step-n.on{background:#f59e0b;color:#fff}
+.step-n.off{background:#e2e8f0;color:#94a3b8}
+.step-lbl{font-size:11px;font-weight:600}
+.step-lbl.on{color:#0f172a}
+.step-lbl.off{color:#94a3b8}
+.step-line{flex:1;height:2px}
+.step-line.on{background:#f59e0b}
+.step-line.off{background:#e2e8f0}
+
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcard{background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:14px;text-align:left;transition:.2s}
+.vcard.sel{border-color:#f59e0b;background:#fffbeb;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+
+.tier{width:100%;background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:18px;text-align:left;transition:.2s;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between}
+.tier.sel{border-color:#f59e0b;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+
+.lcard{background:#fff;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:10px;transition:.2s}
+.lcard:hover{box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.lcard-body{padding:14px}
+.lcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.lcard-actions{border-top:1px solid #f1f5f9;padding:10px 14px;background:rgba(248,250,252,0.5);display:flex;gap:8px}
+
+/* TRACK MAP */
+.track-map{background:linear-gradient(135deg,#e0f2fe,#dbeafe);border-radius:18px;border:2px solid #93c5fd;height:240px;position:relative;overflow:hidden;margin-bottom:12px}
+.track-route{position:absolute;top:50%;left:10%;right:10%;height:3px;background:#93c5fd;border-radius:2px;transform:translateY(-50%)}
+.track-route-done{position:absolute;top:0;left:0;height:100%;background:#2563eb;border-radius:2px}
+.track-pin-a,.track-pin-b{position:absolute;top:50%;transform:translate(-50%,-100%);font-size:24px}
+.track-pin-a{left:10%}
+.track-pin-b{right:10%;left:auto;transform:translate(50%,-100%)}
+.track-van{position:absolute;top:50%;transform:translate(-50%,-130%);font-size:28px}
+.track-label{position:absolute;bottom:10px;font-size:10px;font-weight:600;background:#fff;padding:3px 8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.track-label-a{left:10%;transform:translateX(-30%)}
+.track-label-b{right:10%;transform:translateX(30%)}
+.track-eta{position:absolute;top:10px;right:10px;background:#0f172a;color:#fff;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:'Space Mono',monospace}
+.track-status-bar{display:flex;gap:4px;margin-bottom:14px}
+.track-step{flex:1;text-align:center;padding:8px 4px;border-radius:10px;font-size:10px;font-weight:600}
+.track-step.done{background:#dcfce7;color:#15803d}
+.track-step.current{background:#2563eb;color:#fff}
+.track-step.pending{background:#f1f5f9;color:#94a3b8}
+
+/* CHARTS */
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px}
+.chart-bar{flex:1;border-radius:6px 6px 0 0;transition:height .6s ease;position:relative;min-width:0}
+.chart-bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:#94a3b8;white-space:nowrap}
+.chart-bar-val{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:#0f172a;white-space:nowrap}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:14px;text-align:center}
+.stat-val{font-size:24px;font-weight:900;font-family:'Space Mono',monospace}
+.stat-lbl{font-size:11px;color:#64748b;margin-top:2px}
+
+/* AI GLOW */
+.ai-glow{background:linear-gradient(135deg,rgba(124,58,237,0.05),rgba(59,130,246,0.05));border:1px solid rgba(124,58,237,0.15);border-radius:18px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.ai-glow::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,rgba(124,58,237,0.08),transparent);pointer-events:none}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:10px 0}
+.heat-cell{aspect-ratio:1;border-radius:4px;font-size:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;transition:.2s}
+.heat-cell:hover{transform:scale(1.15)}
+
+/* TIER CARDS */
+.carrier-tier{border-radius:18px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden}
+.carrier-tier.gold{background:linear-gradient(135deg,#fef3c7,#fde68a);border:2px solid #f59e0b}
+.carrier-tier.silver{background:linear-gradient(135deg,#f8fafc,#e2e8f0);border:2px solid #94a3b8}
+.carrier-tier.bronze{background:linear-gradient(135deg,#ffedd5,#fed7aa);border:2px solid #f97316}
+
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #f1f5f9}
+.lb-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0}
+.lb-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.lb-bar{height:6px;border-radius:3px;background:#e2e8f0;flex:1;overflow:hidden}
+.lb-bar-fill{height:100%;border-radius:3px}
+
+/* REWARDS */
+.reward-card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:.2s}
+.reward-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.reward-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+
+/* DISPUTE */
+.dispute-step{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.dispute-num{width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:70;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:440px;padding:24px;animation:su .3s ease;max-height:85vh;overflow-y:auto}
+
+/* NOTIF */
+.notif-panel{position:fixed;top:42px;right:0;width:360px;max-width:100vw;max-height:calc(100vh - 42px);background:#fff;border-left:1px solid #e2e8f0;box-shadow:-8px 0 24px rgba(0,0,0,0.08);z-index:60;overflow-y:auto;animation:slideL .2s ease}
+@keyframes slideL{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+/* PAY */
+.pay-card{background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:18px;padding:20px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden}
+.pay-card-circle{position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%}
+.tx-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* DOC */
+.doc-row{display:flex;align-items:center;justify-content:space-between;padding:14px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px}
+
+/* FLEET */
+.fleet-driver{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px}
+
+/* MSG */
+.msg-item{display:flex;gap:10px;padding:12px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:.1s}
+.msg-item:hover{background:#f8fafc}
+.msg-item.unread{background:#eff6ff}
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;margin-bottom:6px}
+.msg-out{background:#2563eb;color:#fff;border-bottom-right-radius:4px;margin-left:auto}
+.msg-in{background:#f1f5f9;color:#0f172a;border-bottom-left-radius:4px}
+
+/* SLIDER */
+.fuel-slider{width:100%;-webkit-appearance:none;height:6px;background:#e2e8f0;border-radius:3px;outline:none}
+.fuel-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:#7c3aed;border-radius:50%;cursor:pointer}
+
+/* PROGRESS RING */
+.ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ring-text{position:absolute;font-size:18px;font-weight:900;font-family:'Space Mono',monospace}
+
+/* WHITE LABEL */
+.wl-preview{background:#fff;border-radius:18px;border:2px solid #e2e8f0;overflow:hidden}
+.wl-header{padding:14px 16px;display:flex;align-items:center;gap:10px}
+.wl-body{padding:16px}
+
+@media(max-width:640px){
+  .home h1{font-size:28px}
+  .home-cards,.vgrid,.form-row,.stat-grid{grid-template-columns:1fr}
+  .drv-stats{gap:14px}
+  .notif-panel{width:100%}
+  .track-map{height:180px}
+  .heatmap{grid-template-columns:repeat(7,1fr)}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav hidden" id="navbar">
+  <button class="nav-brand" onclick="goHome()"><div class="nav-logo">LL</div><span style="font-weight:700;font-size:15px">LoadLink</span><span style="color:#a78bfa;font-size:10px;font-weight:700;margin-left:4px;background:rgba(124,58,237,0.15);padding:2px 6px;border-radius:4px">P4</span></button>
+  <div class="nav-right"><span class="nav-role" id="navRole"></span><button class="notif-btn" onclick="toggleNotifs()" id="notifBtn">🔔<span class="notif-dot" id="notifDot"></span></button><button class="nav-switch" onclick="goHome()">Switch</button></div>
+</nav>
+
+<div id="notifPanel" class="notif-panel hidden"><div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between"><span style="font-weight:700">Notifications</span><button style="font-size:11px;color:#2563eb;background:none;font-weight:600" onclick="markAllRead()">Mark all read</button></div><div id="notifList"></div></div>
+
+<div id="pg-home" class="home">
+  <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:50px;padding:5px 14px;margin-bottom:12px"><span style="color:#a78bfa;font-size:11px;font-weight:600;letter-spacing:.5px" class="mono">🚀 PHASE 4 — AI · REWARDS · TIERS · WHITE-LABEL · DISPUTES</span></div><br>
+  <div class="home-badge"><div class="home-badge-dot"></div><span style="color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:.5px" class="mono">LOADLINK COMPLETE PROTOTYPE</span></div>
+  <h1>Transport booked in<br><span>under 60 seconds.</span></h1>
+  <p class="home-sub">AI matching. Smart pricing. Loyalty rewards. The full platform.</p>
+  <div class="home-cards">
+    <button class="hcard biz" onclick="openBiz()"><span class="hcard-emoji">🏭</span><h2>I Need Transport</h2><p>AI matching, live tracking, white-label portal & more.</p><div class="hcard-arrow">Start booking →</div></button>
+    <button class="hcard drv" onclick="openDrv()"><span class="hcard-emoji">🚐</span><h2>I'm a Driver</h2><p>AI loads, rewards, leaderboards, tiers, smart pricing & more.</p><div class="hcard-arrow">Open dashboard →</div></button>
+  </div>
+</div>
+
+<div id="pg-biz" class="hidden" style="min-height:100vh;background:#f8fafc">
+  <div class="steps-bar"><div class="steps-row" id="stepsRow"></div></div>
+  <div class="container" style="padding:20px 16px 40px" id="bizContent"></div>
+</div>
+
+<div id="pg-drv" class="hidden" style="min-height:100vh;background:#f1f5f9">
+  <div class="drv-header"><div class="drv-header-inner"><div><div style="font-size:12px;color:#93c5fd">Welcome back</div><div style="font-size:17px;font-weight:700">James Mitchell <span class="badge badge-gold" style="font-size:10px">🥇 Gold</span></div></div><div class="drv-stats"><div><div class="drv-stat-n">⭐ 4.9</div><div class="drv-stat-l">Rating</div></div><div><div class="drv-stat-n">312</div><div class="drv-stat-l">Jobs</div></div><div><div class="drv-stat-n">2,840</div><div class="drv-stat-l">🪙 Points</div></div></div></div></div>
+  <div class="tabs"><div class="tabs-row" id="drvTabs"></div></div>
+  <div class="container" style="padding:14px 16px 40px" id="drvContent"></div>
+</div>
+
+<div id="toast" class="toast hidden"><span style="color:#4ade80;font-size:16px">✓</span><span id="toastMsg"></span></div>
+<div id="modalBg" class="modal-bg hidden" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()" id="modalContent"></div></div>
+
+<script>
+const VEH=[{id:"small",name:"Small Van",icon:"🚗",ex:"Caddy",pay:"600kg",rate:1},{id:"swb",name:"SWB Van",icon:"🚐",ex:"Transit Custom",pay:"1,000kg",rate:1.15},{id:"lwb",name:"LWB Van",icon:"🚐",ex:"Sprinter",pay:"1,200kg",rate:1.3},{id:"xlwb",name:"XLWB Van",icon:"🚐",ex:"Sprinter XL",pay:"1,400kg",rate:1.45},{id:"luton",name:"Luton Van",icon:"📦",ex:"Box body",pay:"1,500kg",rate:1.6},{id:"7_5t",name:"7.5t Truck",icon:"🚛",ex:"Tail lift",pay:"3,500kg",rate:2.1}];
+const LOADS=[{id:1,type:"quote",from:"Birmingham B1",to:"Manchester M1",veh:"small",dist:86,desc:"2 boxes car parts",ship:"AutoFix Ltd",time:"12m ago",budget:null,aiScore:94,aiReason:"Route match 98%, vehicle match, high-value shipper"},{id:2,type:"fixed",from:"London EC2",to:"Bristol BS1",veh:"lwb",dist:119,desc:"8 pallets office equip",ship:"Relocate Pro",time:"3m ago",budget:155,aiScore:87,aiReason:"Good rate £1.30/mi, en-route to your next pickup"},{id:3,type:"fixed",from:"Leeds LS1",to:"Sheffield S1",veh:"small",dist:35,desc:"Legal docs — urgent",ship:"Clarke & Partners",time:"Just now",budget:52,aiScore:91,aiReason:"Short run, premium rate £1.49/mi, repeat customer"},{id:4,type:"fixed",from:"Nottingham NG1",to:"London NW1",veh:"luton",dist:128,desc:"Exhibition stand",ship:"EventCraft UK",time:"22m ago",budget:210,aiScore:78,aiReason:"Good rate but requires Luton, 3hr drive"},{id:5,type:"recurring",from:"Leeds LS1",to:"Manchester M2",veh:"swb",dist:45,desc:"Daily parts run",ship:"MechParts UK",time:"Recurring",budget:65,aiScore:96,aiReason:"🔄 Recurring daily job, guaranteed income £325/wk"}];
+const NOTIFS=[{icon:"🤖",bg:"#f3e8ff",title:"AI Match: 96% score",msg:"MechParts UK daily run — £325/wk guaranteed",time:"2m ago",unread:true},{icon:"🏆",bg:"#fef3c7",title:"Gold tier unlocked!",msg:"You've hit 300+ jobs with 4.8+ rating",time:"15m ago",unread:true},{icon:"🪙",bg:"#dbeafe",title:"+150 reward points",msg:"Earned from 3 completed jobs today",time:"1hr ago",unread:true},{icon:"⚖️",bg:"#fee2e2",title:"Dispute resolved",msg:"£25 credit applied to your account",time:"3hrs ago",unread:false},{icon:"📊",bg:"#dcfce7",title:"Smart Price alert",msg:"Rates up 15% on Leeds-London route today",time:"Today",unread:true}];
+const LEADERBOARD=[{name:"James Mitchell",av:"JM",color:"#2563eb",points:2840,jobs:312,rating:4.9,tier:"gold"},{name:"Sarah Khan",av:"SK",color:"#7c3aed",points:2420,jobs:287,rating:4.8,tier:"gold"},{name:"Dave Patterson",av:"DP",color:"#ea580c",points:1890,jobs:245,rating:4.7,tier:"silver"},{name:"Lisa Chen",av:"LC",color:"#16a34a",points:1560,jobs:198,rating:4.6,tier:"silver"},{name:"Mike O'Brien",av:"MO",color:"#0891b2",points:1240,jobs:176,rating:4.5,tier:"bronze"},{name:"Tom Walsh",av:"TW",color:"#64748b",points:980,jobs:142,rating:4.4,tier:"bronze"}];
+const REWARDS=[{icon:"🎫",name:"Priority Load Access",desc:"See new loads 5 mins before others",cost:500,bg:"#f3e8ff"},{icon:"⚡",name:"Free Instant Payout",desc:"1 free instant payout (normally 2%)",cost:300,bg:"#dbeafe"},{icon:"📍",name:"Featured Driver",desc:"Top of availability list for 24hrs",cost:800,bg:"#fef3c7"},{icon:"🛡️",name:"LoadLink Pro — 1 Week",desc:"All Pro features free for 7 days",cost:1200,bg:"#dcfce7"},{icon:"📊",name:"Advanced Analytics",desc:"Unlock profit-per-mile & demand forecasting",cost:600,bg:"#fce7f3"},{icon:"🎯",name:"AI Priority Matching",desc:"Get matched first on high-value loads",cost:1000,bg:"#f3e8ff"}];
+const RECURRING=[{id:1,from:"Leeds LS1",to:"Manchester M2",freq:"Daily (Mon-Fri)",ship:"MechParts UK",rate:65,veh:"SWB Van",weekly:325,status:"active"},{id:2,from:"London EC2",to:"Bristol BS1",freq:"Every Tuesday",ship:"Relocate Pro",rate:155,veh:"LWB Sprinter",weekly:155,status:"active"},{id:3,from:"Birmingham B1",to:"London NW1",freq:"Mon & Thu",ship:"AutoFix Ltd",rate:140,veh:"Small Van",weekly:280,status:"paused"}];
+const DISPUTES=[{id:1,status:"resolved",title:"Short payment — Job #LL-0812",amount:"£25 credit applied",date:"2 days ago",resolution:"Shipper agreed to additional payment"},{id:2,status:"open",title:"Damaged goods claim — Job #LL-0839",amount:"Under review",date:"Today",resolution:"Awaiting photo evidence"}];
+const FLEET=[{name:"James Mitchell",av:"JM",color:"#2563eb",status:"active",job:"Leeds → York",veh:"LWB Sprinter",rating:4.9,earned:"£847",tier:"gold"},{name:"Sarah Khan",av:"SK",color:"#7c3aed",status:"active",job:"Manchester → Liverpool",veh:"Small Van",rating:4.8,earned:"£520",tier:"gold"},{name:"Dave Patterson",av:"DP",color:"#ea580c",status:"available",job:"—",veh:"Luton",rating:4.7,earned:"£680",tier:"silver"},{name:"Lisa Chen",av:"LC",color:"#16a34a",status:"offline",job:"—",veh:"SWB Transit",rating:4.6,earned:"£410",tier:"silver"}];
+const HEATMAP_DATA=[[2,5,8,6,3,1,0],[3,7,12,9,5,2,1],[1,4,6,14,8,3,0],[4,9,15,11,7,4,2],[2,6,10,8,4,2,0]];
+const MSGS=[{id:1,name:"AutoFix Ltd",av:"AF",color:"#2563eb",lastMsg:"Great, see you at 2pm",time:"10m ago",unread:2},{id:2,name:"Clarke & Partners",av:"CP",color:"#7c3aed",lastMsg:"Docs delivered safely, thanks!",time:"2hrs ago",unread:0},{id:3,name:"MechParts UK",av:"MP",color:"#16a34a",lastMsg:"Same time tomorrow?",time:"Yesterday",unread:1}];
+const CHAT_MSGS=[{from:"them",text:"Hi James, we have 2 boxes ready at unit 5.",time:"13:15"},{from:"me",text:"Perfect, I'll be there in 20 mins.",time:"13:18"},{from:"them",text:"Great, see you at 2pm",time:"13:25"}];
+const DOCS=[{name:"GIT Insurance",icon:"🛡️",status:"valid",expiry:"14 Mar 2026",bg:"#dcfce7"},{name:"Public Liability",icon:"📋",status:"valid",expiry:"22 Aug 2026",bg:"#dcfce7"},{name:"Driving Licence",icon:"🪪",status:"valid",expiry:"15 Jan 2028",bg:"#dcfce7"},{name:"Vehicle MOT",icon:"🔧",status:"expiring",expiry:"12 Mar 2026",bg:"#fef3c7"},{name:"Vehicle Tax",icon:"💷",status:"valid",expiry:"01 Sep 2026",bg:"#dcfce7"},{name:"CMR Insurance",icon:"🌍",status:"missing",expiry:"—",bg:"#fee2e2"}];
+const ROUTES=[{from:"Leeds LS1",to:"London EC1",dist:195,backload:"TechOps — Server rack to Leeds",savings:195,match:98},{from:"London EC1",to:"Bristol BS1",dist:119,backload:"West Legal — Docs to London",savings:116,match:92}];
+
+let page="home",bizStep=0,selVeh="small",selTier="standard",drvTab="loads",loadFilter="all",accepted={},notifOpen=false,activeChat=null,fuelDist=200,fuelPrice=1.42,fuelMpg=35;
+const $=id=>document.getElementById(id);
+const vn=id=>(VEH.find(v=>v.id===id)||VEH[0]);
+const calcP=(d,v,t)=>{const r=vn(v).rate;const m={economy:.8,standard:1,express:1.25};return Math.round(d*r*(m[t]||1))};
+function showToast(m){$('toastMsg').textContent=m;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3000)}
+function showPage(id){['pg-home','pg-biz','pg-drv'].forEach(p=>$(p).classList.add('hidden'));$('pg-'+id).classList.remove('hidden');$('navbar').classList.toggle('hidden',id==='home');page=id;window.scrollTo(0,0)}
+function goHome(){showPage('home');$('notifPanel').classList.add('hidden');notifOpen=false}
+function openBiz(){bizStep=0;showPage('biz');$('navRole').className='nav-role biz';$('navRole').textContent='🏭 Business';renderBiz()}
+function openDrv(){$('navRole').className='nav-role drv';$('navRole').textContent='🚐 Driver';showPage('drv');renderDrvTabs();switchTab('loads')}
+function openModal(h){$('modalContent').innerHTML=h;$('modalBg').classList.remove('hidden')}
+function closeModal(){$('modalBg').classList.add('hidden')}
+function toggleNotifs(){notifOpen=!notifOpen;$('notifPanel').classList.toggle('hidden',!notifOpen);if(notifOpen)renderNotifs()}
+function renderNotifs(){$('notifList').innerHTML=NOTIFS.map(n=>`<div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f1f5f9;${n.unread?'background:#eff6ff':''}"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:${n.bg}">${n.icon}</div><div><div style="font-size:13px;font-weight:600">${n.title}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${n.msg}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px" class="mono">${n.time}</div></div></div>`).join('')}
+function markAllRead(){NOTIFS.forEach(n=>n.unread=false);$('notifDot').style.display='none';renderNotifs();showToast('All read')}
+
+/* BIZ FLOW */
+function renderBiz(){const l=["Details","Vehicle","Book","Track","Portal"];let h='';l.forEach((s,i)=>{h+=`<div class="step-n ${i<=bizStep?'on':'off'}">${i+1}</div><span class="step-lbl ${i<=bizStep?'on':'off'}">${s}</span>`;if(i<4)h+=`<div class="step-line ${i<bizStep?'on':'off'}"></div>`});$('stepsRow').innerHTML=h;[renderBS0,renderBS1,renderBS2,renderBS3,renderBS4][bizStep]()}
+function bizN(s){bizStep=s;renderBiz();window.scrollTo(0,0)}
+function renderBS0(){$('bizContent').innerHTML=`<div class="section-title">What do you need delivered?</div><p class="section-sub">AI will match you with the best driver</p><div class="card"><div style="margin-bottom:14px"><label class="form-label">What are you sending?</label><input class="form-input" placeholder="e.g. 2 boxes car parts, 25kg"></div><div class="form-row" style="margin-bottom:14px"><div><label class="form-label">Pickup</label><input class="form-input" placeholder="Postcode"></div><div><label class="form-label">Deliver to</label><input class="form-input" placeholder="Postcode"></div></div><div style="margin-bottom:14px"><label class="form-label">Schedule</label><div class="form-row"><button class="btn btn-sm ${selTier==='once'||selTier==='standard'?'btn-amber':'btn-ghost'}" onclick="selTier='standard';renderBiz()">📦 One-off</button><button class="btn btn-sm ${selTier==='recurring'?'btn-amber':'btn-ghost'}" onclick="selTier='recurring';renderBiz()">🔄 Recurring</button></div></div></div><button class="btn btn-amber" onclick="bizN(1)">Continue →</button>`}
+function renderBS1(){let h=`<div class="section-title">Choose a vehicle</div><p class="section-sub">Recommended: <strong style="color:#d97706">Small Van</strong></p><div class="vgrid">`;VEH.forEach(v=>{const s=selVeh===v.id;h+=`<button class="vcard ${s?'sel':''}" onclick="selVeh='${v.id}';renderBiz()"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:22px">${v.icon}</span>${s?'<span style="background:#f59e0b;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px">✓</span>':''}</div><div style="font-weight:700;font-size:13px">${v.name}</div><div style="font-size:11px;color:#94a3b8">${v.ex}</div><div style="font-size:11px;color:#d97706;font-weight:600;margin-top:4px">Up to ${v.pay}</div></button>`});h+=`</div><div class="btn-row"><button class="btn btn-ghost" onclick="bizN(0)">← Back</button><button class="btn btn-amber" onclick="bizN(2)">Continue →</button></div>`;$('bizContent').innerHTML=h}
+function renderBS2(){const d=86,tiers=[{id:"economy",l:"Economy",t:"By 6pm",i:"🕐",p:calcP(d,selVeh,"economy")},{id:"standard",l:"Standard",t:"Within 2hrs",i:"🚐",p:calcP(d,selVeh,"standard"),rec:true},{id:"express",l:"Express",t:"Within 60min",i:"⚡",p:calcP(d,selVeh,"express")}];let h=`<div class="section-title">Choose your service</div><p class="section-sub">Birmingham → Manchester · ~86mi</p><div class="ai-glow"><div class="ai-badge">🤖 AI Recommendation</div><div style="margin-top:10px;font-size:13px;font-weight:600">Dave P. is 4 miles from pickup</div><div style="font-size:12px;color:#64748b;margin-top:4px">⭐ 4.7 · 245 jobs · LWB Sprinter · Usually accepts in <30s</div></div>`;tiers.forEach(t=>{const s=selTier===t.id;h+=`<button class="tier ${s?'sel':''}" onclick="selTier='${t.id}';renderBiz()"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:22px">${t.i}</span><div><div style="font-weight:700;font-size:14px">${t.l}${t.rec?' <span class="badge badge-amber">Recommended</span>':''}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${t.t}</div></div></div><div style="font-size:26px;font-weight:900;font-family:'Space Mono',monospace">£${t.p}</div></button>`});h+=`<div class="btn-row"><button class="btn btn-ghost" onclick="bizN(1)">← Back</button><button class="btn btn-amber" onclick="bizN(3);showToast('🤖 AI matched you with Dave P!')">Book Now — £${calcP(d,selVeh,selTier)}</button></div>`;$('bizContent').innerHTML=h}
+function renderBS3(){$('bizContent').innerHTML=`<div class="section-title">📍 Live Tracking</div><p class="section-sub">Job #LL-2026-0847 · Dave P. is on his way</p><div class="track-map"><div class="track-route"><div class="track-route-done" style="width:65%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:62%">🚐</div><div class="track-label track-label-a">Birmingham</div><div class="track-label track-label-b">Manchester</div><div class="track-eta">ETA 14:32</div></div><div class="track-status-bar"><div class="track-step done">✓ Booked</div><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 Transit</div><div class="track-step pending">📦 Deliver</div></div><div class="btn-row"><button class="btn btn-green" onclick="bizN(4);showToast('Delivered!')">⏩ Complete</button></div>`}
+function renderBS4(){$('bizContent').innerHTML=`<div class="section-title">📋 Customer Tracking Portal</div><p class="section-sub">Share this with your end customer — your branding, your link</p><div class="wl-preview"><div class="wl-header" style="background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;border-radius:18px 18px 0 0"><div style="background:#fff;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1e40af;font-size:10px">AF</div><div><div style="font-weight:700;font-size:14px">AutoFix Logistics</div><div style="font-size:11px;opacity:.8">Powered by LoadLink</div></div></div><div class="wl-body"><div class="track-status-bar"><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 Transit</div><div class="track-step pending">📦 Deliver</div></div><div class="track-map" style="height:160px"><div class="track-route"><div class="track-route-done" style="width:65%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:62%">🚐</div><div class="track-eta">ETA 14:32</div></div><div style="text-align:center;font-size:12px;color:#64748b">Your driver Dave is on the way</div></div></div><div style="margin-top:14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;font-size:12px;color:#1e40af">💡 <strong>White-label portal</strong> — Your customers see YOUR branding. Share tracking link: <span class="mono" style="background:#dbeafe;padding:2px 6px;border-radius:4px">autofix.loadlink.co/track/0847</span></div><button class="btn btn-amber" style="margin-top:12px" onclick="openBiz()">Book Another</button>`}
+
+/* DRIVER TABS */
+const DRV_TABS=[{id:"loads",label:"🤖 AI Loads",count:5},{id:"active",label:"📋 Active",count:2},{id:"tracking",label:"📍 Track"},{id:"analytics",label:"📊 Stats"},{id:"pricing",label:"💡 Pricing",p4:true},{id:"tiers",label:"🏆 Tiers",p4:true},{id:"rewards",label:"🪙 Rewards",p4:true},{id:"leaderboard",label:"🏅 Board",p4:true},{id:"recurring",label:"🔄 Repeat",p4:true},{id:"disputes",label:"⚖️ Disputes",p4:true},{id:"compliance",label:"🛡️ Docs"},{id:"routes",label:"🛣️ Routes"},{id:"fleet",label:"🏢 Fleet"},{id:"messages",label:"💬 Msgs",count:3},{id:"payments",label:"💰 Pay"}];
+function renderDrvTabs(){$('drvTabs').innerHTML=DRV_TABS.map(t=>`<button class="tab ${drvTab===t.id?'active':''}" onclick="switchTab('${t.id}')">${t.label}${t.count?` <span class="tab-badge">${t.count}</span>`:''}${t.p4?'<span style="color:#7c3aed;font-size:7px;vertical-align:super;margin-left:1px">●</span>':''}</button>`).join('')}
+function switchTab(id){drvTab=id;renderDrvTabs();const fn={loads:rLoads,active:rActive,tracking:rTrack,analytics:rAnalytics,pricing:rPricing,tiers:rTiers,rewards:rRewards,leaderboard:rLeaderboard,recurring:rRecurring,disputes:rDisputes,compliance:rDocs,routes:rRoutes,fleet:rFleet,messages:rMsgs,payments:rPay};fn[id]();window.scrollTo(0,0)}
+
+/* LOADS — AI ENHANCED */
+function rLoads(){const fl=loadFilter==='all'?LOADS:LOADS.filter(l=>l.type===loadFilter);let h=`<div class="ai-glow"><div class="ai-badge">🤖 AI Load Matching</div><div style="margin-top:8px;font-size:13px;font-weight:600">5 loads matched to your location, vehicle & preferences</div><div style="font-size:12px;color:#64748b;margin-top:2px">Sorted by AI score — highest match first</div></div><div style="display:flex;gap:6px;margin-bottom:10px">${[{id:'all',l:'All'},{id:'fixed',l:'⚡ Fixed'},{id:'quote',l:'💬 Quotes'},{id:'recurring',l:'🔄 Recurring'}].map(f=>`<button style="padding:5px 10px;border-radius:50px;font-size:10px;font-weight:600;border:1px solid ${loadFilter===f.id?'#2563eb':'#e2e8f0'};background:${loadFilter===f.id?'#2563eb':'#fff'};color:${loadFilter===f.id?'#fff':'#475569'}" onclick="loadFilter='${f.id}';rLoads()">${f.l}</button>`).join('')}</div>`;fl.forEach(l=>{const v=vn(l.veh);h+=`<div class="lcard"><div class="lcard-body"><div class="lcard-top"><div style="display:flex;align-items:center;gap:6px"><span class="badge ${l.type==='fixed'?'badge-amber':l.type==='recurring'?'badge-purple':'badge-blue'}">${l.type==='fixed'?'⚡ FIXED':l.type==='recurring'?'🔄 RECURRING':'💬 QUOTE'}</span><span style="font-size:11px;color:#94a3b8">${l.time}</span></div><div style="display:flex;align-items:center;gap:6px">${l.budget?`<span style="font-size:18px;font-weight:900;font-family:'Space Mono',monospace">£${l.budget}</span>`:''}<div style="background:${l.aiScore>=90?'linear-gradient(135deg,#16a34a,#15803d)':l.aiScore>=80?'linear-gradient(135deg,#2563eb,#1d4ed8)':'linear-gradient(135deg,#64748b,#475569)'};color:#fff;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700">${l.aiScore}%</div></div></div><div style="margin-bottom:6px"><div><span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:5px"></span><span style="font-size:13px;font-weight:600">${l.from}</span></div><div style="margin-left:3px;border-left:2px dashed #e2e8f0;height:8px"></div><div><span style="display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%;margin-right:5px"></span><span style="font-size:13px;font-weight:600">${l.to}</span></div></div><div style="font-size:11px;color:#64748b;margin-bottom:6px">${v.icon} ${v.name} · ${l.dist}mi · ${l.desc}</div><div style="background:rgba(124,58,237,0.05);border-radius:8px;padding:6px 10px;font-size:11px;color:#7c3aed"><span style="font-weight:700">🤖 AI:</span> ${l.aiReason}</div></div><div class="lcard-actions">${l.type==='fixed'||l.type==='recurring'?`<button class="btn-sm ${accepted[l.id]?'btn-green':'btn-amber'}" style="flex:1" onclick="accepted[${l.id}]=true;showToast('Accepted!');rLoads()">${accepted[l.id]?'✓ Accepted':'Accept'+(l.budget?' — £'+l.budget:'')}</button>`:`<button class="btn-sm btn-blue" style="flex:1" onclick="showToast('Quote sent!')">Send Quote</button>`}</div></div>`});$('drvContent').innerHTML=h}
+
+function rActive(){$('drvContent').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="badge badge-blue">🚐 In Transit</span><span style="font-size:11px;color:#94a3b8">ETA: 14:32</span></div><div style="font-weight:600">London EC1 → Cambridge CB1</div><div style="font-size:12px;color:#64748b;margin-top:3px">BioLab UK · SWB Van · <strong class="mono">£95</strong></div><div style="background:#f1f5f9;border-radius:50px;height:7px;overflow:hidden;margin-top:10px"><div style="background:#2563eb;height:100%;width:65%"></div></div></div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="badge badge-amber">📦 Collecting</span></div><div style="font-weight:600">Leeds LS2 → York YO1</div><div style="font-size:12px;color:#64748b;margin-top:3px">Yorkshire Print · LWB · <strong class="mono">£52</strong></div><div style="background:#f1f5f9;border-radius:50px;height:7px;overflow:hidden;margin-top:10px"><div style="background:#f59e0b;height:100%;width:15%"></div></div></div>`}
+
+function rTrack(){$('drvContent').innerHTML=`<div class="section-title">📍 Live Tracking</div><p class="section-sub">London EC1 → Cambridge CB1</p><div class="track-map"><div class="track-route"><div class="track-route-done" style="width:65%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:62%">🚐</div><div class="track-label track-label-a">London</div><div class="track-label track-label-b">Cambridge</div><div class="track-eta">ETA 14:32</div></div><div class="track-status-bar"><div class="track-step done">✓ Booked</div><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 Transit</div><div class="track-step pending">📦 Deliver</div></div>`}
+
+function rAnalytics(){const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],we=[420,380,510,290,480,560,847],mx=Math.max(...we);$('drvContent').innerHTML=`<div class="section-title">📊 Analytics</div><p class="section-sub">Performance overview</p><div class="stat-grid"><div class="stat-card"><div class="stat-val" style="color:#16a34a">£4,847</div><div class="stat-lbl">This Month</div></div><div class="stat-card"><div class="stat-val" style="color:#2563eb">68</div><div class="stat-lbl">Jobs</div></div><div class="stat-card"><div class="stat-val" style="color:#7c3aed">£1.15</div><div class="stat-lbl">Rate/Mile</div></div><div class="stat-card"><div class="stat-val" style="color:#ea580c">12%</div><div class="stat-lbl">Dead Miles</div></div></div><div class="card"><div style="font-weight:700;margin-bottom:12px">Weekly Earnings</div><div style="background:#f8fafc;border-radius:14px;padding:12px"><div class="chart-bars">${we.map((e,i)=>`<div class="chart-bar" style="height:${(e/mx)*130}px;background:${i===6?'#2563eb':'#93c5fd'}"><div class="chart-bar-val">£${e}</div><div class="chart-bar-label">${days[i]}</div></div>`).join('')}</div></div></div>`}
+
+/* P4: SMART PRICING */
+function rPricing(){const hrs=['6am','8am','10am','12pm','2pm','4pm','6pm','8pm'],rates=[0.95,1.25,1.35,1.15,1.20,1.40,1.10,0.85];$('drvContent').innerHTML=`<div class="section-title">💡 Smart Pricing</div><p class="section-sub">AI-powered rate suggestions based on real-time demand</p><div class="ai-glow"><div class="ai-badge">🤖 AI Price Engine</div><div style="margin-top:10px"><div style="font-size:24px;font-weight:900;font-family:'Space Mono',monospace;color:#16a34a">£1.25<span style="font-size:14px;color:#64748b;font-weight:400">/mile</span></div><div style="font-size:13px;color:#64748b;margin-top:4px">Recommended rate for <strong>Leeds → London</strong> right now</div><div style="display:flex;gap:8px;margin-top:10px;font-size:11px"><span style="background:#dcfce7;padding:4px 8px;border-radius:6px;color:#15803d">📈 Demand: High</span><span style="background:#fef3c7;padding:4px 8px;border-radius:6px;color:#92400e">🚐 Supply: Medium</span><span style="background:#dbeafe;padding:4px 8px;border-radius:6px;color:#1d4ed8">⏰ Peak hours</span></div></div></div><div class="card"><div style="font-weight:700;margin-bottom:10px">📊 Demand Heatmap — This Week</div><div style="display:flex;gap:2px;margin-bottom:4px;font-size:9px;color:#94a3b8">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div style="flex:1;text-align:center">${d}</div>`).join('')}</div>${['Leeds-London','London-Bristol','Manc-Birm','Leeds-Manc','London-Camb'].map((r,i)=>`<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px"><span style="font-size:8px;color:#94a3b8;width:70px;text-align:right;flex-shrink:0">${r}</span><div class="heatmap" style="flex:1;margin:0">${HEATMAP_DATA[i].map(v=>{const c=v>10?'#16a34a':v>6?'#22c55e':v>3?'#86efac':v>0?'#dcfce7':'#f1f5f9';return`<div class="heat-cell" style="background:${c};aspect-ratio:1">${v||''}</div>`}).join('')}</div></div>`).join('')}<div style="display:flex;justify-content:center;gap:8px;margin-top:8px;font-size:9px;color:#94a3b8"><span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#f1f5f9;border-radius:2px;display:inline-block"></span>Low</span><span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#86efac;border-radius:2px;display:inline-block"></span>Med</span><span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#16a34a;border-radius:2px;display:inline-block"></span>High</span></div></div><div class="card"><div style="font-weight:700;margin-bottom:10px">⏰ Rate By Time of Day (Leeds→London)</div><div style="background:#f8fafc;border-radius:14px;padding:12px"><div class="chart-bars">${rates.map((r,i)=>`<div class="chart-bar" style="height:${((r-0.7)/0.8)*130}px;background:${r>=1.30?'#16a34a':r>=1.15?'#22c55e':'#94a3b8'}"><div class="chart-bar-val">£${r.toFixed(2)}</div><div class="chart-bar-label">${hrs[i]}</div></div>`).join('')}</div></div></div><div class="card"><div style="font-weight:700;margin-bottom:10px">🎯 Earnings Predictor</div><div style="font-size:13px;color:#64748b;margin-bottom:10px">If you accept 3 recommended loads today:</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div style="background:#dcfce7;border-radius:12px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:900;font-family:'Space Mono',monospace;color:#16a34a">£312</div><div style="font-size:10px;color:#15803d">Estimated Earnings</div></div><div style="background:#f3e8ff;border-radius:12px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:900;font-family:'Space Mono',monospace;color:#7c3aed">287mi</div><div style="font-size:10px;color:#6b21a8">Total Miles</div></div><div style="background:#dbeafe;border-radius:12px;padding:12px;text-align:center"><div style="font-size:20px;font-weight:900;font-family:'Space Mono',monospace;color:#2563eb">£1.09</div><div style="font-size:10px;color:#1d4ed8">Avg Rate/Mile</div></div></div></div>`}
+
+/* P4: TIERS */
+function rTiers(){$('drvContent').innerHTML=`<div class="section-title">🏆 Carrier Tiers</div><p class="section-sub">Your performance unlocks better perks</p><div class="carrier-tier gold"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:20px;font-weight:900;color:#92400e">🥇 Gold Carrier</div><div style="font-size:12px;color:#b45309;margin-top:2px">Your current tier · 312 jobs · ⭐ 4.9</div></div><div style="font-size:32px">👑</div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">${['Priority load access','Lowest commission (5%)','Gold badge on profile','Free instant payouts','Dedicated support','AI priority matching'].map(p=>`<span style="background:rgba(146,64,14,0.1);padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600;color:#92400e">✓ ${p}</span>`).join('')}</div></div><div class="carrier-tier silver"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:18px;font-weight:900;color:#475569">🥈 Silver Carrier</div><div style="font-size:12px;color:#64748b;margin-top:2px">Requires: 150+ jobs · ⭐ 4.5+</div></div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${['Early load access','Reduced commission (6%)','Silver badge','1 free payout/month'].map(p=>`<span style="background:rgba(71,85,105,0.08);padding:4px 10px;border-radius:8px;font-size:11px;color:#64748b">✓ ${p}</span>`).join('')}</div></div><div class="carrier-tier bronze"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:18px;font-weight:900;color:#9a3412">🥉 Bronze Carrier</div><div style="font-size:12px;color:#c2410c;margin-top:2px">Requires: 50+ jobs · ⭐ 4.0+</div></div></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">${['Standard load access','Standard commission (8%)','Bronze badge'].map(p=>`<span style="background:rgba(154,52,18,0.08);padding:4px 10px;border-radius:8px;font-size:11px;color:#c2410c">✓ ${p}</span>`).join('')}</div></div><div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;font-size:12px;color:#1e40af;margin-top:8px">💡 Tiers are recalculated monthly based on jobs completed, rating, and on-time delivery rate.</div>`}
+
+/* P4: REWARDS */
+function rRewards(){$('drvContent').innerHTML=`<div class="section-title">🪙 Loyalty Rewards</div><p class="section-sub">Earn points on every job. Spend them on perks.</p><div style="background:linear-gradient(135deg,#7c3aed,#4338ca);border-radius:18px;padding:20px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden"><div style="position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:rgba(255,255,255,0.05);border-radius:50%"></div><div style="font-size:12px;color:#c4b5fd">Your Points Balance</div><div style="font-size:36px;font-weight:900;font-family:'Space Mono',monospace">2,840 🪙</div><div style="font-size:12px;color:#c4b5fd;margin-top:4px">+150 earned today · 10 points per completed job</div></div><div style="font-weight:700;margin-bottom:8px">Redeem Points</div>${REWARDS.map(r=>`<div class="reward-card"><div class="reward-icon" style="background:${r.bg}">${r.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${r.name}</div><div style="font-size:11px;color:#64748b;margin-top:2px">${r.desc}</div></div><button class="btn-sm ${2840>=r.cost?'btn-purple':'btn-ghost'}" onclick="${2840>=r.cost?`showToast('Redeemed! -${r.cost} points')`:`showToast('Not enough points')`}">${r.cost} 🪙</button></div>`).join('')}`}
+
+/* P4: LEADERBOARD */
+function rLeaderboard(){const mx=LEADERBOARD[0].points;$('drvContent').innerHTML=`<div class="section-title">🏅 Driver Leaderboard</div><p class="section-sub">Top drivers this month · You're #1!</p><div class="card" style="padding:0;overflow:hidden">${LEADERBOARD.map((d,i)=>`<div class="lb-row" style="${i===0?'background:#fefce8':i===1?'background:#f8fafc':''}"><div class="lb-rank" style="background:${i===0?'#f59e0b':i===1?'#94a3b8':i===2?'#f97316':'#e2e8f0'};color:${i<3?'#fff':'#64748b'}">${i+1}</div><div class="lb-avatar" style="background:${d.color}">${d.av}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;font-size:13px">${d.name}</span><span class="badge badge-${d.tier}" style="font-size:9px">${{gold:'🥇 Gold',silver:'🥈 Silver',bronze:'🥉 Bronze'}[d.tier]}</span>${i===0?'<span style="font-size:11px">👈 You</span>':''}</div><div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="lb-bar" style="max-width:120px"><div class="lb-bar-fill" style="width:${(d.points/mx)*100}%;background:${d.color}"></div></div><span style="font-size:10px;color:#64748b">${d.points} pts · ${d.jobs} jobs · ⭐ ${d.rating}</span></div></div></div>`).join('')}</div><div style="background:#fefce8;border:1px solid #fef08a;border-radius:12px;padding:12px;font-size:12px;color:#a16207;margin-top:8px">🏆 Top 3 drivers get a <strong>free month of Pro</strong> + <strong>priority AI matching</strong> for the next month.</div>`}
+
+/* P4: RECURRING */
+function rRecurring(){$('drvContent').innerHTML=`<div class="section-title">🔄 Recurring Routes</div><p class="section-sub">Guaranteed income, auto-posted by shippers</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"><div style="background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900;font-family:'Space Mono',monospace">£760</div><div style="font-size:11px;color:#bbf7d0">Weekly recurring income</div></div><div style="background:linear-gradient(135deg,#7c3aed,#4338ca);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900;font-family:'Space Mono',monospace">3</div><div style="font-size:11px;color:#c4b5fd">Active recurring routes</div></div></div>${RECURRING.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="badge ${r.status==='active'?'badge-green':'badge-amber'}">${r.status==='active'?'🟢 Active':'⏸️ Paused'}</span><span style="font-size:18px;font-weight:900;font-family:'Space Mono',monospace">£${r.rate}</span></div><div style="font-weight:600;font-size:14px">${r.from} → ${r.to}</div><div style="font-size:12px;color:#64748b;margin-top:4px">${r.ship} · ${r.veh} · ${r.freq}</div><div style="display:flex;gap:6px;margin-top:8px;font-size:11px"><span style="background:#dcfce7;padding:4px 8px;border-radius:6px;color:#15803d;font-weight:600">£${r.weekly}/wk guaranteed</span><span style="background:#f1f5f9;padding:4px 8px;border-radius:6px;color:#64748b">${r.dist}mi</span></div><div class="btn-row"><button class="btn-sm ${r.status==='active'?'btn-ghost':'btn-green'}" onclick="showToast('${r.status==='active'?'Route paused':'Route resumed'}')">${r.status==='active'?'⏸️ Pause':'▶️ Resume'}</button><button class="btn-sm btn-outline">Details</button></div></div>`).join('')}`}
+
+/* P4: DISPUTES */
+function rDisputes(){$('drvContent').innerHTML=`<div class="section-title">⚖️ Dispute Resolution</div><p class="section-sub">Fair, fast, transparent — usually resolved within 48hrs</p><div class="card"><div style="font-weight:700;margin-bottom:10px">How It Works</div>${[{n:"Report Issue",d:"Flag a problem within 24hrs of delivery"},{n:"Evidence Review",d:"Both parties submit photos, messages, POD"},{n:"AI Assessment",d:"Our system analyses the evidence and suggests a resolution"},{n:"Resolution",d:"Accept the suggestion or escalate to human review"}].map((s,i)=>`<div class="dispute-step"><div class="dispute-num">${i+1}</div><div><div style="font-weight:700;font-size:13px">${s.n}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${s.d}</div></div></div>`).join('')}</div><div style="font-weight:700;margin-bottom:8px">Your Disputes</div>${DISPUTES.map(d=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="badge ${d.status==='resolved'?'badge-green':'badge-red'}">${d.status==='resolved'?'✅ Resolved':'🔴 Open'}</span><span style="font-size:11px;color:#94a3b8">${d.date}</span></div><div style="font-weight:600;font-size:13px">${d.title}</div><div style="font-size:12px;color:#64748b;margin-top:4px">${d.status==='resolved'?d.resolution:d.amount}</div>${d.status==='open'?`<button class="btn-sm btn-blue" style="margin-top:8px" onclick="showToast('Evidence submitted')">Submit Evidence</button>`:''}</div>`).join('')}<button class="btn btn-red" style="margin-top:8px" onclick="showToast('Dispute form opened')">⚖️ Report New Issue</button>`}
+
+/* COMPLIANCE */
+function rDocs(){const v=DOCS.filter(d=>d.status==='valid').length;$('drvContent').innerHTML=`<div class="section-title">🛡️ Compliance</div><p class="section-sub">${v}/${DOCS.length} verified</p><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px"><div style="background:#dcfce7;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#16a34a" class="mono">${DOCS.filter(d=>d.status==='valid').length}</div><div style="font-size:10px;color:#15803d">Valid</div></div><div style="background:#fef3c7;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#b45309" class="mono">${DOCS.filter(d=>d.status==='expiring').length}</div><div style="font-size:10px;color:#92400e">Expiring</div></div><div style="background:#fee2e2;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#b91c1c" class="mono">${DOCS.filter(d=>d.status==='missing').length}</div><div style="font-size:10px;color:#991b1b">Missing</div></div></div>${DOCS.map(d=>`<div class="doc-row"><div style="display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:${d.bg}">${d.icon}</div><div><div style="font-weight:700;font-size:13px">${d.name}</div><div style="font-size:11px;color:#94a3b8">Expires: ${d.expiry}</div></div></div><button class="btn-sm ${d.status==='missing'?'btn-blue':d.status==='expiring'?'btn-amber':'btn-ghost'}" onclick="showToast('Done')">${d.status==='missing'?'Upload':d.status==='expiring'?'Renew':'View'}</button></div>`).join('')}`}
+
+/* ROUTES */
+function rRoutes(){$('drvContent').innerHTML=`<div class="section-title">🛣️ Routes</div><p class="section-sub">Smart backload matching</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"><div style="background:linear-gradient(135deg,#7c3aed,#4338ca);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900" class="mono">393mi</div><div style="font-size:11px;color:#c4b5fd">Dead miles saved</div></div><div style="background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900" class="mono">£458</div><div style="font-size:11px;color:#bbf7d0">Extra backload earnings</div></div></div>${ROUTES.map(r=>`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="background:#f3e8ff;color:#7c3aed;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700">🎯 ${r.match}%</span><span style="background:#dcfce7;color:#15803d;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700">💰 Save ${r.savings}mi</span></div><div style="font-weight:600">${r.from} → ${r.to} · ${r.dist}mi</div><div style="background:#f8fafc;border-radius:10px;padding:8px;margin-top:8px;font-size:12px;color:#7c3aed"><strong>🔄 Backload:</strong> ${r.backload}</div><button class="btn-sm btn-purple" style="margin-top:8px;width:100%" onclick="showToast('Backload accepted!')">Accept Backload</button></div>`).join('')}`}
+
+/* FLEET */
+function rFleet(){$('drvContent').innerHTML=`<div class="section-title">🏢 Fleet</div><p class="section-sub">${FLEET.length} drivers</p>${FLEET.map(f=>{const sc={active:'#22c55e',available:'#f59e0b',offline:'#94a3b8'}[f.status];return`<div class="fleet-driver"><div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;background:${f.color};flex-shrink:0">${f.av}</div><div style="flex:1"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;font-size:13px">${f.name}</span><span class="badge badge-${f.tier}" style="font-size:9px">${{gold:'🥇',silver:'🥈'}[f.tier]||''}</span><span style="font-size:11px;color:${sc}">${{active:'🟢',available:'🟡',offline:'⚫'}[f.status]}</span></div><div style="font-size:11px;color:#64748b;margin-top:2px">${f.veh} · ⭐ ${f.rating} · ${f.earned}</div></div><button class="btn-sm btn-ghost" onclick="showToast('Tracking')">Track</button></div>`}).join('')}`}
+
+/* MESSAGES */
+function rMsgs(){if(activeChat!==null)return rChat(activeChat);$('drvContent').innerHTML=`<div class="section-title">💬 Messages</div>${MSGS.map(m=>`<div class="msg-item ${m.unread?'unread':''}" onclick="activeChat=${m.id};rMsgs()"><div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;background:${m.color};flex-shrink:0">${m.av}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">${m.name}</span><span style="font-size:11px;color:#94a3b8">${m.time}</span></div><div style="font-size:12px;color:#64748b;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.lastMsg}</div></div>${m.unread?`<span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${m.unread}</span>`:''}</div>`).join('')}`}
+function rChat(id){const m=MSGS.find(x=>x.id===id);$('drvContent').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><button class="btn-sm btn-ghost" onclick="activeChat=null;rMsgs()">← Back</button><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;background:${m.color}">${m.av}</div><div style="font-weight:700">${m.name}</div></div><div class="card" style="padding:0;overflow:hidden"><div style="padding:14px">${CHAT_MSGS.map(c=>`<div style="display:flex;${c.from==='me'?'justify-content:flex-end':''}"><div class="msg-bubble ${c.from==='me'?'msg-out':'msg-in'}">${c.text}<div style="font-size:10px;${c.from==='me'?'color:rgba(255,255,255,0.6)':'color:#94a3b8'};margin-top:4px">${c.time}</div></div></div>`).join('')}</div><div style="display:flex;gap:8px;padding:12px;border-top:1px solid #e2e8f0"><input class="form-input" style="flex:1" placeholder="Type..." id="chatI" onkeypress="if(event.key==='Enter')sendM()"><button class="btn-sm btn-blue" onclick="sendM()">Send</button></div></div>`}
+function sendM(){const v=$('chatI');if(v&&v.value.trim()){showToast('Sent');v.value=''}}
+
+/* PAYMENTS */
+function rPay(){$('drvContent').innerHTML=`<div class="pay-card"><div class="pay-card-circle"></div><div style="font-size:12px;color:#a5b4fc">Balance</div><div style="font-size:36px;font-weight:900;font-family:'Space Mono',monospace">£847.15</div><div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;flex:1" onclick="showToast('Withdrawing')">🏦 Withdraw</button><button class="btn btn-sm" style="background:#f59e0b;color:#fff;flex:1" onclick="showToast('Instant payout!')">⚡ Instant</button></div></div><div class="card"><div style="font-weight:700;margin-bottom:8px">Recent</div>${[{d:"Leeds → York",f:"Yorkshire Print",a:52,t:"credit"},{d:"Bristol → London",f:"West Legal LLP",a:175,t:"credit"},{d:"Platform fee",f:"LoadLink",a:-14,t:"debit"},{d:"Reward redeem",f:"Free payout",a:0,t:"credit"}].map(t=>`<div class="tx-row"><div style="display:flex;align-items:center;gap:10px"><div class="tx-icon" style="background:${t.t==='credit'?'#dcfce7':'#fee2e2'}">${t.t==='credit'?'🟢':'📋'}</div><div><div style="font-size:13px;font-weight:600">${t.d}</div><div style="font-size:11px;color:#94a3b8">${t.f}</div></div></div><span style="font-weight:900;font-family:'Space Mono',monospace;font-size:15px;color:${t.t==='credit'?'#16a34a':'#ef4444'}">${t.a>0?'+':''}${t.a===0?'FREE':'£'+Math.abs(t.a)}</span></div>`).join('')}</div>`}
+
+renderNotifs();
+</script>
+</body>
+</html>
