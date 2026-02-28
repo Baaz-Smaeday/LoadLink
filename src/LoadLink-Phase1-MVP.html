@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink MVP — Phase 1</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700;9..40,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f1f5f9; color: #0f172a; -webkit-font-smoothing: antialiased; }
+  input, select, button { font-family: inherit; }
+  button { cursor: pointer; border: none; }
+  input, select { outline: none; }
+
+  /* ── UTILITIES ── */
+  .mono { font-family: 'Space Mono', monospace; }
+  .hidden { display: none !important; }
+  .container { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100;
+    background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 14px;
+    font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 1px solid #334155;
+    animation: slideUp 0.3s ease-out;
+  }
+  .toast .tick { color: #4ade80; font-size: 18px; }
+  @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* ── NAV BAR ── */
+  .navbar {
+    background: #020617; color: #fff; padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .navbar-brand { display: flex; align-items: center; gap: 8px; background: none; color: #fff; }
+  .navbar-logo { background: #f59e0b; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #020617; font-size: 13px; }
+  .navbar-title { font-weight: 700; font-size: 16px; }
+  .navbar-mvp { color: #f59e0b; font-size: 12px; font-weight: 600; margin-left: 4px; }
+  .navbar-role { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+  .navbar-role.business { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .navbar-role.driver { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .navbar-switch { font-size: 12px; color: #94a3b8; background: none; padding: 4px 8px; border-radius: 6px; margin-left: 8px; }
+  .navbar-switch:hover { color: #fff; background: #1e293b; }
+
+  /* ── HOME PAGE ── */
+  .home {
+    min-height: 100vh; padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%);
+    text-align: center;
+  }
+  .home-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 50px; padding: 6px 16px; margin-bottom: 32px;
+  }
+  .home-badge-dot { width: 8px; height: 8px; background: #fbbf24; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .home-badge-text { color: #fbbf24; font-size: 11px; font-weight: 600; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+  .home h1 { font-size: 42px; font-weight: 900; color: #fff; line-height: 1.15; margin-bottom: 16px; letter-spacing: -1px; }
+  .home h1 span { background: linear-gradient(90deg, #f59e0b, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .home-sub { color: #94a3b8; font-size: 17px; margin-bottom: 48px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+  .home-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 600px; margin: 0 auto; }
+  .home-card {
+    position: relative; border-radius: 20px; padding: 28px 24px; text-align: left;
+    overflow: hidden; transition: transform 0.3s; color: #fff;
+  }
+  .home-card:hover { transform: scale(1.02); }
+  .home-card.biz { background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 20px 40px rgba(245,158,11,0.2); }
+  .home-card.drv { background: linear-gradient(135deg, #2563eb, #4338ca); box-shadow: 0 20px 40px rgba(37,99,235,0.2); }
+  .home-card-circle { position: absolute; top: -48px; right: -48px; width: 128px; height: 128px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+  .home-card-emoji { font-size: 36px; margin-bottom: 12px; display: block; }
+  .home-card h2 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .home-card p { font-size: 13px; opacity: 0.8; line-height: 1.5; }
+  .home-card-arrow { margin-top: 16px; font-size: 12px; font-weight: 600; opacity: 0.9; }
+  .home-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; max-width: 600px; margin: 64px auto 0; }
+  .home-stats-num { font-size: 28px; font-weight: 900; color: #fff; font-family: 'Space Mono', monospace; }
+  .home-stats-label { color: #cbd5e1; font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .home-stats-sub { color: #64748b; font-size: 11px; margin-top: 2px; }
+  .home-modes { background: rgba(30,41,59,0.5); border: 1px solid rgba(51,65,85,0.5); border-radius: 20px; padding: 24px; max-width: 600px; margin: 64px auto 0; backdrop-filter: blur(8px); }
+  .home-modes h3 { color: #fff; font-weight: 700; font-size: 13px; font-family: 'Space Mono', monospace; margin-bottom: 16px; }
+  .home-modes-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .home-mode { border: 1px solid rgba(100,116,139,0.3); border-radius: 14px; padding: 14px 12px; text-align: center; }
+  .home-mode.m1 { background: rgba(59,130,246,0.05); border-color: rgba(59,130,246,0.3); }
+  .home-mode.m2 { background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.3); }
+  .home-mode.m3 { background: rgba(34,197,94,0.05); border-color: rgba(34,197,94,0.3); }
+  .home-mode-emoji { font-size: 24px; }
+  .home-mode-name { color: #fff; font-size: 12px; font-weight: 700; margin-top: 8px; }
+  .home-mode-desc { color: #94a3b8; font-size: 11px; margin-top: 2px; }
+
+  /* ── STEP INDICATOR ── */
+  .steps-bar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; }
+  .steps-row { display: flex; align-items: center; gap: 8px; max-width: 600px; margin: 0 auto; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0; transition: all 0.3s;
+  }
+  .step-num.active { background: #f59e0b; color: #fff; }
+  .step-num.inactive { background: #e2e8f0; color: #94a3b8; }
+  .step-label { font-size: 12px; font-weight: 600; }
+  .step-label.active { color: #0f172a; }
+  .step-label.inactive { color: #94a3b8; }
+  .step-line { flex: 1; height: 2px; }
+  .step-line.active { background: #f59e0b; }
+  .step-line.inactive { background: #e2e8f0; }
+
+  /* ── FORM ELEMENTS ── */
+  .card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .form-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .form-input {
+    width: 100%; padding: 12px 16px; border-radius: 14px; border: 1px solid #e2e8f0;
+    font-size: 14px; transition: all 0.2s;
+  }
+  .form-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { margin-bottom: 16px; }
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag {
+    padding: 6px 14px; border-radius: 50px; border: 1px solid #e2e8f0;
+    font-size: 12px; color: #475569; background: #fff; transition: all 0.2s;
+  }
+  .tag:hover, .tag.selected { border-color: #f59e0b; color: #d97706; background: #fffbeb; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    width: 100%; padding: 14px; border-radius: 14px; font-size: 14px; font-weight: 700; transition: all 0.2s;
+  }
+  .btn-amber { background: #f59e0b; color: #fff; box-shadow: 0 8px 24px rgba(245,158,11,0.2); }
+  .btn-amber:hover { background: #d97706; }
+  .btn-blue { background: #2563eb; color: #fff; box-shadow: 0 8px 24px rgba(37,99,235,0.2); }
+  .btn-blue:hover { background: #1d4ed8; }
+  .btn-green { background: #16a34a; color: #fff; box-shadow: 0 8px 24px rgba(22,163,74,0.2); }
+  .btn-green:hover { background: #15803d; }
+  .btn-red-outline { background: #fef2f2; color: #b91c1c; }
+  .btn-red-outline:hover { background: #fee2e2; }
+  .btn-ghost { background: #f1f5f9; color: #475569; }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .btn-dark { background: #0f172a; color: #fff; }
+  .btn-dark:hover { background: #1e293b; }
+  .btn-outline { background: #fff; border: 1px solid #e2e8f0; color: #475569; }
+  .btn-outline:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+  .btn-row { display: flex; gap: 12px; margin-top: 16px; }
+  .btn-row .btn { flex: 1; }
+  .btn-accepted { background: #dcfce7; color: #15803d; }
+  .btn-small { padding: 10px 16px; font-size: 12px; border-radius: 14px; font-weight: 700; }
+
+  /* ── VEHICLE GRID ── */
+  .vehicle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .vehicle-card {
+    background: #fff; border-radius: 20px; border: 2px solid #e2e8f0; padding: 16px;
+    text-align: left; transition: all 0.2s;
+  }
+  .vehicle-card:hover { border-color: #cbd5e1; }
+  .vehicle-card.selected { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 8px 24px rgba(245,158,11,0.1); }
+  .vehicle-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .vehicle-card-emoji { font-size: 24px; }
+  .vehicle-card-check { background: #f59e0b; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+  .vehicle-card-name { font-weight: 700; color: #0f172a; font-size: 14px; }
+  .vehicle-card-sub { font-size: 12px; color: #94a3b8; }
+  .vehicle-card-payload { font-size: 12px; color: #d97706; font-weight: 600; margin-top: 4px; }
+
+  /* ── PRICING TIER CARDS ── */
+  .tier-card {
+    width: 100%; background: #fff; border-radius: 20px; border: 2px solid #e2e8f0; padding: 20px;
+    text-align: left; transition: all 0.2s; margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .tier-card:hover { border-color: #cbd5e1; }
+  .tier-card.selected { border-color: #f59e0b; box-shadow: 0 8px 24px rgba(245,158,11,0.1); }
+  .tier-left { display: flex; align-items: flex-start; gap: 12px; }
+  .tier-emoji { font-size: 24px; margin-top: 2px; }
+  .tier-name { font-weight: 700; color: #0f172a; font-size: 15px; }
+  .tier-badge { display: inline-block; background: #fef3c7; color: #b45309; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; margin-left: 8px; }
+  .tier-time { font-size: 13px; color: #64748b; margin-top: 2px; }
+  .tier-desc { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .tier-price { font-size: 28px; font-weight: 900; color: #0f172a; font-family: 'Space Mono', monospace; text-align: right; }
+  .tier-vat { font-size: 11px; color: #94a3b8; font-family: 'DM Sans', sans-serif; font-weight: 400; }
+  .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 10px 14px; font-size: 12px; color: #1e40af; font-weight: 500; margin-top: 12px; }
+
+  /* ── CONFIRMATION ── */
+  .confirm-icon { width: 64px; height: 64px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; }
+  .confirm-detail { background: #f8fafc; border-radius: 14px; padding: 16px; margin-top: 24px; }
+  .confirm-row { display: flex; justify-content: space-between; font-size: 14px; padding: 6px 0; }
+  .confirm-row-label { color: #64748b; }
+  .confirm-row-value { font-weight: 600; color: #0f172a; }
+  .driver-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 14px; margin-top: 16px; display: flex; align-items: center; gap: 12px; }
+  .driver-avatar { background: #2563eb; color: #fff; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .driver-name { font-weight: 700; font-size: 14px; color: #0f172a; }
+  .driver-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+  /* ── DRIVER DASHBOARD ── */
+  .driver-header {
+    background: linear-gradient(135deg, #2563eb, #4338ca); color: #fff; padding: 20px 16px;
+  }
+  .driver-header-top { display: flex; align-items: center; justify-content: space-between; max-width: 720px; margin: 0 auto; }
+  .driver-header-welcome { font-size: 13px; color: #93c5fd; }
+  .driver-header-name { font-size: 18px; font-weight: 700; }
+  .driver-stats { display: flex; gap: 24px; text-align: center; }
+  .driver-stat-num { font-size: 18px; font-weight: 900; font-family: 'Space Mono', monospace; }
+  .driver-stat-label { font-size: 11px; color: #93c5fd; }
+
+  /* ── TABS ── */
+  .tabs { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 48px; z-index: 40; }
+  .tabs-row { display: flex; max-width: 720px; margin: 0 auto; }
+  .tab {
+    flex: 1; padding: 12px 8px; font-size: 12px; font-weight: 600; text-align: center;
+    border-bottom: 2px solid transparent; color: #64748b; background: none; transition: all 0.2s;
+  }
+  .tab:hover { color: #334155; }
+  .tab.active { color: #2563eb; border-color: #2563eb; background: rgba(37,99,235,0.03); }
+  .tab-badge {
+    display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+  }
+  .tab.active .tab-badge { background: #2563eb; color: #fff; }
+  .tab:not(.active) .tab-badge { background: #e2e8f0; color: #64748b; }
+
+  /* ── LOAD FILTERS ── */
+  .filters { display: flex; gap: 8px; margin-bottom: 12px; }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 600;
+    border: 1px solid #e2e8f0; background: #fff; color: #475569; transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: #93c5fd; }
+  .filter-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* ── LOAD CARD ── */
+  .load-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 12px; transition: all 0.2s; }
+  .load-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-color: #cbd5e1; }
+  .load-body { padding: 16px; }
+  .load-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .load-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .load-badge.fixed { background: #fef3c7; color: #b45309; }
+  .load-badge.quote { background: #dbeafe; color: #1d4ed8; }
+  .load-time { font-size: 12px; color: #94a3b8; }
+  .load-price { font-size: 22px; font-weight: 900; font-family: 'Space Mono', monospace; color: #0f172a; }
+  .load-route { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .load-route-col { flex: 1; }
+  .load-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+  .load-dot.pickup { background: #22c55e; }
+  .load-dot.dropoff { background: #ef4444; }
+  .load-route-line { margin-left: 4px; border-left: 2px dashed #e2e8f0; height: 12px; }
+  .load-location { font-size: 14px; font-weight: 600; color: #0f172a; }
+  .load-dist { text-align: right; flex-shrink: 0; }
+  .load-dist-num { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .load-dist-urg { font-size: 12px; color: #94a3b8; }
+  .load-meta { font-size: 12px; color: #64748b; margin-top: 8px; }
+  .load-shipper { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .load-shipper strong { color: #475569; font-weight: 600; }
+  .load-actions { border-top: 1px solid #f1f5f9; padding: 12px 16px; background: rgba(248,250,252,0.5); display: flex; gap: 8px; }
+
+  /* ── AVAILABLE DRIVER CARD ── */
+  .avail-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 12px; transition: all 0.2s; }
+  .avail-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .avail-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .avail-driver { display: flex; align-items: center; gap: 12px; }
+  .avail-status { background: #dcfce7; color: #15803d; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+  .avail-status-dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+  .avail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .avail-tag { background: #f8fafc; border-radius: 10px; padding: 6px 8px; font-size: 12px; }
+  .avail-tag-icon { color: #94a3b8; margin-right: 2px; }
+  .avail-extra { font-size: 12px; color: #94a3b8; margin-bottom: 12px; }
+
+  /* ── ACTIVE JOB CARD ── */
+  .job-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 16px; margin-bottom: 12px; }
+  .job-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .job-status.transit { background: #dbeafe; color: #1d4ed8; }
+  .job-status.collecting { background: #fef3c7; color: #b45309; }
+  .job-status.delivered { background: #dcfce7; color: #15803d; }
+  .job-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .job-route { font-size: 14px; font-weight: 600; color: #0f172a; }
+  .job-meta { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .progress-bar { background: #f1f5f9; border-radius: 50px; height: 8px; overflow: hidden; margin-top: 12px; }
+  .progress-fill { background: #2563eb; height: 100%; border-radius: 50px; transition: width 1s ease; }
+
+  /* ── AVAILABILITY FORM ── */
+  .avail-form .form-input, .avail-form select { padding: 10px 14px; border-radius: 14px; border: 1px solid #e2e8f0; font-size: 14px; width: 100%; background: #fff; }
+  .avail-form select { appearance: auto; }
+  .live-badge {
+    display: flex; align-items: center; gap: 8px; background: #f0fdf4; border: 2px solid #bbf7d0;
+    border-radius: 20px; padding: 14px 16px; margin-top: 16px;
+  }
+  .live-dot { width: 12px; height: 12px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; flex-shrink: 0; }
+
+  /* ── QUOTE MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 60;
+    display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: #fff; border-radius: 24px 24px 0 0; width: 100%; max-width: 440px;
+    padding: 24px; animation: slideUp 0.3s ease-out;
+  }
+  .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .modal-route { background: #f8fafc; border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .modal-route-main { font-size: 14px; font-weight: 600; color: #0f172a; }
+  .modal-route-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .modal-hint { background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 10px 14px; font-size: 12px; color: #92400e; margin-bottom: 16px; }
+  .modal-price-input {
+    width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #e2e8f0;
+    font-size: 28px; font-weight: 900; text-align: center; font-family: 'Space Mono', monospace;
+    transition: border-color 0.2s;
+  }
+  .modal-price-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+  .modal-ppm { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 6px; }
+  .modal-cancel { width: 100%; background: none; color: #64748b; padding: 10px; font-size: 14px; margin-top: 8px; }
+  .modal-cancel:hover { color: #0f172a; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .home h1 { font-size: 30px; }
+    .home-cards { grid-template-columns: 1fr; }
+    .home-modes-grid { grid-template-columns: 1fr; }
+    .vehicle-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .tier-card { flex-direction: column; }
+    .tier-price { text-align: left; margin-top: 8px; }
+    .driver-stats { gap: 16px; }
+    .avail-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ NAV (hidden on home) ═══════ -->
+<nav class="navbar hidden" id="navbar">
+  <button class="navbar-brand" onclick="goHome()">
+    <div class="navbar-logo">LL</div>
+    <span class="navbar-title">LoadLink</span>
+    <span class="navbar-mvp">MVP</span>
+  </button>
+  <div style="display:flex;align-items:center;">
+    <span class="navbar-role" id="navRole"></span>
+    <button class="navbar-switch" onclick="goHome()">Switch</button>
+  </div>
+</nav>
+
+<!-- ═══════ HOME ═══════ -->
+<div id="page-home" class="home">
+  <div class="home-badge">
+    <div class="home-badge-dot"></div>
+    <span class="home-badge-text">MVP PHASE 1 — LIVE PROTOTYPE</span>
+  </div>
+  <h1>Transport booked in<br><span>under 60 seconds.</span></h1>
+  <p class="home-sub">The UK's first platform connecting businesses directly to drivers. No middlemen. No phone calls. Just tap, book, deliver.</p>
+  <div class="home-cards">
+    <button class="home-card biz" onclick="openBusiness()">
+      <div class="home-card-circle"></div>
+      <span class="home-card-emoji">🏭</span>
+      <h2>I Need Transport</h2>
+      <p>Book a driver in seconds. See instant prices. Track live delivery.</p>
+      <div class="home-card-arrow">Start booking →</div>
+    </button>
+    <button class="home-card drv" onclick="openDriver()">
+      <div class="home-card-circle"></div>
+      <span class="home-card-emoji">🚐</span>
+      <h2>I'm a Driver</h2>
+      <p>Find loads. Accept jobs instantly. Post your availability. Get paid.</p>
+      <div class="home-card-arrow">Open dashboard →</div>
+    </button>
+  </div>
+  <div class="home-stats">
+    <div><div class="home-stats-num">3</div><div class="home-stats-label">Booking modes</div><div class="home-stats-sub">Quote · Fixed · Availability</div></div>
+    <div><div class="home-stats-num">60s</div><div class="home-stats-label">Avg booking time</div><div class="home-stats-sub">Business to driver confirmed</div></div>
+    <div><div class="home-stats-num">£0</div><div class="home-stats-label">No membership</div><div class="home-stats-sub">Businesses pay per booking</div></div>
+  </div>
+  <div class="home-modes">
+    <h3>3 WAYS TO DO BUSINESS</h3>
+    <div class="home-modes-grid">
+      <div class="home-mode m1"><div class="home-mode-emoji">💬</div><div class="home-mode-name">Get Quotes</div><div class="home-mode-desc">Post load, drivers bid</div></div>
+      <div class="home-mode m2"><div class="home-mode-emoji">⚡</div><div class="home-mode-name">Fixed Price</div><div class="home-mode-desc">Set price, instant accept</div></div>
+      <div class="home-mode m3"><div class="home-mode-emoji">📍</div><div class="home-mode-name">Find Drivers</div><div class="home-mode-desc">Browse available drivers</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ BUSINESS BOOKING ═══════ -->
+<div id="page-business" class="hidden" style="min-height:100vh;background:#f8fafc;">
+  <!-- Steps bar -->
+  <div class="steps-bar">
+    <div class="steps-row" id="stepsRow"></div>
+  </div>
+  <div class="container" style="padding-top:24px;padding-bottom:40px;">
+    <!-- Step panels rendered by JS -->
+    <div id="biz-step-0"></div>
+    <div id="biz-step-1" class="hidden"></div>
+    <div id="biz-step-2" class="hidden"></div>
+    <div id="biz-step-3" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ═══════ DRIVER DASHBOARD ═══════ -->
+<div id="page-driver" class="hidden" style="min-height:100vh;background:#f1f5f9;">
+  <div class="driver-header">
+    <div class="driver-header-top">
+      <div>
+        <div class="driver-header-welcome">Welcome back</div>
+        <div class="driver-header-name">James Mitchell</div>
+      </div>
+      <div class="driver-stats">
+        <div><div class="driver-stat-num">⭐ 4.9</div><div class="driver-stat-label">Rating</div></div>
+        <div><div class="driver-stat-num">312</div><div class="driver-stat-label">Jobs</div></div>
+        <div><div class="driver-stat-num">£847</div><div class="driver-stat-label">This week</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tabs-row">
+      <button class="tab active" data-tab="loads" onclick="switchTab('loads')">🔍 Find Loads <span class="tab-badge">7</span></button>
+      <button class="tab" data-tab="active" onclick="switchTab('active')">📋 Active <span class="tab-badge">2</span></button>
+      <button class="tab" data-tab="availability" onclick="switchTab('availability')">📍 Availability</button>
+      <button class="tab" data-tab="drivers" onclick="switchTab('drivers')">👥 Drivers</button>
+    </div>
+  </div>
+  <div class="container" style="padding-top:16px;padding-bottom:40px;">
+    <div id="tab-loads"></div>
+    <div id="tab-active" class="hidden"></div>
+    <div id="tab-availability" class="hidden"></div>
+    <div id="tab-drivers" class="hidden"></div>
+  </div>
+</div>
+
+<!-- ═══════ QUOTE MODAL ═══════ -->
+<div id="quoteModal" class="modal-overlay hidden" onclick="closeQuoteModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3>Send Quote</h3>
+    <div class="modal-route">
+      <div class="modal-route-main" id="qmRoute"></div>
+      <div class="modal-route-sub" id="qmMeta"></div>
+    </div>
+    <div class="modal-hint" id="qmHint"></div>
+    <div class="form-group">
+      <label class="form-label">Your price (£)</label>
+      <input type="number" class="modal-price-input" id="qmPrice" placeholder="0" oninput="updatePPM()">
+      <div class="modal-ppm" id="qmPPM"></div>
+    </div>
+    <button class="btn btn-blue" id="qmSubmit" style="margin-top:12px;" onclick="submitQuote()">Enter your price</button>
+    <button class="modal-cancel" onclick="closeQuoteModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══════ TOAST ═══════ -->
+<div id="toast" class="toast hidden"><span class="tick">✓</span><span id="toastMsg"></span></div>
+
+<script>
+/* ═══════════════════════════════════
+   DATA
+═══════════════════════════════════ */
+const VEHICLES = [
+  { id:"small", name:"Small Van", icon:"🚗", example:"Caddy / Berlingo", payload:"600kg", rate:1.0 },
+  { id:"swb", name:"SWB Van", icon:"🚐", example:"Transit Custom", payload:"1,000kg", rate:1.15 },
+  { id:"lwb", name:"LWB Van", icon:"🚐", example:"Sprinter / Crafter", payload:"1,200kg", rate:1.30 },
+  { id:"xlwb", name:"XLWB Van", icon:"🚐", example:"Sprinter XLWB", payload:"1,400kg", rate:1.45 },
+  { id:"luton", name:"Luton Van", icon:"📦", example:"Box + tail lift", payload:"1,500kg", rate:1.60 },
+  { id:"7_5t", name:"7.5t Truck", icon:"🚛", example:"With tail lift", payload:"3,500kg", rate:2.10 },
+];
+
+const LOADS = [
+  { id:1, type:"quote", from:"Birmingham B1", to:"Manchester M1", vehicle:"small", weight:"25kg", desc:"2 boxes car parts", distance:86, urgency:"Within 2hrs", shipper:"AutoFix Ltd", time:"12 mins ago", quotes:2, budget:null },
+  { id:2, type:"fixed", from:"London EC2", to:"Bristol BS1", vehicle:"lwb", weight:"400kg", desc:"8 pallets office equipment", distance:119, urgency:"Same day", shipper:"Relocate Pro", time:"3 mins ago", quotes:0, budget:155 },
+  { id:3, type:"fixed", from:"Leeds LS1", to:"Sheffield S1", vehicle:"small", weight:"15kg", desc:"Legal documents — urgent", distance:35, urgency:"Within 60 mins", shipper:"Clarke & Partners", time:"Just now", quotes:0, budget:52 },
+  { id:4, type:"quote", from:"Glasgow G1", to:"Edinburgh EH1", vehicle:"swb", weight:"200kg", desc:"Medical equipment", distance:47, urgency:"Within 3hrs", shipper:"NHS Supply Chain", time:"8 mins ago", quotes:5, budget:null },
+  { id:5, type:"fixed", from:"Nottingham NG1", to:"London NW1", vehicle:"luton", weight:"800kg", desc:"Exhibition stand + materials", distance:128, urgency:"Tomorrow 8am", shipper:"EventCraft UK", time:"22 mins ago", quotes:0, budget:210 },
+  { id:6, type:"quote", from:"Liverpool L1", to:"Birmingham B4", vehicle:"swb", weight:"150kg", desc:"Printing supplies", distance:99, urgency:"Same day", shipper:"PrintHouse NW", time:"15 mins ago", quotes:1, budget:null },
+  { id:7, type:"fixed", from:"Cardiff CF1", to:"Bristol BS2", vehicle:"small", weight:"10kg", desc:"Server hardware", distance:44, urgency:"ASAP", shipper:"TechOps Wales", time:"1 min ago", quotes:0, budget:68 },
+];
+
+const DRIVERS = [
+  { id:1, name:"James M.", rating:4.9, jobs:312, vehicle:"LWB Sprinter", location:"London SE1", heading:"Leeds LS1", range:"200 miles", hours:"5hrs left", rate:"£1.10/mile", avatar:"JM" },
+  { id:2, name:"Sarah K.", rating:4.8, jobs:189, vehicle:"Small Van", location:"Manchester M4", heading:"Liverpool L1", range:"100 miles", hours:"3hrs left", rate:"£1.20/mile", avatar:"SK" },
+  { id:3, name:"Dave P.", rating:4.7, jobs:547, vehicle:"Luton + Tail Lift", location:"Birmingham B5", heading:"Anywhere", range:"150 miles", hours:"6hrs left", rate:"£1.50/mile", avatar:"DP" },
+];
+
+const ACTIVE_JOBS = [
+  { id:101, from:"London EC1", to:"Cambridge CB1", status:"transit", driver:"Mike R.", vehicle:"SWB Van", eta:"14:32", progress:65, shipper:"BioLab UK" },
+  { id:102, from:"Leeds LS2", to:"York YO1", status:"collecting", driver:"You", vehicle:"LWB Sprinter", eta:"11:45", progress:15, shipper:"Yorkshire Print" },
+  { id:103, from:"Bristol BS1", to:"London SW1", status:"delivered", driver:"You", vehicle:"LWB Sprinter", eta:"Delivered", progress:100, shipper:"West Legal LLP" },
+];
+
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+let currentPage = "home";
+let bizStep = 0;
+let selectedVehicle = "small";
+let selectedTier = "standard";
+let loadFilter = "all";
+let availPosted = false;
+let acceptedJobs = {};
+let quoteLoadId = null;
+
+/* ═══════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════ */
+function showPage(id) {
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page-' + id).classList.remove('hidden');
+  document.getElementById('navbar').classList.toggle('hidden', id === 'home');
+  currentPage = id;
+  window.scrollTo(0, 0);
+}
+
+function goHome() { showPage('home'); }
+
+function openBusiness() {
+  bizStep = 0; selectedVehicle = "small"; selectedTier = "standard";
+  document.getElementById('navRole').className = 'navbar-role business';
+  document.getElementById('navRole').textContent = '🏭 Business';
+  showPage('business');
+  renderBizSteps();
+  renderBizContent();
+}
+
+function openDriver() {
+  document.getElementById('navRole').className = 'navbar-role driver';
+  document.getElementById('navRole').textContent = '🚐 Driver';
+  showPage('driver');
+  switchTab('loads');
+}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.remove('hidden');
+  setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+/* ═══════════════════════════════════
+   BUSINESS — STEP BAR
+═══════════════════════════════════ */
+function renderBizSteps() {
+  const labels = ["Details", "Vehicle", "Price & Book", "Confirmed"];
+  let html = '';
+  labels.forEach((l, i) => {
+    const active = i <= bizStep;
+    html += `<div class="step-num ${active ? 'active' : 'inactive'}">${i + 1}</div>`;
+    html += `<span class="step-label ${active ? 'active' : 'inactive'}">${l}</span>`;
+    if (i < 3) html += `<div class="step-line ${i < bizStep ? 'active' : 'inactive'}" style="flex:1;"></div>`;
+  });
+  document.getElementById('stepsRow').innerHTML = html;
+}
+
+/* ═══════════════════════════════════
+   BUSINESS — CONTENT
+═══════════════════════════════════ */
+function renderBizContent() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('biz-step-' + i).classList.toggle('hidden', i !== bizStep);
+  }
+
+  if (bizStep === 0) renderBizStep0();
+  if (bizStep === 1) renderBizStep1();
+  if (bizStep === 2) renderBizStep2();
+  if (bizStep === 3) renderBizStep3();
+}
+
+function calcPrice(dist, vehicleId, tier) {
+  const v = VEHICLES.find(x => x.id === vehicleId) || VEHICLES[0];
+  const mult = { economy: 0.8, standard: 1, express: 1.25 };
+  return Math.round(dist * v.rate * (mult[tier] || 1));
+}
+
+function renderBizStep0() {
+  document.getElementById('biz-step-0').innerHTML = `
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">What do you need delivered?</h2>
+    <p style="font-size:14px;color:#64748b;margin-bottom:16px;">Just tell us the basics — we'll handle the rest</p>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="form-group">
+        <label class="form-label">What are you sending?</label>
+        <input class="form-input" id="bizDesc" placeholder="e.g. 2 boxes of car parts, approx 25kg">
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Pickup location</label><input class="form-input" id="bizFrom" placeholder="Postcode or address"></div>
+        <div class="form-group"><label class="form-label">Deliver to</label><input class="form-input" id="bizTo" placeholder="Postcode or address"></div>
+      </div>
+      <div class="tag-row">
+        <button class="tag" onclick="this.classList.toggle('selected')">Tail lift needed</button>
+        <button class="tag" onclick="this.classList.toggle('selected')">Fragile</button>
+        <button class="tag" onclick="this.classList.toggle('selected')">2-man required</button>
+        <button class="tag" onclick="this.classList.toggle('selected')">Temperature controlled</button>
+      </div>
+    </div>
+    <button class="btn btn-amber" onclick="bizStep=1;renderBizSteps();renderBizContent();">Continue →</button>
+  `;
+}
+
+function renderBizStep1() {
+  let html = `
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Choose a vehicle</h2>
+    <p style="font-size:14px;color:#64748b;margin-bottom:16px;">We recommend <strong style="color:#d97706;">Small Van</strong> for your items</p>
+    <div class="vehicle-grid">`;
+  VEHICLES.forEach(v => {
+    const sel = selectedVehicle === v.id;
+    html += `
+      <button class="vehicle-card ${sel ? 'selected' : ''}" onclick="selectedVehicle='${v.id}';renderBizStep1();">
+        <div class="vehicle-card-top">
+          <span class="vehicle-card-emoji">${v.icon}</span>
+          ${sel ? '<span class="vehicle-card-check">✓</span>' : ''}
+        </div>
+        <div class="vehicle-card-name">${v.name}</div>
+        <div class="vehicle-card-sub">${v.example}</div>
+        <div class="vehicle-card-payload">Up to ${v.payload}</div>
+      </button>`;
+  });
+  html += `</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="bizStep=0;renderBizSteps();renderBizContent();">← Back</button>
+      <button class="btn btn-amber" onclick="bizStep=2;renderBizSteps();renderBizContent();">Continue →</button>
+    </div>`;
+  document.getElementById('biz-step-1').innerHTML = html;
+}
+
+function renderBizStep2() {
+  const d = 86;
+  const tiers = [
+    { id:"economy", label:"Economy", time:"By 6pm today", icon:"🕐", desc:"Flexible window — cheapest option", price:calcPrice(d,selectedVehicle,"economy") },
+    { id:"standard", label:"Standard", time:"Within 2 hours", icon:"🚐", desc:"Recommended — great balance", price:calcPrice(d,selectedVehicle,"standard"), rec:true },
+    { id:"express", label:"Express", time:"Within 60 mins", icon:"⚡", desc:"Fastest — collection within the hour", price:calcPrice(d,selectedVehicle,"express") },
+  ];
+  const vName = VEHICLES.find(v=>v.id===selectedVehicle)?.name || "Van";
+  let html = `
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Choose your service</h2>
+    <p style="font-size:14px;color:#64748b;margin-bottom:16px;">Birmingham B1 → Manchester M1 · ~${d} miles · ${vName}</p>`;
+  tiers.forEach(t => {
+    const sel = selectedTier === t.id;
+    html += `
+      <button class="tier-card ${sel ? 'selected' : ''}" onclick="selectedTier='${t.id}';renderBizStep2();">
+        <div class="tier-left">
+          <span class="tier-emoji">${t.icon}</span>
+          <div>
+            <div><span class="tier-name">${t.label}</span>${t.rec ? '<span class="tier-badge">Recommended</span>' : ''}</div>
+            <div class="tier-time">${t.time}</div>
+            <div class="tier-desc">${t.desc}</div>
+          </div>
+        </div>
+        <div><div class="tier-price">£${t.price}</div><div class="tier-vat">inc. VAT</div></div>
+      </button>`;
+  });
+  const driversNear = selectedTier === "express" ? 4 : selectedTier === "standard" ? 7 : 12;
+  const estTime = selectedTier === "express" ? "35 mins" : selectedTier === "standard" ? "1hr 15mins" : "Flexible";
+  const price = calcPrice(d, selectedVehicle, selectedTier);
+  html += `
+    <div class="info-box">🚐 ${driversNear} drivers available near pickup · Estimated collection: ${estTime}</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="bizStep=1;renderBizSteps();renderBizContent();">← Back</button>
+      <button class="btn btn-amber" onclick="bizStep=3;renderBizSteps();renderBizContent();showToast('Booking confirmed! Driver assigned.');">Book Now — £${price}</button>
+    </div>`;
+  document.getElementById('biz-step-2').innerHTML = html;
+}
+
+function renderBizStep3() {
+  const d = 86; const price = calcPrice(d, selectedVehicle, selectedTier);
+  const vName = VEHICLES.find(v=>v.id===selectedVehicle)?.name || "Van";
+  const tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+  const tierTime = selectedTier === "express" ? "Within 60 mins" : selectedTier === "standard" ? "Within 2 hours" : "By 6pm";
+  document.getElementById('biz-step-3').innerHTML = `
+    <div class="card" style="text-align:center;">
+      <div class="confirm-icon">✅</div>
+      <h2 style="font-size:20px;font-weight:700;">Booking Confirmed!</h2>
+      <p style="font-size:14px;color:#64748b;">Job #LL-2026-0847</p>
+      <div class="confirm-detail">
+        <div class="confirm-row"><span class="confirm-row-label">Route</span><span class="confirm-row-value">Birmingham B1 → Manchester M1</span></div>
+        <div class="confirm-row"><span class="confirm-row-label">Vehicle</span><span class="confirm-row-value">${vName}</span></div>
+        <div class="confirm-row"><span class="confirm-row-label">Service</span><span class="confirm-row-value">${tierLabel} — ${tierTime}</span></div>
+        <div class="confirm-row"><span class="confirm-row-label">Price</span><span class="confirm-row-value" style="font-weight:900;">£${price}</span></div>
+      </div>
+      <div class="driver-card">
+        <div class="driver-avatar">DP</div>
+        <div>
+          <div class="driver-name">Dave P. assigned ⭐ 4.7</div>
+          <div class="driver-meta">Luton + Tail Lift · 547 jobs completed · ETA pickup: 14:22</div>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:20px;">
+        <button class="btn btn-dark btn-small">📍 Track Live</button>
+        <button class="btn btn-ghost btn-small">🔗 Share Link</button>
+      </div>
+    </div>
+    <button class="btn btn-amber" style="margin-top:16px;" onclick="openBusiness();">Book Another Delivery</button>`;
+}
+
+/* ═══════════════════════════════════
+   DRIVER — TABS
+═══════════════════════════════════ */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+  ['loads','active','availability','drivers'].forEach(id => {
+    document.getElementById('tab-' + id).classList.toggle('hidden', id !== tabId);
+  });
+  if (tabId === 'loads') renderLoads();
+  if (tabId === 'active') renderActiveJobs();
+  if (tabId === 'availability') renderAvailability();
+  if (tabId === 'drivers') renderDrivers();
+}
+
+/* ── LOADS ── */
+function renderLoads() {
+  const filtered = loadFilter === 'all' ? LOADS : LOADS.filter(l => l.type === loadFilter);
+  let html = `<div class="filters">
+    <button class="filter-btn ${loadFilter==='all'?'active':''}" onclick="loadFilter='all';renderLoads();">All loads</button>
+    <button class="filter-btn ${loadFilter==='fixed'?'active':''}" onclick="loadFilter='fixed';renderLoads();">⚡ Fixed price</button>
+    <button class="filter-btn ${loadFilter==='quote'?'active':''}" onclick="loadFilter='quote';renderLoads();">💬 Quotes</button>
+  </div>`;
+
+  filtered.forEach(l => {
+    const v = VEHICLES.find(x => x.id === l.vehicle) || VEHICLES[0];
+    const accepted = acceptedJobs[l.id];
+    html += `
+    <div class="load-card">
+      <div class="load-body">
+        <div class="load-top">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="load-badge ${l.type}">${l.type === 'fixed' ? '⚡ FIXED PRICE' : '💬 QUOTE'}</span>
+            <span class="load-time">${l.time}</span>
+          </div>
+          ${l.type === 'fixed' ? `<span class="load-price">£${l.budget}</span>` : `<span class="load-time">${l.quotes} quotes</span>`}
+        </div>
+        <div class="load-route">
+          <div class="load-route-col">
+            <div><span class="load-dot pickup"></span><span class="load-location">${l.from}</span></div>
+            <div class="load-route-line"></div>
+            <div><span class="load-dot dropoff"></span><span class="load-location">${l.to}</span></div>
+          </div>
+          <div class="load-dist"><div class="load-dist-num">${l.distance} mi</div><div class="load-dist-urg">${l.urgency}</div></div>
+        </div>
+        <div class="load-meta">${v.icon} ${v.name} · ${l.weight} · ${l.desc}</div>
+        <div class="load-shipper">Posted by: <strong>${l.shipper}</strong></div>
+      </div>
+      <div class="load-actions">
+        ${l.type === 'fixed' ? `
+          <button class="btn btn-small ${accepted ? 'btn-accepted' : 'btn-amber'}" style="flex:1;" onclick="acceptLoad(${l.id},${l.budget},'${l.from}','${l.to}')">${accepted ? '✓ Accepted' : `Accept — £${l.budget}`}</button>
+          ${!accepted ? `<button class="btn btn-small btn-outline" style="flex:0;">Counter Offer</button>` : ''}
+        ` : `
+          <button class="btn btn-small btn-blue" style="flex:1;" onclick="openQuoteModal(${l.id})">Send Quote</button>
+          <button class="btn btn-small btn-outline" style="flex:0;">Details</button>
+        `}
+      </div>
+    </div>`;
+  });
+  document.getElementById('tab-loads').innerHTML = html;
+}
+
+function acceptLoad(id, budget, from, to) {
+  if (acceptedJobs[id]) return;
+  acceptedJobs[id] = true;
+  showToast(`Job accepted! £${budget} — ${from} → ${to}`);
+  renderLoads();
+}
+
+/* ── QUOTE MODAL ── */
+function openQuoteModal(loadId) {
+  quoteLoadId = loadId;
+  const l = LOADS.find(x => x.id === loadId);
+  const v = VEHICLES.find(x => x.id === l.vehicle) || VEHICLES[0];
+  document.getElementById('qmRoute').textContent = `${l.from} → ${l.to}`;
+  document.getElementById('qmMeta').textContent = `${l.distance} mi · ${v.name} · ${l.desc}`;
+  document.getElementById('qmHint').innerHTML = `💡 Average rate for this route: <strong>£${Math.round(l.distance*0.95)}-£${Math.round(l.distance*1.15)}</strong>`;
+  document.getElementById('qmPrice').value = '';
+  document.getElementById('qmPPM').textContent = '';
+  document.getElementById('qmSubmit').textContent = 'Enter your price';
+  document.getElementById('quoteModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('qmPrice').focus(), 100);
+}
+
+function closeQuoteModal() { document.getElementById('quoteModal').classList.add('hidden'); quoteLoadId = null; }
+
+function updatePPM() {
+  const price = parseFloat(document.getElementById('qmPrice').value);
+  const l = LOADS.find(x => x.id === quoteLoadId);
+  if (price && l) {
+    document.getElementById('qmPPM').textContent = `£${(price / l.distance).toFixed(2)}/mile`;
+    document.getElementById('qmSubmit').textContent = `Send Quote — £${price}`;
+  } else {
+    document.getElementById('qmPPM').textContent = '';
+    document.getElementById('qmSubmit').textContent = 'Enter your price';
+  }
+}
+
+function submitQuote() {
+  const price = document.getElementById('qmPrice').value;
+  const l = LOADS.find(x => x.id === quoteLoadId);
+  if (price && l) { showToast(`Quote of £${price} sent to ${l.shipper}`); closeQuoteModal(); }
+}
+
+/* ── ACTIVE JOBS ── */
+function renderActiveJobs() {
+  let html = '';
+  ACTIVE_JOBS.forEach(j => {
+    const stLabel = j.status === 'transit' ? '🚐 In Transit' : j.status === 'collecting' ? '📦 Collecting' : '✅ Delivered';
+    const stClass = j.status === 'transit' ? 'transit' : j.status === 'collecting' ? 'collecting' : 'delivered';
+    const btnLabel = j.status === 'collecting' ? 'Confirm Collection' : 'Mark Delivered';
+    html += `
+    <div class="job-card">
+      <div class="job-top">
+        <span class="job-status ${stClass}">${stLabel}</span>
+        <span style="font-size:12px;color:#94a3b8;">ETA: ${j.eta}</span>
+      </div>
+      <div class="job-route">${j.from} <span style="color:#cbd5e1;">→</span> ${j.to}</div>
+      <div class="job-meta">${j.shipper} · ${j.vehicle}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${j.progress}%"></div></div>
+      ${j.status !== 'delivered' ? `
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-small btn-green" style="flex:1;">${btnLabel}</button>
+          <button class="btn btn-small btn-outline" style="flex:0;">Contact</button>
+        </div>` : ''}
+    </div>`;
+  });
+  document.getElementById('tab-active').innerHTML = html;
+}
+
+/* ── AVAILABILITY ── */
+function renderAvailability() {
+  document.getElementById('tab-availability').innerHTML = `
+    <div class="card avail-form">
+      <h3 style="font-weight:700;font-size:15px;margin-bottom:4px;">Post Your Availability</h3>
+      <p style="font-size:12px;color:#64748b;margin-bottom:16px;">Let shippers know you're available. They can book you directly.</p>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-group"><label class="form-label">Current location</label><input class="form-input" value="Leeds LS1"></div>
+        <div class="form-group"><label class="form-label">Heading to</label><input class="form-input" value="Anywhere"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px;">
+        <div class="form-group"><label class="form-label">Vehicle</label><select class="form-input">${VEHICLES.map(v=>`<option>${v.icon} ${v.name}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Max range</label><select class="form-input">${[50,100,150,200,250,300].map(m=>`<option>${m} miles</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row" style="margin-bottom:16px;">
+        <div class="form-group"><label class="form-label">Hours available</label><select class="form-input">${["1-2 hours","2-3 hours","3-4 hours","4-5 hours","5-6 hours","Full day"].map(h=>`<option>${h}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Your rate (£/mile)</label><input class="form-input" value="1.10"></div>
+      </div>
+      <button class="btn ${availPosted ? 'btn-red-outline' : 'btn-green'}" onclick="toggleAvail()">
+        ${availPosted ? '🔴 Remove Availability' : '🟢 Go Available'}
+      </button>
+    </div>
+    ${availPosted ? `
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      <div>
+        <strong style="color:#15803d;font-size:14px;">You're Live!</strong>
+        <p style="font-size:12px;color:#16a34a;margin-top:2px;">Shippers can now see you and book directly. You'll get a notification.</p>
+      </div>
+    </div>` : ''}`;
+}
+
+function toggleAvail() {
+  availPosted = !availPosted;
+  showToast(availPosted ? "Availability posted! Shippers can now find you." : "Availability removed");
+  renderAvailability();
+}
+
+/* ── BROWSE DRIVERS ── */
+function renderDrivers() {
+  let html = '<p style="font-size:12px;color:#64748b;margin-bottom:12px;">Browse drivers currently available (this is what shippers/businesses see)</p>';
+  DRIVERS.forEach(d => {
+    html += `
+    <div class="avail-card">
+      <div class="avail-top">
+        <div class="avail-driver">
+          <div class="driver-avatar">${d.avatar}</div>
+          <div>
+            <div class="driver-name">${d.name} ⭐ ${d.rating}</div>
+            <div class="driver-meta">${d.jobs} jobs · ${d.vehicle}</div>
+          </div>
+        </div>
+        <span class="avail-status"><span class="avail-status-dot"></span>Available</span>
+      </div>
+      <div class="avail-grid">
+        <div class="avail-tag"><span class="avail-tag-icon">📍</span> ${d.location}</div>
+        <div class="avail-tag"><span class="avail-tag-icon">🏠</span> ${d.heading}</div>
+        <div class="avail-tag"><span class="avail-tag-icon">💰</span> ${d.rate}</div>
+      </div>
+      <div class="avail-extra">⏰ ${d.hours} · 📏 ${d.range}</div>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn btn-small btn-blue" style="flex:1;">Book at ${d.rate}</button>
+        <button class="btn btn-small btn-outline" style="flex:1;">Send Offer</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('tab-drivers').innerHTML = html;
+}
+</script>
+</body>
+</html>

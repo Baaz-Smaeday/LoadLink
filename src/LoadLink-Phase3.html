@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink — Phase 3</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700;9..40,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f1f5f9;color:#0f172a;-webkit-font-smoothing:antialiased}
+input,select,button,textarea{font-family:inherit}
+button{cursor:pointer;border:none}
+input,select,textarea{outline:none}
+.mono{font-family:'Space Mono',monospace}
+.hidden{display:none!important}
+
+/* NAV */
+.nav{background:#020617;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand{display:flex;align-items:center;gap:8px;background:none;color:#fff}
+.nav-logo{background:#f59e0b;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#020617;font-size:12px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.nav-role.biz{background:rgba(245,158,11,0.15);color:#fbbf24}
+.nav-role.drv{background:rgba(59,130,246,0.15);color:#60a5fa}
+.notif-btn{position:relative;background:none;color:#94a3b8;font-size:20px;padding:4px}
+.notif-btn:hover{color:#fff}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid #020617}
+.nav-switch{font-size:11px;color:#94a3b8;background:none;padding:4px 8px;border-radius:6px}
+.nav-switch:hover{color:#fff;background:#1e293b}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:#0f172a;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 16px 40px rgba(0,0,0,0.3);border:1px solid #334155;animation:su .3s ease}
+@keyframes su{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* SHARED */
+.container{max-width:720px;margin:0 auto;padding:0 16px}
+.card{background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px}
+.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:13px;color:#64748b;margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.form-input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #e2e8f0;font-size:14px;transition:.2s}
+.form-input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.15)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;border-radius:12px;font-size:13px;font-weight:700;transition:.2s}
+.btn-amber{background:#f59e0b;color:#fff;box-shadow:0 6px 20px rgba(245,158,11,0.2)}
+.btn-amber:hover{background:#d97706}
+.btn-blue{background:#2563eb;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,0.2)}
+.btn-blue:hover{background:#1d4ed8}
+.btn-green{background:#16a34a;color:#fff}
+.btn-green:hover{background:#15803d}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-dark:hover{background:#1e293b}
+.btn-ghost{background:#f1f5f9;color:#475569}
+.btn-ghost:hover{background:#e2e8f0}
+.btn-outline{background:#fff;border:1px solid #e2e8f0;color:#475569}
+.btn-outline:hover{border-color:#2563eb;color:#2563eb}
+.btn-purple{background:#7c3aed;color:#fff}
+.btn-purple:hover{background:#6d28d9}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-row .btn{flex:1}
+.btn-sm{padding:9px 14px;font-size:12px;border-radius:12px;font-weight:700;width:auto}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-amber{background:#fef3c7;color:#b45309}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
+
+/* HOME */
+.home{min-height:100vh;padding:60px 20px 40px;background:linear-gradient(135deg,#0f172a,#1e1b4b 40%,#0f172a);text-align:center}
+.home h1{font-size:38px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:12px;letter-spacing:-1px}
+.home h1 span{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-sub{color:#94a3b8;font-size:16px;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6}
+.home-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:50px;padding:5px 14px;margin-bottom:28px}
+.home-badge-dot{width:7px;height:7px;background:#fbbf24;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:560px;margin:0 auto}
+.hcard{position:relative;border-radius:18px;padding:24px 20px;text-align:left;overflow:hidden;transition:.3s;color:#fff}
+.hcard:hover{transform:scale(1.02)}
+.hcard.biz{background:linear-gradient(135deg,#f59e0b,#ea580c);box-shadow:0 16px 32px rgba(245,158,11,0.2)}
+.hcard.drv{background:linear-gradient(135deg,#2563eb,#4338ca);box-shadow:0 16px 32px rgba(37,99,235,0.2)}
+.hcard-emoji{font-size:32px;margin-bottom:10px;display:block}
+.hcard h2{font-size:17px;font-weight:700;margin-bottom:4px}
+.hcard p{font-size:12px;opacity:.8;line-height:1.5}
+.hcard-arrow{margin-top:14px;font-size:12px;font-weight:600;opacity:.9}
+.home-phase{display:inline-flex;align-items:center;gap:6px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:50px;padding:5px 14px;margin-bottom:12px}
+.home-phase span{color:#a78bfa;font-size:11px;font-weight:600;letter-spacing:.5px;font-family:'Space Mono',monospace}
+
+/* DRIVER HEADER */
+.drv-header{background:linear-gradient(135deg,#2563eb,#4338ca);color:#fff;padding:16px}
+.drv-header-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.drv-stats{display:flex;gap:20px;text-align:center}
+.drv-stat-n{font-size:16px;font-weight:900;font-family:'Space Mono',monospace}
+.drv-stat-l{font-size:10px;color:#93c5fd}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:42px;z-index:40;overflow-x:auto}
+.tabs-row{display:flex;max-width:720px;margin:0 auto}
+.tab{flex:none;padding:10px 10px;font-size:11px;font-weight:600;text-align:center;border-bottom:2px solid transparent;color:#64748b;background:none;transition:.2s;white-space:nowrap}
+.tab:hover{color:#334155}
+.tab.active{color:#2563eb;border-color:#2563eb;background:rgba(37,99,235,0.03)}
+.tab-badge{display:inline-block;margin-left:3px;padding:1px 5px;border-radius:20px;font-size:10px;font-weight:700}
+.tab.active .tab-badge{background:#2563eb;color:#fff}
+.tab:not(.active) .tab-badge{background:#e2e8f0;color:#64748b}
+
+/* STEPS */
+.steps-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px}
+.steps-row{display:flex;align-items:center;gap:6px;max-width:600px;margin:0 auto}
+.step-n{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:.3s}
+.step-n.on{background:#f59e0b;color:#fff}
+.step-n.off{background:#e2e8f0;color:#94a3b8}
+.step-lbl{font-size:11px;font-weight:600}
+.step-lbl.on{color:#0f172a}
+.step-lbl.off{color:#94a3b8}
+.step-line{flex:1;height:2px}
+.step-line.on{background:#f59e0b}
+.step-line.off{background:#e2e8f0}
+
+/* VEHICLE GRID */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcard{background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:14px;text-align:left;transition:.2s}
+.vcard:hover{border-color:#cbd5e1}
+.vcard.sel{border-color:#f59e0b;background:#fffbeb;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+
+/* TIER */
+.tier{width:100%;background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:18px;text-align:left;transition:.2s;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between}
+.tier:hover{border-color:#cbd5e1}
+.tier.sel{border-color:#f59e0b;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+.tier-left{display:flex;align-items:flex-start;gap:10px}
+.tier-price{font-size:26px;font-weight:900;font-family:'Space Mono',monospace;color:#0f172a;text-align:right}
+
+/* LOAD CARD */
+.lcard{background:#fff;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:10px;transition:.2s}
+.lcard:hover{box-shadow:0 4px 14px rgba(0,0,0,0.06)}
+.lcard-body{padding:14px}
+.lcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.lcard-actions{border-top:1px solid #f1f5f9;padding:10px 14px;background:rgba(248,250,252,0.5);display:flex;gap:8px}
+
+/* TRACKING */
+.track-map{background:linear-gradient(135deg,#e0f2fe,#dbeafe);border-radius:18px;border:2px solid #93c5fd;height:240px;position:relative;overflow:hidden;margin-bottom:12px}
+.track-route{position:absolute;top:50%;left:10%;right:10%;height:3px;background:#93c5fd;border-radius:2px;transform:translateY(-50%)}
+.track-route-done{position:absolute;top:0;left:0;height:100%;background:#2563eb;border-radius:2px;transition:width 1s}
+.track-pin-a,.track-pin-b{position:absolute;top:50%;transform:translate(-50%,-100%);font-size:24px}
+.track-pin-a{left:10%}
+.track-pin-b{right:10%;left:auto;transform:translate(50%,-100%)}
+.track-van{position:absolute;top:50%;transform:translate(-50%,-130%);font-size:28px;transition:left 1s}
+.track-label{position:absolute;bottom:10px;font-size:10px;font-weight:600;background:#fff;padding:3px 8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.track-label-a{left:10%;transform:translateX(-30%)}
+.track-label-b{right:10%;transform:translateX(30%)}
+.track-eta{position:absolute;top:10px;right:10px;background:#0f172a;color:#fff;padding:6px 12px;border-radius:10px;font-size:12px;font-weight:700;font-family:'Space Mono',monospace}
+.track-status-bar{display:flex;gap:4px;margin-bottom:14px}
+.track-step{flex:1;text-align:center;padding:8px 4px;border-radius:10px;font-size:10px;font-weight:600}
+.track-step.done{background:#dcfce7;color:#15803d}
+.track-step.current{background:#2563eb;color:#fff}
+.track-step.pending{background:#f1f5f9;color:#94a3b8}
+
+/* CHARTS */
+.chart-wrap{position:relative;height:200px;background:#f8fafc;border-radius:14px;border:1px solid #e2e8f0;padding:12px;margin-bottom:12px;overflow:hidden}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px}
+.chart-bar{flex:1;border-radius:6px 6px 0 0;transition:height .6s ease;position:relative;min-width:0}
+.chart-bar:hover{filter:brightness(1.1)}
+.chart-bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:#94a3b8;white-space:nowrap}
+.chart-bar-val{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:#0f172a;white-space:nowrap}
+.chart-line{position:relative;height:140px;padding-top:10px}
+.chart-line svg{width:100%;height:100%}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:14px;text-align:center}
+.stat-val{font-size:24px;font-weight:900;font-family:'Space Mono',monospace}
+.stat-lbl{font-size:11px;color:#64748b;margin-top:2px}
+.stat-change{font-size:11px;font-weight:700;margin-top:4px}
+.stat-up{color:#16a34a}
+.stat-down{color:#ef4444}
+
+/* COMPLIANCE */
+.doc-row{display:flex;align-items:center;justify-content:space-between;padding:14px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;transition:.2s}
+.doc-row:hover{box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.doc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ROUTES */
+.route-card{background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:16px;margin-bottom:10px;transition:.2s}
+.route-card:hover{border-color:#7c3aed;box-shadow:0 4px 16px rgba(124,58,237,0.1)}
+.route-match{display:inline-flex;align-items:center;gap:4px;background:#f3e8ff;color:#7c3aed;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700}
+.route-savings{background:#dcfce7;color:#15803d;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+
+/* FLEET */
+.fleet-driver{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;transition:.2s}
+.fleet-driver:hover{box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.fleet-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.fleet-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* MESSAGES */
+.msg-list{max-height:400px;overflow-y:auto}
+.msg-item{display:flex;gap:10px;padding:12px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:.1s}
+.msg-item:hover{background:#f8fafc}
+.msg-item.unread{background:#eff6ff}
+.msg-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.5;margin-bottom:6px}
+.msg-out{background:#2563eb;color:#fff;border-bottom-right-radius:4px;margin-left:auto}
+.msg-in{background:#f1f5f9;color:#0f172a;border-bottom-left-radius:4px}
+.chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid #e2e8f0;background:#fff;border-radius:0 0 18px 18px}
+
+/* NOTIF PANEL */
+.notif-panel{position:fixed;top:42px;right:0;width:360px;max-width:100vw;max-height:calc(100vh - 42px);background:#fff;border-left:1px solid #e2e8f0;box-shadow:-8px 0 24px rgba(0,0,0,0.08);z-index:60;overflow-y:auto;animation:slideLeft .2s ease}
+@keyframes slideLeft{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f1f5f9;transition:.2s}
+.notif-item.unread{background:#eff6ff}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:70;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:440px;padding:24px;animation:su .3s ease;max-height:85vh;overflow-y:auto}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:14px}
+
+/* PAY CARD */
+.pay-card{background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:18px;padding:20px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden}
+.pay-card-circle{position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%}
+.pay-balance{font-size:36px;font-weight:900;font-family:'Space Mono',monospace}
+.tx-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.tx-amount{font-weight:900;font-family:'Space Mono',monospace;font-size:15px}
+.tx-amount.credit{color:#16a34a}
+.tx-amount.debit{color:#ef4444}
+
+/* FUEL CALC */
+.fuel-slider{width:100%;-webkit-appearance:none;height:6px;background:#e2e8f0;border-radius:3px;outline:none}
+.fuel-slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:#7c3aed;border-radius:50%;cursor:pointer}
+
+@media(max-width:640px){
+  .home h1{font-size:28px}
+  .home-cards,.vgrid,.form-row,.stat-grid{grid-template-columns:1fr}
+  .tier{flex-direction:column}
+  .drv-stats{gap:14px}
+  .notif-panel{width:100%}
+  .track-map{height:180px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav hidden" id="navbar">
+  <button class="nav-brand" onclick="goHome()"><div class="nav-logo">LL</div><span style="font-weight:700;font-size:15px">LoadLink</span><span style="color:#a78bfa;font-size:11px;font-weight:600;margin-left:4px">P3</span></button>
+  <div class="nav-right"><span class="nav-role" id="navRole"></span><button class="notif-btn" onclick="toggleNotifs()" id="notifBtn">🔔<span class="notif-dot" id="notifDot"></span></button><button class="nav-switch" onclick="goHome()">Switch</button></div>
+</nav>
+
+<div id="notifPanel" class="notif-panel hidden">
+  <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:15px">Notifications</span><button style="font-size:11px;color:#2563eb;background:none;font-weight:600" onclick="markAllRead()">Mark all read</button></div>
+  <div id="notifList"></div>
+</div>
+
+<div id="pg-home" class="home">
+  <div class="home-phase"><span>🚀 PHASE 3 — ANALYTICS · COMPLIANCE · ROUTES · FLEET · MESSAGES</span></div><br>
+  <div class="home-badge"><div class="home-badge-dot"></div><span style="color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:.5px;font-family:'Space Mono',monospace">LOADLINK PROTOTYPE</span></div>
+  <h1>Transport booked in<br><span>under 60 seconds.</span></h1>
+  <p class="home-sub">Book. Track. Deliver. Analyse. Optimise. Scale.</p>
+  <div class="home-cards">
+    <button class="hcard biz" onclick="openBiz()"><span class="hcard-emoji">🏭</span><h2>I Need Transport</h2><p>Book, track live, get POD, pay — all in one place.</p><div class="hcard-arrow">Start booking →</div></button>
+    <button class="hcard drv" onclick="openDrv()"><span class="hcard-emoji">🚐</span><h2>I'm a Driver</h2><p>Loads, tracking, POD, analytics, routes, fleet tools & more.</p><div class="hcard-arrow">Open dashboard →</div></button>
+  </div>
+</div>
+
+<!-- BIZ PAGE -->
+<div id="pg-biz" class="hidden" style="min-height:100vh;background:#f8fafc">
+  <div class="steps-bar"><div class="steps-row" id="stepsRow"></div></div>
+  <div class="container" style="padding:20px 16px 40px" id="bizContent"></div>
+</div>
+
+<!-- DRIVER PAGE -->
+<div id="pg-drv" class="hidden" style="min-height:100vh;background:#f1f5f9">
+  <div class="drv-header"><div class="drv-header-inner"><div><div style="font-size:12px;color:#93c5fd">Welcome back</div><div style="font-size:17px;font-weight:700">James Mitchell</div></div><div class="drv-stats"><div><div class="drv-stat-n">⭐ 4.9</div><div class="drv-stat-l">Rating</div></div><div><div class="drv-stat-n">312</div><div class="drv-stat-l">Jobs</div></div><div><div class="drv-stat-n">£847</div><div class="drv-stat-l">This week</div></div></div></div></div>
+  <div class="tabs"><div class="tabs-row" id="drvTabs"></div></div>
+  <div class="container" style="padding:14px 16px 40px" id="drvContent"></div>
+</div>
+
+<div id="toast" class="toast hidden"><span style="color:#4ade80;font-size:16px">✓</span><span id="toastMsg"></span></div>
+<div id="modalBg" class="modal-bg hidden" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()" id="modalContent"></div></div>
+
+<script>
+/* ═══ DATA ═══ */
+const VEH=[{id:"small",name:"Small Van",icon:"🚗",ex:"Caddy/Berlingo",pay:"600kg",rate:1},{id:"swb",name:"SWB Van",icon:"🚐",ex:"Transit Custom",pay:"1,000kg",rate:1.15},{id:"lwb",name:"LWB Van",icon:"🚐",ex:"Sprinter/Crafter",pay:"1,200kg",rate:1.3},{id:"xlwb",name:"XLWB Van",icon:"🚐",ex:"Sprinter XLWB",pay:"1,400kg",rate:1.45},{id:"luton",name:"Luton Van",icon:"📦",ex:"Box + tail lift",pay:"1,500kg",rate:1.6},{id:"7_5t",name:"7.5t Truck",icon:"🚛",ex:"With tail lift",pay:"3,500kg",rate:2.1}];
+const LOADS=[{id:1,type:"quote",from:"Birmingham B1",to:"Manchester M1",veh:"small",wt:"25kg",desc:"2 boxes car parts",dist:86,urg:"Within 2hrs",ship:"AutoFix Ltd",time:"12m ago",quotes:2,budget:null},{id:2,type:"fixed",from:"London EC2",to:"Bristol BS1",veh:"lwb",wt:"400kg",desc:"8 pallets office equip",dist:119,urg:"Same day",ship:"Relocate Pro",time:"3m ago",quotes:0,budget:155},{id:3,type:"fixed",from:"Leeds LS1",to:"Sheffield S1",veh:"small",wt:"15kg",desc:"Legal docs — urgent",dist:35,urg:"Within 60 mins",ship:"Clarke & Partners",time:"Just now",quotes:0,budget:52},{id:4,type:"quote",from:"Glasgow G1",to:"Edinburgh EH1",veh:"swb",wt:"200kg",desc:"Medical equipment",dist:47,urg:"Within 3hrs",ship:"NHS Supply Chain",time:"8m ago",quotes:5,budget:null},{id:5,type:"fixed",from:"Nottingham NG1",to:"London NW1",veh:"luton",wt:"800kg",desc:"Exhibition stand",dist:128,urg:"Tomorrow 8am",ship:"EventCraft UK",time:"22m ago",quotes:0,budget:210},{id:6,type:"fixed",from:"Cardiff CF1",to:"Bristol BS2",veh:"small",wt:"10kg",desc:"Server hardware",dist:44,urg:"ASAP",ship:"TechOps Wales",time:"1m ago",quotes:0,budget:68}];
+const NOTIFS=[{id:1,icon:"⚡",bg:"#fef3c7",title:"New fixed-price load",msg:"Leeds → Sheffield · £52",time:"2m ago",unread:true},{id:2,icon:"💬",bg:"#dbeafe",title:"Quote accepted!",msg:"AutoFix Ltd accepted your £86 quote",time:"15m ago",unread:true},{id:3,icon:"⭐",bg:"#fef3c7",title:"New 5-star review",msg:"Clarke & Partners rated you ⭐⭐⭐⭐⭐",time:"1hr ago",unread:true},{id:4,icon:"💰",bg:"#dcfce7",title:"Payment received",msg:"£175 from West Legal LLP",time:"3hrs ago",unread:false},{id:5,icon:"📋",bg:"#f3e8ff",title:"Insurance expiring soon",msg:"GIT insurance expires in 14 days",time:"Today",unread:true},{id:6,icon:"🛣️",bg:"#dbeafe",title:"Backload match found",msg:"Leeds → London via Nottingham saves 45 dead miles",time:"5m ago",unread:true}];
+const WEEKLY_EARNINGS=[420,380,510,290,480,560,847];
+const MONTHLY_EARNINGS=[2800,3200,2950,3600,3100,3800,4200,3900,4500,4100,4800,5200];
+const RATE_DATA=[1.05,1.08,1.02,1.12,1.15,1.10,1.18];
+const DOCS=[{name:"Goods in Transit Insurance",icon:"🛡️",status:"valid",expiry:"14 Mar 2026",provider:"Zurich",bg:"#dcfce7"},{name:"Public Liability Insurance",icon:"📋",status:"valid",expiry:"22 Aug 2026",provider:"Aviva",bg:"#dcfce7"},{name:"Driving Licence",icon:"🪪",status:"valid",expiry:"15 Jan 2028",provider:"DVLA",bg:"#dcfce7"},{name:"Vehicle MOT",icon:"🔧",status:"expiring",expiry:"12 Mar 2026",provider:"MOT Centre Leeds",bg:"#fef3c7"},{name:"Vehicle Tax",icon:"💷",status:"valid",expiry:"01 Sep 2026",provider:"DVLA",bg:"#dcfce7"},{name:"CMR Insurance",icon:"🌍",status:"missing",expiry:"—",provider:"Not uploaded",bg:"#fee2e2"}];
+const ROUTES=[{id:1,from:"Leeds LS1",to:"London EC1",dist:195,myLoad:"Yorkshire Print — 3 pallets",backload:"TechOps London — Server rack to Leeds",backDist:198,deadMiles:0,savings:195,match:98},{id:2,from:"London EC1",to:"Bristol BS1",dist:119,myLoad:"BioLab UK — Lab equipment",backload:"West Legal — Docs to London NW1",backDist:120,deadMiles:3,savings:116,match:92},{id:3,from:"Manchester M1",to:"Birmingham B1",dist:86,myLoad:"AutoFix — Car parts",backload:"MidTech — IT equipment to Manchester",backDist:88,deadMiles:4,savings:82,match:87}];
+const FLEET=[{name:"James Mitchell",av:"JM",color:"#2563eb",status:"active",job:"Leeds → York",veh:"LWB Sprinter",rating:4.9,today:2,week:12,earned:"£847"},{name:"Sarah Khan",av:"SK",color:"#7c3aed",status:"active",job:"Manchester → Liverpool",veh:"Small Van",rating:4.8,today:1,week:8,earned:"£520"},{name:"Dave Patterson",av:"DP",color:"#ea580c",status:"available",job:"—",veh:"Luton + Tail Lift",rating:4.7,today:0,week:10,earned:"£680"},{name:"Lisa Chen",av:"LC",color:"#16a34a",status:"offline",job:"—",veh:"SWB Transit",rating:4.6,today:0,week:6,earned:"£410"}];
+const MESSAGES=[{id:1,name:"AutoFix Ltd",av:"AF",color:"#2563eb",lastMsg:"Great, see you at 2pm for collection",time:"10m ago",unread:2},{id:2,name:"Clarke & Partners",av:"CP",color:"#7c3aed",lastMsg:"Docs delivered safely, thanks!",time:"2hrs ago",unread:0},{id:3,name:"EventCraft UK",av:"EC",color:"#ea580c",lastMsg:"Can you do next Tuesday as well?",time:"Yesterday",unread:1},{id:4,name:"NHS Supply Chain",av:"NS",color:"#16a34a",lastMsg:"Please confirm collection time",time:"Yesterday",unread:0}];
+const CHAT_MSGS=[{from:"them",text:"Hi James, we have 2 boxes of car parts ready at unit 5.",time:"13:15"},{from:"me",text:"Perfect, I'll be there in about 20 minutes. Any loading bay I should use?",time:"13:18"},{from:"them",text:"Yes, use bay 3 round the back. I'll let security know.",time:"13:20"},{from:"me",text:"Got it, thanks. On my way now.",time:"13:22"},{from:"them",text:"Great, see you at 2pm for collection",time:"13:25"}];
+
+/* ═══ STATE ═══ */
+let page="home",bizStep=0,selVeh="small",selTier="standard",drvTab="loads",loadFilter="all";
+let accepted={},availPosted=false,notifOpen=false,trackProgress=65;
+let activeChat=null,fuelMpg=35,fuelPrice=1.42,fuelDist=200;
+
+/* ═══ HELPERS ═══ */
+const $=id=>document.getElementById(id);
+const vn=id=>(VEH.find(v=>v.id===id)||VEH[0]);
+const calcP=(d,v,t)=>{const r=vn(v).rate;const m={economy:.8,standard:1,express:1.25};return Math.round(d*r*(m[t]||1))};
+function showToast(m){$('toastMsg').textContent=m;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3000)}
+function showPage(id){['pg-home','pg-biz','pg-drv'].forEach(p=>$(p).classList.add('hidden'));$('pg-'+id).classList.remove('hidden');$('navbar').classList.toggle('hidden',id==='home');page=id;window.scrollTo(0,0)}
+function goHome(){showPage('home');$('notifPanel').classList.add('hidden');notifOpen=false}
+function openBiz(){bizStep=0;showPage('biz');renderBiz()}
+function openDrv(){$('navRole').className='nav-role drv';$('navRole').textContent='🚐 Driver';showPage('drv');renderDrvTabs();switchTab('loads')}
+function openModal(html){$('modalContent').innerHTML=html;$('modalBg').classList.remove('hidden')}
+function closeModal(){$('modalBg').classList.add('hidden')}
+function toggleNotifs(){notifOpen=!notifOpen;$('notifPanel').classList.toggle('hidden',!notifOpen);if(notifOpen)renderNotifs()}
+function renderNotifs(){$('notifList').innerHTML=NOTIFS.map(n=>`<div class="notif-item ${n.unread?'unread':''}"><div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:${n.bg}">${n.icon}</div><div style="flex:1"><div style="font-size:13px;font-weight:600">${n.title}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${n.msg}</div><div style="font-size:11px;color:#94a3b8;font-family:'Space Mono',monospace;margin-top:2px">${n.time}</div></div></div>`).join('')}
+function markAllRead(){NOTIFS.forEach(n=>n.unread=false);$('notifDot').style.display='none';renderNotifs();showToast('All read')}
+
+/* ═══ BUSINESS FLOW (Phase 1+2) ═══ */
+function renderBizSteps(){const l=["Details","Vehicle","Book","Track","POD"];let h='';l.forEach((s,i)=>{h+=`<div class="step-n ${i<=bizStep?'on':'off'}">${i+1}</div><span class="step-lbl ${i<=bizStep?'on':'off'}">${s}</span>`;if(i<4)h+=`<div class="step-line ${i<bizStep?'on':'off'}"></div>`});$('stepsRow').innerHTML=h}
+function renderBiz(){renderBizSteps();[renderBizS0,renderBizS1,renderBizS2,renderBizS3,renderBizS4][bizStep]()}
+function bizNext(s){bizStep=s;renderBiz();window.scrollTo(0,0)}
+function renderBizS0(){$('bizContent').innerHTML=`<div class="section-title">What do you need delivered?</div><p class="section-sub">Tell us the basics</p><div class="card"><div style="margin-bottom:14px"><label class="form-label">What are you sending?</label><input class="form-input" placeholder="e.g. 2 boxes car parts, 25kg"></div><div class="form-row" style="margin-bottom:14px"><div><label class="form-label">Pickup</label><input class="form-input" placeholder="Postcode or address"></div><div><label class="form-label">Deliver to</label><input class="form-input" placeholder="Postcode or address"></div></div></div><button class="btn btn-amber" onclick="bizNext(1)">Continue →</button>`}
+function renderBizS1(){let h=`<div class="section-title">Choose a vehicle</div><p class="section-sub">Recommended: <strong style="color:#d97706">Small Van</strong></p><div class="vgrid">`;VEH.forEach(v=>{const s=selVeh===v.id;h+=`<button class="vcard ${s?'sel':''}" onclick="selVeh='${v.id}';renderBiz()"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:22px">${v.icon}</span>${s?'<span style="background:#f59e0b;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px">✓</span>':''}</div><div style="font-weight:700;font-size:13px">${v.name}</div><div style="font-size:11px;color:#94a3b8">${v.ex}</div><div style="font-size:11px;color:#d97706;font-weight:600;margin-top:4px">Up to ${v.pay}</div></button>`});h+=`</div><div class="btn-row"><button class="btn btn-ghost" onclick="bizNext(0)">← Back</button><button class="btn btn-amber" onclick="bizNext(2)">Continue →</button></div>`;$('bizContent').innerHTML=h}
+function renderBizS2(){const d=86;const tiers=[{id:"economy",l:"Economy",t:"By 6pm",i:"🕐",p:calcP(d,selVeh,"economy")},{id:"standard",l:"Standard",t:"Within 2hrs",i:"🚐",p:calcP(d,selVeh,"standard"),rec:true},{id:"express",l:"Express",t:"Within 60min",i:"⚡",p:calcP(d,selVeh,"express")}];let h=`<div class="section-title">Choose your service</div><p class="section-sub">Birmingham B1 → Manchester M1 · ~${d}mi</p>`;tiers.forEach(t=>{const s=selTier===t.id;h+=`<button class="tier ${s?'sel':''}" onclick="selTier='${t.id}';renderBiz()"><div class="tier-left"><span style="font-size:22px;margin-top:2px">${t.i}</span><div><div style="font-weight:700;font-size:14px">${t.l}${t.rec?' <span class="badge badge-amber">Recommended</span>':''}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${t.t}</div></div></div><div class="tier-price">£${t.p}</div></button>`});h+=`<div class="btn-row"><button class="btn btn-ghost" onclick="bizNext(1)">← Back</button><button class="btn btn-amber" onclick="bizNext(3);showToast('Booking confirmed!')">Book Now — £${calcP(d,selVeh,selTier)}</button></div>`;$('bizContent').innerHTML=h}
+function renderBizS3(){$('bizContent').innerHTML=`<div class="section-title">📍 Live Tracking</div><p class="section-sub">Job #LL-2026-0847 · Dave P. is on his way</p><div class="track-map"><div class="track-route"><div class="track-route-done" style="width:${trackProgress}%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:${10+trackProgress*0.8}%">🚐</div><div class="track-label track-label-a">Birmingham B1</div><div class="track-label track-label-b">Manchester M1</div><div class="track-eta">ETA 14:32</div></div><div class="track-status-bar"><div class="track-step done">✓ Booked</div><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 In Transit</div><div class="track-step pending">📦 Delivered</div></div><div class="btn-row"><button class="btn btn-green" onclick="bizNext(4);showToast('Delivery complete!')">⏩ Complete Delivery</button></div>`}
+function renderBizS4(){$('bizContent').innerHTML=`<div class="section-title">✅ Delivery Complete</div><p class="section-sub">POD confirmed · Invoice generated</p><div class="card" style="text-align:center"><span style="font-size:48px">📸</span><div style="font-weight:700;margin-top:8px">Photo + Signature Captured</div><div style="font-size:12px;color:#64748b">GPS: Manchester M1 · 14:32 · Signed: J. Williams</div></div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700">Invoice #INV-0847</div><div style="font-size:12px;color:#64748b">Auto-generated</div></div><span style="font-weight:900;font-size:20px;font-family:'Space Mono',monospace">£${calcP(86,selVeh,selTier)}</span></div></div><button class="btn btn-amber" onclick="openBiz()">Book Another</button>`}
+
+/* ═══ DRIVER TABS ═══ */
+const DRV_TABS=[{id:"loads",label:"🔍 Loads",count:6},{id:"active",label:"📋 Active",count:2},{id:"tracking",label:"📍 Track"},{id:"analytics",label:"📊 Analytics",isNew:true},{id:"compliance",label:"🛡️ Docs",isNew:true},{id:"routes",label:"🛣️ Routes",isNew:true},{id:"fleet",label:"🏢 Fleet",isNew:true},{id:"messages",label:"💬 Msgs",count:3,isNew:true},{id:"payments",label:"💰 Pay"},{id:"avail",label:"📍 Avail"}];
+function renderDrvTabs(){$('drvTabs').innerHTML=DRV_TABS.map(t=>`<button class="tab ${drvTab===t.id?'active':''}" onclick="switchTab('${t.id}')">${t.label}${t.count?` <span class="tab-badge">${t.count}</span>`:''}${t.isNew?'<span style="color:#7c3aed;font-size:8px;vertical-align:super;margin-left:1px">●</span>':''}</button>`).join('')}
+function switchTab(id){drvTab=id;renderDrvTabs();({loads:renderLoads,active:renderActive,tracking:renderDrvTracking,analytics:renderAnalytics,compliance:renderCompliance,routes:renderRoutes,fleet:renderFleet,messages:renderMessages,payments:renderPayments,avail:renderAvail})[id]();window.scrollTo(0,0)}
+
+/* ═══ LOADS ═══ */
+function renderLoads(){const fl=loadFilter==='all'?LOADS:LOADS.filter(l=>l.type===loadFilter);let h=`<div style="display:flex;gap:6px;margin-bottom:10px">${[{id:'all',l:'All'},{id:'fixed',l:'⚡ Fixed'},{id:'quote',l:'💬 Quotes'}].map(f=>`<button style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;border:1px solid ${loadFilter===f.id?'#2563eb':'#e2e8f0'};background:${loadFilter===f.id?'#2563eb':'#fff'};color:${loadFilter===f.id?'#fff':'#475569'}" onclick="loadFilter='${f.id}';renderLoads()">${f.l}</button>`).join('')}</div>`;fl.forEach(l=>{const v=vn(l.veh);h+=`<div class="lcard"><div class="lcard-body"><div class="lcard-top"><div style="display:flex;align-items:center;gap:6px"><span class="badge ${l.type==='fixed'?'badge-amber':'badge-blue'}">${l.type==='fixed'?'⚡ FIXED':'💬 QUOTE'}</span><span style="font-size:11px;color:#94a3b8">${l.time}</span></div>${l.type==='fixed'?`<span style="font-size:20px;font-weight:900;font-family:'Space Mono',monospace">£${l.budget}</span>`:''}</div><div style="margin-bottom:6px"><div><span style="display:inline-block;width:8px;height:8px;background:#22c55e;border-radius:50%;margin-right:5px"></span><span style="font-size:13px;font-weight:600">${l.from}</span></div><div style="margin-left:3px;border-left:2px dashed #e2e8f0;height:8px"></div><div><span style="display:inline-block;width:8px;height:8px;background:#ef4444;border-radius:50%;margin-right:5px"></span><span style="font-size:13px;font-weight:600">${l.to}</span></div></div><div style="font-size:11px;color:#64748b">${v.icon} ${v.name} · ${l.dist}mi · ${l.desc}</div></div><div class="lcard-actions">${l.type==='fixed'?`<button class="btn-sm ${accepted[l.id]?'btn-green':'btn-amber'}" style="flex:1" onclick="accepted[${l.id}]=true;showToast('Accepted £${l.budget}!');renderLoads()">${accepted[l.id]?'✓ Accepted':'Accept — £'+l.budget}</button>`:`<button class="btn-sm btn-blue" style="flex:1" onclick="showToast('Quote sent!')">Send Quote</button>`}</div></div>`});$('drvContent').innerHTML=h}
+
+/* ═══ ACTIVE ═══ */
+function renderActive(){$('drvContent').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="badge badge-blue">🚐 In Transit</span><span style="font-size:11px;color:#94a3b8">ETA: 14:32</span></div><div style="font-size:14px;font-weight:600">London EC1 → Cambridge CB1</div><div style="font-size:12px;color:#64748b;margin-top:3px">BioLab UK · SWB Van · <strong style="font-family:'Space Mono',monospace">£95</strong></div><div style="background:#f1f5f9;border-radius:50px;height:7px;overflow:hidden;margin-top:10px"><div style="background:#2563eb;height:100%;width:65%"></div></div></div><div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="badge badge-amber">📦 Collecting</span><span style="font-size:11px;color:#94a3b8">ETA: 11:45</span></div><div style="font-size:14px;font-weight:600">Leeds LS2 → York YO1</div><div style="font-size:12px;color:#64748b;margin-top:3px">Yorkshire Print · LWB Sprinter · <strong style="font-family:'Space Mono',monospace">£52</strong></div><div style="background:#f1f5f9;border-radius:50px;height:7px;overflow:hidden;margin-top:10px"><div style="background:#f59e0b;height:100%;width:15%"></div></div></div>`}
+
+/* ═══ TRACKING ═══ */
+function renderDrvTracking(){$('drvContent').innerHTML=`<div class="section-title">📍 Live Tracking</div><p class="section-sub">London EC1 → Cambridge CB1</p><div class="track-map"><div class="track-route"><div class="track-route-done" style="width:65%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:62%">🚐</div><div class="track-label track-label-a">London</div><div class="track-label track-label-b">Cambridge</div><div class="track-eta">ETA 14:32</div></div><div class="track-status-bar"><div class="track-step done">✓ Booked</div><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 Transit</div><div class="track-step pending">📦 Deliver</div></div>`}
+
+/* ═══ ANALYTICS (NEW P3) ═══ */
+function renderAnalytics(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const maxW=Math.max(...WEEKLY_EARNINGS);
+  const maxM=Math.max(...MONTHLY_EARNINGS);
+  $('drvContent').innerHTML=`
+  <div class="section-title">📊 Analytics Dashboard</div>
+  <p class="section-sub">Your performance at a glance</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" style="color:#16a34a">£4,847</div><div class="stat-lbl">This Month</div><div class="stat-change stat-up">↑ 12% vs last month</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#2563eb">68</div><div class="stat-lbl">Jobs This Month</div><div class="stat-change stat-up">↑ 8 more than last month</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#7c3aed">£1.15</div><div class="stat-lbl">Avg Rate/Mile</div><div class="stat-change stat-up">↑ £0.07 vs last month</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#ea580c">12%</div><div class="stat-lbl">Dead Miles</div><div class="stat-change stat-down">↓ 3% improvement</div></div>
+  </div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:12px">💰 Weekly Earnings</div><div class="chart-wrap"><div class="chart-bars">${WEEKLY_EARNINGS.map((e,i)=>`<div class="chart-bar" style="height:${(e/maxW)*130}px;background:${i===6?'#2563eb':'#93c5fd'}"><div class="chart-bar-val">£${e}</div><div class="chart-bar-label">${days[i]}</div></div>`).join('')}</div></div></div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:12px">📈 Monthly Earnings (12 months)</div><div class="chart-wrap"><div class="chart-bars">${MONTHLY_EARNINGS.map((e,i)=>`<div class="chart-bar" style="height:${(e/maxM)*130}px;background:${i===11?'#16a34a':i>=9?'#4ade80':'#bbf7d0'}"><div class="chart-bar-val">£${(e/1000).toFixed(1)}k</div><div class="chart-bar-label">${months[i]}</div></div>`).join('')}</div></div></div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:12px">📍 Rate Per Mile Trend (7 days)</div><div class="chart-wrap"><div class="chart-bars">${RATE_DATA.map((r,i)=>`<div class="chart-bar" style="height:${((r-0.9)/0.4)*130}px;background:${r>=1.15?'#7c3aed':'#c4b5fd'}"><div class="chart-bar-val">£${r.toFixed(2)}</div><div class="chart-bar-label">${days[i]}</div></div>`).join('')}</div></div></div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:12px">🏆 Top Routes (by profit)</div>
+    ${[{r:'Leeds → London',jobs:18,avg:'£185',profit:'£3,330'},{r:'London → Bristol',jobs:12,avg:'£145',profit:'£1,740'},{r:'Manchester → Birmingham',jobs:15,avg:'£92',profit:'£1,380'}].map((t,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9"><div><span style="font-weight:700;color:#f59e0b;margin-right:8px">#${i+1}</span><span style="font-weight:600;font-size:13px">${t.r}</span><span style="font-size:11px;color:#94a3b8;margin-left:6px">${t.jobs} jobs · avg ${t.avg}</span></div><span style="font-weight:900;font-family:'Space Mono',monospace;color:#16a34a">${t.profit}</span></div>`).join('')}
+  </div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:12px">⛽ Fuel Cost Calculator</div>
+    <div class="form-row" style="margin-bottom:10px"><div><label class="form-label">Distance (miles)</label><input type="range" class="fuel-slider" min="10" max="500" value="${fuelDist}" oninput="fuelDist=this.value;updateFuel()"><div style="text-align:center;font-weight:700;font-family:'Space Mono',monospace;margin-top:4px" id="fuelDistVal">${fuelDist} mi</div></div><div><label class="form-label">Fuel price (£/litre)</label><input type="number" class="form-input" value="${fuelPrice}" step="0.01" oninput="fuelPrice=parseFloat(this.value)||1.42;updateFuel()" style="text-align:center;font-family:'Space Mono',monospace"></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+      <div style="background:#fef3c7;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;font-family:'Space Mono',monospace;color:#b45309" id="fuelCost">£${((fuelDist/fuelMpg)*4.546*fuelPrice).toFixed(2)}</div><div style="font-size:10px;color:#92400e;margin-top:2px">Fuel Cost</div></div>
+      <div style="background:#f3e8ff;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;font-family:'Space Mono',monospace;color:#7c3aed" id="fuelLitres">${((fuelDist/fuelMpg)*4.546).toFixed(1)}L</div><div style="font-size:10px;color:#6b21a8;margin-top:2px">Litres Used</div></div>
+      <div style="background:#dcfce7;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;font-family:'Space Mono',monospace;color:#16a34a" id="fuelCPM">£${((fuelDist/fuelMpg)*4.546*fuelPrice/fuelDist).toFixed(2)}</div><div style="font-size:10px;color:#15803d;margin-top:2px">Cost/Mile</div></div>
+    </div>
+  </div>`}
+function updateFuel(){const l=(fuelDist/fuelMpg)*4.546;const c=l*fuelPrice;$('fuelDistVal').textContent=fuelDist+' mi';$('fuelCost').textContent='£'+c.toFixed(2);$('fuelLitres').textContent=l.toFixed(1)+'L';$('fuelCPM').textContent='£'+(c/fuelDist).toFixed(2)}
+
+/* ═══ COMPLIANCE (NEW P3) ═══ */
+function renderCompliance(){
+  const valid=DOCS.filter(d=>d.status==='valid').length;
+  $('drvContent').innerHTML=`
+  <div class="section-title">🛡️ Compliance Documents</div>
+  <p class="section-sub">${valid}/${DOCS.length} documents verified · Keep these up to date to stay visible on the platform</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+    <div style="background:#dcfce7;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#16a34a;font-family:'Space Mono',monospace">${DOCS.filter(d=>d.status==='valid').length}</div><div style="font-size:10px;color:#15803d">Valid</div></div>
+    <div style="background:#fef3c7;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#b45309;font-family:'Space Mono',monospace">${DOCS.filter(d=>d.status==='expiring').length}</div><div style="font-size:10px;color:#92400e">Expiring Soon</div></div>
+    <div style="background:#fee2e2;border-radius:14px;padding:12px;text-align:center"><div style="font-size:24px;font-weight:900;color:#b91c1c;font-family:'Space Mono',monospace">${DOCS.filter(d=>d.status==='missing').length}</div><div style="font-size:10px;color:#991b1b">Missing</div></div>
+  </div>
+  ${DOCS.map(d=>{const sc={valid:'#22c55e',expiring:'#f59e0b',missing:'#ef4444'}[d.status];const sl={valid:'✅ Valid',expiring:'⚠️ Expiring',missing:'❌ Missing'}[d.status];return`<div class="doc-row"><div style="display:flex;align-items:center;gap:10px"><div class="doc-icon" style="background:${d.bg}">${d.icon}</div><div><div style="font-weight:700;font-size:13px">${d.name}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${d.provider} · Expires: ${d.expiry}</div></div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;font-weight:600;color:${sc}">${sl}</span>${d.status==='missing'?`<button class="btn-sm btn-blue" onclick="showToast('Upload window opened')">Upload</button>`:d.status==='expiring'?`<button class="btn-sm btn-amber" onclick="showToast('Renewal reminder set')">Renew</button>`:`<button class="btn-sm btn-ghost" onclick="showToast('Document preview opened')">View</button>`}</div></div>`}).join('')}
+  <button class="btn btn-blue" style="margin-top:8px" onclick="showToast('Upload window opened')">+ Add New Document</button>
+  <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;font-size:12px;color:#1e40af;margin-top:12px">💡 Keep all documents valid to maintain your <strong>Verified</strong> badge. Shippers are 3x more likely to book verified drivers.</div>`}
+
+/* ═══ ROUTES (NEW P3) ═══ */
+function renderRoutes(){
+  $('drvContent').innerHTML=`
+  <div class="section-title">🛣️ Route Optimisation</div>
+  <p class="section-sub">Smart backload matching — never drive home empty</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <div style="background:linear-gradient(135deg,#7c3aed,#4338ca);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900;font-family:'Space Mono',monospace">393mi</div><div style="font-size:11px;color:#c4b5fd;margin-top:2px">Dead miles saved this month</div></div>
+    <div style="background:linear-gradient(135deg,#16a34a,#15803d);border-radius:14px;padding:16px;color:#fff"><div style="font-size:28px;font-weight:900;font-family:'Space Mono',monospace">£458</div><div style="font-size:11px;color:#bbf7d0;margin-top:2px">Extra earnings from backloads</div></div>
+  </div>
+  <div style="font-weight:700;font-size:14px;margin-bottom:8px">🔄 Backload Matches For You</div>
+  ${ROUTES.map(r=>`<div class="route-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div class="route-match">🎯 ${r.match}% match</div><div class="route-savings">💰 Save ${r.savings} dead miles</div></div><div style="margin-bottom:10px"><div style="font-size:12px;color:#64748b;margin-bottom:4px">YOUR LOAD</div><div style="font-size:13px;font-weight:600">${r.from} → ${r.to} · ${r.dist}mi</div><div style="font-size:11px;color:#64748b">${r.myLoad}</div></div><div style="background:#f8fafc;border-radius:10px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:#7c3aed;font-weight:700;margin-bottom:4px">🔄 BACKLOAD AVAILABLE</div><div style="font-size:13px;font-weight:600">${r.to} → ${r.from} · ${r.backDist}mi</div><div style="font-size:11px;color:#64748b">${r.backload}</div></div><div style="display:flex;gap:6px;font-size:11px"><span style="background:#f1f5f9;padding:4px 8px;border-radius:6px">🚐 ${r.deadMiles} dead miles</span><span style="background:#dcfce7;padding:4px 8px;border-radius:6px;color:#16a34a;font-weight:600">vs ${r.dist} without backload</span></div><div class="btn-row"><button class="btn btn-sm btn-purple" style="flex:1" onclick="showToast('Backload accepted! Route optimised.')">Accept Backload</button><button class="btn btn-sm btn-outline">Details</button></div></div>`).join('')}
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:10px">⛽ Dead Mile Breakdown (This Month)</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="flex:1;height:20px;background:#f1f5f9;border-radius:10px;overflow:hidden"><div style="height:100%;width:88%;background:linear-gradient(90deg,#2563eb,#7c3aed);border-radius:10px"></div></div><span style="font-size:13px;font-weight:700;color:#2563eb">88%</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b"><span>🟢 Loaded: 3,240 mi</span><span>🔴 Empty: 393 mi</span><span>Total: 3,633 mi</span></div>
+  </div>`}
+
+/* ═══ FLEET (NEW P3) ═══ */
+function renderFleet(){
+  const active=FLEET.filter(f=>f.status==='active').length;
+  const totalEarned=FLEET.reduce((s,f)=>s+parseInt(f.earned.replace('£','')),0);
+  $('drvContent').innerHTML=`
+  <div class="section-title">🏢 Fleet Management</div>
+  <p class="section-sub">${FLEET.length} drivers · ${active} active now</p>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" style="color:#16a34a">£${totalEarned.toLocaleString()}</div><div class="stat-lbl">Fleet Revenue This Week</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#2563eb">${FLEET.reduce((s,f)=>s+f.week,0)}</div><div class="stat-lbl">Jobs Completed</div></div>
+  </div>
+  ${FLEET.map(f=>{const sc={active:'#22c55e',available:'#f59e0b',offline:'#94a3b8'}[f.status];const sl={active:'🟢 Active',available:'🟡 Available',offline:'⚫ Offline'}[f.status];return`<div class="fleet-driver"><div class="fleet-avatar" style="background:${f.color}">${f.av}</div><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;font-size:13px">${f.name}</span><span style="font-size:11px;color:${sc};font-weight:600">${sl}</span></div><div style="font-size:11px;color:#64748b;margin-top:2px">${f.veh} · ⭐ ${f.rating} · ${f.job!=='—'?f.job:'No active job'}</div><div style="display:flex;gap:10px;margin-top:4px;font-size:11px"><span style="color:#64748b">Today: <strong>${f.today} jobs</strong></span><span style="color:#64748b">Week: <strong>${f.week} jobs</strong></span><span style="color:#16a34a;font-weight:700">${f.earned}</span></div></div><div style="display:flex;flex-direction:column;gap:4px">${f.status==='available'?`<button class="btn-sm btn-blue" onclick="showToast('Job dispatched to ${f.name}')">Dispatch</button>`:`<button class="btn-sm btn-ghost" onclick="showToast('Tracking ${f.name}')">Track</button>`}</div></div>`}).join('')}
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:10px">📊 Fleet Performance</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#f8fafc;border-radius:10px;padding:10px"><div style="font-size:11px;color:#64748b">Avg Rating</div><div style="font-size:18px;font-weight:900;color:#f59e0b;font-family:'Space Mono',monospace">4.75 ⭐</div></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px"><div style="font-size:11px;color:#64748b">On-time Rate</div><div style="font-size:18px;font-weight:900;color:#16a34a;font-family:'Space Mono',monospace">96.2%</div></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px"><div style="font-size:11px;color:#64748b">Acceptance Rate</div><div style="font-size:18px;font-weight:900;color:#2563eb;font-family:'Space Mono',monospace">89%</div></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px"><div style="font-size:11px;color:#64748b">Avg Dead Miles</div><div style="font-size:18px;font-weight:900;color:#7c3aed;font-family:'Space Mono',monospace">14%</div></div>
+    </div>
+  </div>
+  <button class="btn btn-blue" onclick="showToast('Invite link copied!')">+ Invite Driver to Fleet</button>`}
+
+/* ═══ MESSAGES (NEW P3) ═══ */
+function renderMessages(){
+  if(activeChat!==null)return renderChat(activeChat);
+  $('drvContent').innerHTML=`<div class="section-title">💬 Messages</div><p class="section-sub">${MESSAGES.filter(m=>m.unread>0).length} unread conversations</p><div class="msg-list">${MESSAGES.map(m=>`<div class="msg-item ${m.unread?'unread':''}" onclick="activeChat=${m.id};renderMessages()"><div class="msg-avatar" style="background:${m.color}">${m.av}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:13px">${m.name}</span><span style="font-size:11px;color:#94a3b8">${m.time}</span></div><div style="font-size:12px;color:#64748b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.lastMsg}</div></div>${m.unread?`<span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${m.unread}</span>`:''}</div>`).join('')}</div>`}
+
+function renderChat(id){
+  const m=MESSAGES.find(x=>x.id===id);
+  $('drvContent').innerHTML=`
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <button class="btn-sm btn-ghost" onclick="activeChat=null;renderMessages()">← Back</button>
+    <div class="msg-avatar" style="background:${m.color};width:32px;height:32px;font-size:11px">${m.av}</div>
+    <div><div style="font-weight:700;font-size:14px">${m.name}</div><div style="font-size:11px;color:#16a34a">Online</div></div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:14px;max-height:350px;overflow-y:auto">
+      ${CHAT_MSGS.map(c=>`<div style="display:flex;${c.from==='me'?'justify-content:flex-end':''}"><div class="msg-bubble ${c.from==='me'?'msg-out':'msg-in'}">${c.text}<div style="font-size:10px;${c.from==='me'?'color:rgba(255,255,255,0.6)':'color:#94a3b8'};margin-top:4px">${c.time}</div></div></div>`).join('')}
+    </div>
+    <div class="chat-input">
+      <input class="form-input" style="flex:1" placeholder="Type a message..." id="chatInput" onkeypress="if(event.key==='Enter')sendMsg()">
+      <button class="btn-sm btn-blue" onclick="sendMsg()">Send</button>
+    </div>
+  </div>`}
+function sendMsg(){const v=$('chatInput');if(v&&v.value.trim()){showToast('Message sent');v.value=''}}
+
+/* ═══ PAYMENTS (Phase 2) ═══ */
+function renderPayments(){const TX=[{desc:"Leeds → York",from:"Yorkshire Print",amount:52,type:"credit",date:"Today",icon:"🟢",bg:"#dcfce7"},{desc:"Bristol → London",from:"West Legal LLP",amount:175,type:"credit",date:"Yesterday",icon:"🟢",bg:"#dcfce7"},{desc:"Platform fee 8%",from:"LoadLink",amount:-14,type:"debit",date:"Yesterday",icon:"📋",bg:"#fee2e2"},{desc:"London → Cambridge",from:"BioLab UK",amount:95,type:"credit",date:"Mon",icon:"🟢",bg:"#dcfce7"}];
+$('drvContent').innerHTML=`<div class="pay-card"><div class="pay-card-circle"></div><div style="font-size:12px;color:#a5b4fc">Available balance</div><div class="pay-balance">£847.15</div><div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;flex:1" onclick="showToast('Withdrawal initiated')">🏦 Withdraw</button><button class="btn btn-sm" style="background:#f59e0b;color:#fff;flex:1" onclick="showToast('Instant payout sent!')">⚡ Instant</button></div></div><div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:8px">Recent</div>${TX.map(t=>`<div class="tx-row"><div style="display:flex;align-items:center;gap:10px"><div class="tx-icon" style="background:${t.bg}">${t.icon}</div><div><div style="font-size:13px;font-weight:600">${t.desc}</div><div style="font-size:11px;color:#94a3b8">${t.from} · ${t.date}</div></div></div><span class="tx-amount ${t.type}">${t.type==='credit'?'+':''}£${Math.abs(t.amount).toFixed(2)}</span></div>`).join('')}</div>`}
+
+/* ═══ AVAILABILITY (Phase 1) ═══ */
+function renderAvail(){$('drvContent').innerHTML=`<div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:4px">Post Your Availability</div><p style="font-size:12px;color:#64748b;margin-bottom:14px">Shippers book you directly</p><div class="form-row" style="margin-bottom:10px"><div><label class="form-label">Current location</label><input class="form-input" value="Leeds LS1"></div><div><label class="form-label">Heading to</label><input class="form-input" value="Anywhere"></div></div><div class="form-row" style="margin-bottom:10px"><div><label class="form-label">Vehicle</label><select class="form-input">${VEH.map(v=>`<option>${v.icon} ${v.name}</option>`).join('')}</select></div><div><label class="form-label">Rate (£/mile)</label><input class="form-input" value="1.10"></div></div><button class="btn ${availPosted?'btn-ghost" style="background:#fee2e2;color:#b91c1c':'btn-green'}" onclick="availPosted=!availPosted;showToast(availPosted?'You\\'re live!':'Removed');renderAvail()">${availPosted?'🔴 Remove':'🟢 Go Available'}</button></div>`}
+
+renderNotifs();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "loadlink",
+  "version": "0.2.0",
+  "description": "The UK's first platform connecting businesses directly to courier drivers. Book, track, deliver, get paid — all in one place.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "jest"
+  },
+  "keywords": [
+    "courier",
+    "delivery",
+    "transport",
+    "logistics",
+    "marketplace",
+    "uk",
+    "van",
+    "driver",
+    "freight",
+    "tracking",
+    "pod",
+    "proof-of-delivery"
+  ],
+  "author": "LoadLink Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/loadlink.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/loadlink/issues"
+  },
+  "homepage": "https://loadlink.co.uk",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

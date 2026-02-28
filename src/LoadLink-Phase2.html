@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink — Phase 2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,500;9..40,700;9..40,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f1f5f9;color:#0f172a;-webkit-font-smoothing:antialiased}
+input,select,button,textarea{font-family:inherit}
+button{cursor:pointer;border:none}
+input,select,textarea{outline:none}
+.mono{font-family:'Space Mono',monospace}
+.hidden{display:none!important}
+
+/* NAV */
+.nav{background:#020617;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand{display:flex;align-items:center;gap:8px;background:none;color:#fff}
+.nav-logo{background:#f59e0b;border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#020617;font-size:12px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-role{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600}
+.nav-role.biz{background:rgba(245,158,11,0.15);color:#fbbf24}
+.nav-role.drv{background:rgba(59,130,246,0.15);color:#60a5fa}
+.notif-btn{position:relative;background:none;color:#94a3b8;font-size:20px;padding:4px}
+.notif-btn:hover{color:#fff}
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid #020617}
+.nav-switch{font-size:11px;color:#94a3b8;background:none;padding:4px 8px;border-radius:6px}
+.nav-switch:hover{color:#fff;background:#1e293b}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:#0f172a;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 16px 40px rgba(0,0,0,0.3);border:1px solid #334155;animation:su .3s ease}
+@keyframes su{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* SHARED */
+.container{max-width:720px;margin:0 auto;padding:0 16px}
+.card{background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:12px}
+.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:13px;color:#64748b;margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.form-input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid #e2e8f0;font-size:14px;transition:.2s}
+.form-input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,0.15)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;border-radius:12px;font-size:13px;font-weight:700;transition:.2s}
+.btn-amber{background:#f59e0b;color:#fff;box-shadow:0 6px 20px rgba(245,158,11,0.2)}
+.btn-amber:hover{background:#d97706}
+.btn-blue{background:#2563eb;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,0.2)}
+.btn-blue:hover{background:#1d4ed8}
+.btn-green{background:#16a34a;color:#fff}
+.btn-green:hover{background:#15803d}
+.btn-dark{background:#0f172a;color:#fff}
+.btn-dark:hover{background:#1e293b}
+.btn-ghost{background:#f1f5f9;color:#475569}
+.btn-ghost:hover{background:#e2e8f0}
+.btn-outline{background:#fff;border:1px solid #e2e8f0;color:#475569}
+.btn-outline:hover{border-color:#2563eb;color:#2563eb}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-row .btn{flex:1}
+.btn-sm{padding:9px 14px;font-size:12px;border-radius:12px;font-weight:700;width:auto}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-amber{background:#fef3c7;color:#b45309}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
+
+/* HOME */
+.home{min-height:100vh;padding:60px 20px 40px;background:linear-gradient(135deg,#0f172a,#1e1b4b 40%,#0f172a);text-align:center}
+.home h1{font-size:38px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:12px;letter-spacing:-1px}
+.home h1 span{background:linear-gradient(90deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.home-sub{color:#94a3b8;font-size:16px;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.6}
+.home-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:50px;padding:5px 14px;margin-bottom:28px}
+.home-badge-dot{width:7px;height:7px;background:#fbbf24;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:560px;margin:0 auto}
+.hcard{position:relative;border-radius:18px;padding:24px 20px;text-align:left;overflow:hidden;transition:.3s;color:#fff}
+.hcard:hover{transform:scale(1.02)}
+.hcard.biz{background:linear-gradient(135deg,#f59e0b,#ea580c);box-shadow:0 16px 32px rgba(245,158,11,0.2)}
+.hcard.drv{background:linear-gradient(135deg,#2563eb,#4338ca);box-shadow:0 16px 32px rgba(37,99,235,0.2)}
+.hcard-emoji{font-size:32px;margin-bottom:10px;display:block}
+.hcard h2{font-size:17px;font-weight:700;margin-bottom:4px}
+.hcard p{font-size:12px;opacity:.8;line-height:1.5}
+.hcard-arrow{margin-top:14px;font-size:12px;font-weight:600;opacity:.9}
+.home-phase{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:50px;padding:5px 14px;margin-bottom:12px}
+.home-phase span{color:#4ade80;font-size:11px;font-weight:600;letter-spacing:.5px;font-family:'Space Mono',monospace}
+
+/* DRIVER HEADER */
+.drv-header{background:linear-gradient(135deg,#2563eb,#4338ca);color:#fff;padding:16px}
+.drv-header-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.drv-stats{display:flex;gap:20px;text-align:center}
+.drv-stat-n{font-size:16px;font-weight:900;font-family:'Space Mono',monospace}
+.drv-stat-l{font-size:10px;color:#93c5fd}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:42px;z-index:40;overflow-x:auto}
+.tabs-row{display:flex;max-width:720px;margin:0 auto}
+.tab{flex:1;padding:10px 6px;font-size:11px;font-weight:600;text-align:center;border-bottom:2px solid transparent;color:#64748b;background:none;transition:.2s;white-space:nowrap}
+.tab:hover{color:#334155}
+.tab.active{color:#2563eb;border-color:#2563eb;background:rgba(37,99,235,0.03)}
+.tab-badge{display:inline-block;margin-left:3px;padding:1px 5px;border-radius:20px;font-size:10px;font-weight:700}
+.tab.active .tab-badge{background:#2563eb;color:#fff}
+.tab:not(.active) .tab-badge{background:#e2e8f0;color:#64748b}
+
+/* STEPS */
+.steps-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 16px}
+.steps-row{display:flex;align-items:center;gap:6px;max-width:600px;margin:0 auto}
+.step-n{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;transition:.3s}
+.step-n.on{background:#f59e0b;color:#fff}
+.step-n.off{background:#e2e8f0;color:#94a3b8}
+.step-lbl{font-size:11px;font-weight:600}
+.step-lbl.on{color:#0f172a}
+.step-lbl.off{color:#94a3b8}
+.step-line{flex:1;height:2px}
+.step-line.on{background:#f59e0b}
+.step-line.off{background:#e2e8f0}
+
+/* VEHICLE GRID */
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vcard{background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:14px;text-align:left;transition:.2s}
+.vcard:hover{border-color:#cbd5e1}
+.vcard.sel{border-color:#f59e0b;background:#fffbeb;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+
+/* TIER CARD */
+.tier{width:100%;background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:18px;text-align:left;transition:.2s;margin-bottom:10px;display:flex;align-items:flex-start;justify-content:space-between}
+.tier:hover{border-color:#cbd5e1}
+.tier.sel{border-color:#f59e0b;box-shadow:0 6px 20px rgba(245,158,11,0.1)}
+.tier-left{display:flex;align-items:flex-start;gap:10px}
+.tier-price{font-size:26px;font-weight:900;font-family:'Space Mono',monospace;color:#0f172a;text-align:right}
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 12px;font-size:12px;color:#1e40af;font-weight:500;margin-top:10px}
+
+/* LOAD CARD */
+.lcard{background:#fff;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:10px;transition:.2s}
+.lcard:hover{box-shadow:0 4px 14px rgba(0,0,0,0.06);border-color:#cbd5e1}
+.lcard-body{padding:14px}
+.lcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.lcard-actions{border-top:1px solid #f1f5f9;padding:10px 14px;background:rgba(248,250,252,0.5);display:flex;gap:8px}
+
+/* TRACKING */
+.track-map{background:linear-gradient(135deg,#e0f2fe,#dbeafe);border-radius:18px;border:2px solid #93c5fd;height:280px;position:relative;overflow:hidden;margin-bottom:12px}
+.track-route{position:absolute;top:50%;left:10%;right:10%;height:3px;background:#93c5fd;border-radius:2px;transform:translateY(-50%)}
+.track-route-done{position:absolute;top:0;left:0;height:100%;background:#2563eb;border-radius:2px;transition:width 1s}
+.track-pin-a,.track-pin-b{position:absolute;top:50%;transform:translate(-50%,-100%);font-size:28px}
+.track-pin-a{left:10%}
+.track-pin-b{right:10%;left:auto;transform:translate(50%,-100%)}
+.track-van{position:absolute;top:50%;transform:translate(-50%,-130%);font-size:32px;transition:left 1s;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.2))}
+.track-label{position:absolute;bottom:12px;font-size:11px;font-weight:600;background:#fff;padding:4px 10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.track-label-a{left:10%;transform:translateX(-30%)}
+.track-label-b{right:10%;transform:translateX(30%)}
+.track-eta{position:absolute;top:14px;right:14px;background:#0f172a;color:#fff;padding:8px 14px;border-radius:12px;font-size:13px;font-weight:700;font-family:'Space Mono',monospace;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.track-status-bar{display:flex;gap:4px;margin-bottom:16px}
+.track-step{flex:1;text-align:center;padding:10px 4px;border-radius:12px;font-size:11px;font-weight:600;transition:.3s}
+.track-step.done{background:#dcfce7;color:#15803d}
+.track-step.current{background:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.3)}
+.track-step.pending{background:#f1f5f9;color:#94a3b8}
+.track-updates{max-height:200px;overflow-y:auto}
+.track-update{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+.track-update-time{color:#94a3b8;font-size:11px;font-family:'Space Mono',monospace;width:50px;flex-shrink:0}
+.share-link{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-top:12px}
+.share-link code{background:#fff;padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Space Mono',monospace;color:#16a34a}
+
+/* POD */
+.pod-photo-area{background:#f8fafc;border:2px dashed #cbd5e1;border-radius:16px;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:12px;transition:.2s}
+.pod-photo-area:hover{border-color:#2563eb;background:#eff6ff}
+.pod-sig{background:#fff;border:2px solid #e2e8f0;border-radius:16px;height:160px;position:relative;margin-bottom:12px;overflow:hidden}
+.pod-sig canvas{width:100%;height:100%;cursor:crosshair}
+.pod-sig-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#cbd5e1;font-size:14px;pointer-events:none}
+.pod-stamp{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pod-stamp-item{background:#f8fafc;border-radius:10px;padding:10px;font-size:12px}
+.pod-preview{background:#fff;border:2px solid #22c55e;border-radius:18px;padding:16px;text-align:center}
+
+/* RATINGS */
+.stars{display:flex;gap:4px}
+.star{font-size:32px;color:#e2e8f0;cursor:pointer;transition:.15s}
+.star.filled{color:#f59e0b}
+.star:hover{transform:scale(1.15)}
+.review-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:14px;margin-bottom:10px}
+.review-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.review-stars{color:#f59e0b;font-size:14px;letter-spacing:1px}
+
+/* PAYMENTS */
+.pay-card{background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:18px;padding:20px;color:#fff;margin-bottom:12px;position:relative;overflow:hidden}
+.pay-card-circle{position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%}
+.pay-balance{font-size:36px;font-weight:900;font-family:'Space Mono',monospace}
+.pay-sub{font-size:12px;color:#a5b4fc}
+.tx-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9}
+.tx-left{display:flex;align-items:center;gap:10px}
+.tx-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.tx-amount{font-weight:900;font-family:'Space Mono',monospace;font-size:15px}
+.tx-amount.credit{color:#16a34a}
+.tx-amount.debit{color:#ef4444}
+
+/* INVOICES */
+.inv-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#fff;border-radius:14px;border:1px solid #e2e8f0;margin-bottom:8px;transition:.2s}
+.inv-row:hover{box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+
+/* NOTIFICATIONS */
+.notif-panel{position:fixed;top:42px;right:0;width:360px;max-width:100vw;max-height:calc(100vh - 42px);background:#fff;border-left:1px solid #e2e8f0;box-shadow:-8px 0 24px rgba(0,0,0,0.08);z-index:60;overflow-y:auto;animation:slideLeft .2s ease}
+@keyframes slideLeft{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #f1f5f9;transition:.2s;cursor:pointer}
+.notif-item:hover{background:#f8fafc}
+.notif-item.unread{background:#eff6ff}
+.notif-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.notif-time{font-size:11px;color:#94a3b8;font-family:'Space Mono',monospace}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:70;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:440px;padding:24px;animation:su .3s ease}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:14px}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .home h1{font-size:28px}
+  .home-cards,.vgrid,.form-row{grid-template-columns:1fr}
+  .tier{flex-direction:column}
+  .drv-stats{gap:14px}
+  .notif-panel{width:100%}
+  .track-map{height:200px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav hidden" id="navbar">
+  <button class="nav-brand" onclick="goHome()">
+    <div class="nav-logo">LL</div>
+    <span style="font-weight:700;font-size:15px">LoadLink</span>
+    <span style="color:#f59e0b;font-size:11px;font-weight:600;margin-left:4px">P2</span>
+  </button>
+  <div class="nav-right">
+    <span class="nav-role" id="navRole"></span>
+    <button class="notif-btn" onclick="toggleNotifs()" id="notifBtn">🔔<span class="notif-dot" id="notifDot"></span></button>
+    <button class="nav-switch" onclick="goHome()">Switch</button>
+  </div>
+</nav>
+
+<!-- NOTIFICATION PANEL -->
+<div id="notifPanel" class="notif-panel hidden">
+  <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-weight:700;font-size:15px">Notifications</span>
+    <button style="font-size:11px;color:#2563eb;background:none;font-weight:600" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div id="notifList"></div>
+</div>
+
+<!-- HOME -->
+<div id="pg-home" class="home">
+  <div class="home-phase"><span>✅ PHASE 2 — TRACKING · POD · RATINGS · PAYMENTS</span></div><br>
+  <div class="home-badge"><div class="home-badge-dot"></div><span style="color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:.5px;font-family:'Space Mono',monospace">LOADLINK PROTOTYPE</span></div>
+  <h1>Transport booked in<br><span>under 60 seconds.</span></h1>
+  <p class="home-sub">Book. Track. Deliver. Get paid. All in one platform.</p>
+  <div class="home-cards">
+    <button class="hcard biz" onclick="openBiz()"><span class="hcard-emoji">🏭</span><h2>I Need Transport</h2><p>Book, track live, get POD, pay — all in one place.</p><div class="hcard-arrow">Start booking →</div></button>
+    <button class="hcard drv" onclick="openDrv()"><span class="hcard-emoji">🚐</span><h2>I'm a Driver</h2><p>Find loads, track jobs, capture POD, get rated, get paid.</p><div class="hcard-arrow">Open dashboard →</div></button>
+  </div>
+</div>
+
+<!-- BUSINESS -->
+<div id="pg-biz" class="hidden" style="min-height:100vh;background:#f8fafc">
+  <div class="steps-bar"><div class="steps-row" id="stepsRow"></div></div>
+  <div class="container" style="padding:20px 16px 40px" id="bizContent"></div>
+</div>
+
+<!-- DRIVER -->
+<div id="pg-drv" class="hidden" style="min-height:100vh;background:#f1f5f9">
+  <div class="drv-header">
+    <div class="drv-header-inner">
+      <div><div style="font-size:12px;color:#93c5fd">Welcome back</div><div style="font-size:17px;font-weight:700">James Mitchell</div></div>
+      <div class="drv-stats">
+        <div><div class="drv-stat-n">⭐ 4.9</div><div class="drv-stat-l">Rating</div></div>
+        <div><div class="drv-stat-n">312</div><div class="drv-stat-l">Jobs</div></div>
+        <div><div class="drv-stat-n">£847</div><div class="drv-stat-l">This week</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs"><div class="tabs-row" id="drvTabs"></div></div>
+  <div class="container" style="padding:14px 16px 40px" id="drvContent"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"><span style="color:#4ade80;font-size:16px">✓</span><span id="toastMsg"></span></div>
+
+<!-- MODALS -->
+<div id="modalBg" class="modal-bg hidden" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()" id="modalContent"></div>
+</div>
+
+<script>
+/* ═══════ DATA ═══════ */
+const VEH=[
+  {id:"small",name:"Small Van",icon:"🚗",ex:"Caddy/Berlingo",pay:"600kg",rate:1},
+  {id:"swb",name:"SWB Van",icon:"🚐",ex:"Transit Custom",pay:"1,000kg",rate:1.15},
+  {id:"lwb",name:"LWB Van",icon:"🚐",ex:"Sprinter/Crafter",pay:"1,200kg",rate:1.3},
+  {id:"xlwb",name:"XLWB Van",icon:"🚐",ex:"Sprinter XLWB",pay:"1,400kg",rate:1.45},
+  {id:"luton",name:"Luton Van",icon:"📦",ex:"Box + tail lift",pay:"1,500kg",rate:1.6},
+  {id:"7_5t",name:"7.5t Truck",icon:"🚛",ex:"With tail lift",pay:"3,500kg",rate:2.1},
+];
+const LOADS=[
+  {id:1,type:"quote",from:"Birmingham B1",to:"Manchester M1",veh:"small",wt:"25kg",desc:"2 boxes car parts",dist:86,urg:"Within 2hrs",ship:"AutoFix Ltd",time:"12m ago",quotes:2,budget:null},
+  {id:2,type:"fixed",from:"London EC2",to:"Bristol BS1",veh:"lwb",wt:"400kg",desc:"8 pallets office equip",dist:119,urg:"Same day",ship:"Relocate Pro",time:"3m ago",quotes:0,budget:155},
+  {id:3,type:"fixed",from:"Leeds LS1",to:"Sheffield S1",veh:"small",wt:"15kg",desc:"Legal docs — urgent",dist:35,urg:"Within 60 mins",ship:"Clarke & Partners",time:"Just now",quotes:0,budget:52},
+  {id:4,type:"quote",from:"Glasgow G1",to:"Edinburgh EH1",veh:"swb",wt:"200kg",desc:"Medical equipment",dist:47,urg:"Within 3hrs",ship:"NHS Supply Chain",time:"8m ago",quotes:5,budget:null},
+  {id:5,type:"fixed",from:"Nottingham NG1",to:"London NW1",veh:"luton",wt:"800kg",desc:"Exhibition stand",dist:128,urg:"Tomorrow 8am",ship:"EventCraft UK",time:"22m ago",quotes:0,budget:210},
+  {id:6,type:"fixed",from:"Cardiff CF1",to:"Bristol BS2",veh:"small",wt:"10kg",desc:"Server hardware",dist:44,urg:"ASAP",ship:"TechOps Wales",time:"1m ago",quotes:0,budget:68},
+];
+const ACTIVE_JOBS=[
+  {id:101,from:"London EC1",to:"Cambridge CB1",status:"transit",driver:"Mike R.",veh:"SWB Van",eta:"14:32",progress:65,ship:"BioLab UK",price:95},
+  {id:102,from:"Leeds LS2",to:"York YO1",status:"collecting",driver:"You",veh:"LWB Sprinter",eta:"11:45",progress:15,ship:"Yorkshire Print",price:52},
+  {id:103,from:"Bristol BS1",to:"London SW1",status:"delivered",driver:"You",veh:"LWB Sprinter",eta:"Done",progress:100,ship:"West Legal LLP",price:175},
+];
+const AVAIL_DRIVERS=[
+  {id:1,name:"James M.",rating:4.9,jobs:312,veh:"LWB Sprinter",loc:"London SE1",heading:"Leeds",range:"200mi",hrs:"5hrs",rate:"£1.10/mi",av:"JM"},
+  {id:2,name:"Sarah K.",rating:4.8,jobs:189,veh:"Small Van",loc:"Manchester M4",heading:"Liverpool",range:"100mi",hrs:"3hrs",rate:"£1.20/mi",av:"SK"},
+  {id:3,name:"Dave P.",rating:4.7,jobs:547,veh:"Luton + Tail Lift",loc:"Birmingham B5",heading:"Anywhere",range:"150mi",hrs:"6hrs",rate:"£1.50/mi",av:"DP"},
+];
+const REVIEWS=[
+  {from:"AutoFix Ltd",av:"AF",color:"#2563eb",rating:5,text:"Brilliant service. On time, professional, handled with care. Will use again.",date:"2 days ago"},
+  {from:"Clarke & Partners",av:"CP",color:"#7c3aed",rating:5,text:"Urgent legal docs delivered in under an hour. Lifesaver!",date:"5 days ago"},
+  {from:"NHS Supply Chain",av:"NS",color:"#16a34a",rating:4,text:"Good communication throughout. Medical equipment arrived safely.",date:"1 week ago"},
+  {from:"EventCraft UK",av:"EC",color:"#ea580c",rating:5,text:"Handled our exhibition stand with real care. Top driver.",date:"2 weeks ago"},
+];
+const TRANSACTIONS=[
+  {id:1,desc:"Leeds → York delivery",from:"Yorkshire Print",amount:52,type:"credit",date:"Today 10:15",icon:"🟢",bg:"#dcfce7"},
+  {id:2,desc:"Bristol → London delivery",from:"West Legal LLP",amount:175,type:"credit",date:"Yesterday",icon:"🟢",bg:"#dcfce7"},
+  {id:3,desc:"Platform fee (8%)",from:"LoadLink",amount:-14,type:"debit",date:"Yesterday",icon:"📋",bg:"#fee2e2"},
+  {id:4,desc:"London → Cambridge delivery",from:"BioLab UK",amount:95,type:"credit",date:"Mon 24 Feb",icon:"🟢",bg:"#dcfce7"},
+  {id:5,desc:"Instant payout fee",from:"LoadLink",amount:-2.85,type:"debit",date:"Mon 24 Feb",icon:"⚡",bg:"#fef3c7"},
+  {id:6,desc:"Birmingham → Manchester",from:"AutoFix Ltd",amount:86,type:"credit",date:"Sun 23 Feb",icon:"🟢",bg:"#dcfce7"},
+];
+const INVOICES=[
+  {id:"INV-0847",job:"Leeds → York",client:"Yorkshire Print",amount:52,status:"paid",date:"28 Feb 2026"},
+  {id:"INV-0846",job:"Bristol → London",client:"West Legal LLP",amount:175,status:"paid",date:"27 Feb 2026"},
+  {id:"INV-0845",job:"London → Cambridge",client:"BioLab UK",amount:95,status:"pending",date:"24 Feb 2026"},
+  {id:"INV-0844",job:"Birmingham → Manchester",client:"AutoFix Ltd",amount:86,status:"overdue",date:"20 Feb 2026"},
+];
+const NOTIFS=[
+  {id:1,icon:"⚡",bg:"#fef3c7",title:"New fixed-price load",msg:"Leeds → Sheffield · £52 · Legal docs",time:"2m ago",unread:true},
+  {id:2,icon:"💬",bg:"#dbeafe",title:"Quote accepted!",msg:"AutoFix Ltd accepted your £86 quote",time:"15m ago",unread:true},
+  {id:3,icon:"⭐",bg:"#fef3c7",title:"New 5-star review",msg:"Clarke & Partners rated you ⭐⭐⭐⭐⭐",time:"1hr ago",unread:true},
+  {id:4,icon:"💰",bg:"#dcfce7",title:"Payment received",msg:"£175 from West Legal LLP",time:"3hrs ago",unread:false},
+  {id:5,icon:"📦",bg:"#f3e8ff",title:"POD confirmed",msg:"Bristol → London delivery signed off",time:"3hrs ago",unread:false},
+  {id:6,icon:"🚐",bg:"#dbeafe",title:"Driver assigned",msg:"Dave P. is heading to your pickup",time:"Yesterday",unread:false},
+];
+
+/* ═══════ STATE ═══════ */
+let page="home",bizStep=0,selVeh="small",selTier="standard",drvTab="loads",loadFilter="all";
+let accepted={},availPosted=false,notifOpen=false,trackProgress=65;
+let sigDrawing=false,sigCtx=null,podPhotoDone=false,podSigDone=false;
+let ratingStars=0,ratingText="";
+
+/* ═══════ HELPERS ═══════ */
+const $=id=>document.getElementById(id);
+const vn=id=>(VEH.find(v=>v.id===id)||VEH[0]);
+const calcP=(d,v,t)=>{const r=vn(v).rate;const m={economy:.8,standard:1,express:1.25};return Math.round(d*r*(m[t]||1))};
+function showToast(m){$('toastMsg').textContent=m;$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3000)}
+function showPage(id){['pg-home','pg-biz','pg-drv'].forEach(p=>$(p).classList.add('hidden'));$('pg-'+id).classList.remove('hidden');$('navbar').classList.toggle('hidden',id==='home');page=id;window.scrollTo(0,0)}
+function goHome(){showPage('home');$('notifPanel').classList.add('hidden');notifOpen=false}
+function openBiz(){bizStep=0;selVeh="small";selTier="standard";$('navRole').className='nav-role biz';$('navRole').textContent='🏭 Business';showPage('biz');renderBiz()}
+function openDrv(){$('navRole').className='nav-role drv';$('navRole').textContent='🚐 Driver';showPage('drv');renderDrvTabs();switchTab('loads')}
+function openModal(html){$('modalContent').innerHTML=html;$('modalBg').classList.remove('hidden')}
+function closeModal(){$('modalBg').classList.add('hidden')}
+
+/* ═══════ NOTIFICATIONS ═══════ */
+function toggleNotifs(){notifOpen=!notifOpen;$('notifPanel').classList.toggle('hidden',!notifOpen);if(notifOpen)renderNotifs()}
+function renderNotifs(){let h='';NOTIFS.forEach(n=>{h+=`<div class="notif-item ${n.unread?'unread':''}"><div class="notif-icon" style="background:${n.bg}">${n.icon}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${n.title}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${n.msg}</div><div class="notif-time">${n.time}</div></div></div>`});$('notifList').innerHTML=h}
+function markAllRead(){NOTIFS.forEach(n=>n.unread=false);$('notifDot').style.display='none';renderNotifs();showToast('All notifications marked as read')}
+
+/* ═══════ BUSINESS FLOW ═══════ */
+function renderBizSteps(){const l=["Details","Vehicle","Price & Book","Tracking","POD & Rate"];let h='';l.forEach((s,i)=>{h+=`<div class="step-n ${i<=bizStep?'on':'off'}">${i+1}</div><span class="step-lbl ${i<=bizStep?'on':'off'}">${s}</span>`;if(i<4)h+=`<div class="step-line ${i<bizStep?'on':'off'}"></div>`});$('stepsRow').innerHTML=h}
+function renderBiz(){renderBizSteps();const fns=[renderBizS0,renderBizS1,renderBizS2,renderBizS3,renderBizS4];fns[bizStep]()}
+function bizNext(s){bizStep=s;renderBiz();window.scrollTo(0,0)}
+
+function renderBizS0(){$('bizContent').innerHTML=`
+  <div class="section-title">What do you need delivered?</div>
+  <p class="section-sub">Tell us the basics — we handle the rest</p>
+  <div class="card">
+    <div style="margin-bottom:14px"><label class="form-label">What are you sending?</label><input class="form-input" placeholder="e.g. 2 boxes car parts, 25kg"></div>
+    <div class="form-row" style="margin-bottom:14px"><div><label class="form-label">Pickup</label><input class="form-input" placeholder="Postcode or address"></div><div><label class="form-label">Deliver to</label><input class="form-input" placeholder="Postcode or address"></div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${["Tail lift","Fragile","2-man","Temp controlled"].map(t=>`<button class="badge badge-blue" style="cursor:pointer" onclick="this.style.background=this.style.background==='rgb(254, 243, 199)'?'':'#fef3c7';this.style.color=this.style.color==='rgb(180, 83, 9)'?'':'#b45309'">${t}</button>`).join('')}</div>
+  </div>
+  <button class="btn btn-amber" onclick="bizNext(1)">Continue →</button>`}
+
+function renderBizS1(){let h=`<div class="section-title">Choose a vehicle</div><p class="section-sub">Recommended: <strong style="color:#d97706">Small Van</strong></p><div class="vgrid">`;
+  VEH.forEach(v=>{const s=selVeh===v.id;h+=`<button class="vcard ${s?'sel':''}" onclick="selVeh='${v.id}';renderBiz()"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:22px">${v.icon}</span>${s?'<span style="background:#f59e0b;color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px">✓</span>':''}</div><div style="font-weight:700;font-size:13px">${v.name}</div><div style="font-size:11px;color:#94a3b8">${v.ex}</div><div style="font-size:11px;color:#d97706;font-weight:600;margin-top:4px">Up to ${v.pay}</div></button>`});
+  h+=`</div><div class="btn-row"><button class="btn btn-ghost" onclick="bizNext(0)">← Back</button><button class="btn btn-amber" onclick="bizNext(2)">Continue →</button></div>`;
+  $('bizContent').innerHTML=h}
+
+function renderBizS2(){const d=86,vN=vn(selVeh).name;
+  const tiers=[{id:"economy",l:"Economy",t:"By 6pm",i:"🕐",d:"Cheapest option",p:calcP(d,selVeh,"economy")},{id:"standard",l:"Standard",t:"Within 2hrs",i:"🚐",d:"Best balance",p:calcP(d,selVeh,"standard"),rec:true},{id:"express",l:"Express",t:"Within 60min",i:"⚡",d:"Fastest pickup",p:calcP(d,selVeh,"express")}];
+  let h=`<div class="section-title">Choose your service</div><p class="section-sub">Birmingham B1 → Manchester M1 · ~${d}mi · ${vN}</p>`;
+  tiers.forEach(t=>{const s=selTier===t.id;h+=`<button class="tier ${s?'sel':''}" onclick="selTier='${t.id}';renderBiz()"><div class="tier-left"><span style="font-size:22px;margin-top:2px">${t.i}</span><div><div style="font-weight:700;font-size:14px">${t.l}${t.rec?' <span class="badge badge-amber">Recommended</span>':''}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${t.t}</div><div style="font-size:11px;color:#94a3b8;margin-top:4px">${t.d}</div></div></div><div><div class="tier-price">£${t.p}</div><div style="font-size:11px;color:#94a3b8;text-align:right">inc. VAT</div></div></button>`});
+  const p=calcP(d,selVeh,selTier);
+  h+=`<div class="info-box">🚐 7 drivers available near pickup</div><div class="btn-row"><button class="btn btn-ghost" onclick="bizNext(1)">← Back</button><button class="btn btn-amber" onclick="bizNext(3);showToast('Booking confirmed! Driver assigned.')">Book Now — £${p}</button></div>`;
+  $('bizContent').innerHTML=h}
+
+function renderBizS3(){
+  $('bizContent').innerHTML=`
+  <div class="section-title">📍 Live Tracking</div>
+  <p class="section-sub">Job #LL-2026-0847 · Dave P. is on his way</p>
+  <div class="track-map" id="trackMap">
+    <div class="track-route"><div class="track-route-done" id="routeDone" style="width:${trackProgress}%"></div></div>
+    <div class="track-pin-a">📍</div>
+    <div class="track-pin-b">🏁</div>
+    <div class="track-van" id="trackVan" style="left:${10+trackProgress*0.8}%">🚐</div>
+    <div class="track-label track-label-a">Birmingham B1</div>
+    <div class="track-label track-label-b">Manchester M1</div>
+    <div class="track-eta" id="trackETA">ETA 14:32</div>
+  </div>
+  <div class="track-status-bar">
+    <div class="track-step done">✓ Booked</div>
+    <div class="track-step done">✓ Collected</div>
+    <div class="track-step current">🚐 In Transit</div>
+    <div class="track-step pending">📦 Delivered</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:10px">Live Updates</div>
+    <div class="track-updates">
+      <div class="track-update"><span class="track-update-time">14:05</span><span>🚐 Driver passing junction 6, M42</span></div>
+      <div class="track-update"><span class="track-update-time">13:42</span><span>📦 Collection confirmed — goods loaded</span></div>
+      <div class="track-update"><span class="track-update-time">13:28</span><span>📍 Driver arrived at pickup</span></div>
+      <div class="track-update"><span class="track-update-time">13:15</span><span>🚐 Driver en route to pickup — ETA 13 mins</span></div>
+      <div class="track-update"><span class="track-update-time">13:12</span><span>✅ Dave P. assigned to your job</span></div>
+    </div>
+  </div>
+  <div class="share-link">
+    <div><span style="font-weight:600">📎 Customer tracking link</span><br><code>loadlink.co/track/LL-0847</code></div>
+    <button class="btn-sm btn-dark" onclick="showToast('Link copied to clipboard!')">Copy</button>
+  </div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn btn-green" onclick="simulateDelivery()">⏩ Simulate Delivery</button>
+    <button class="btn btn-ghost" onclick="bizNext(4)">Skip to POD →</button>
+  </div>`;
+  animateTrack()}
+
+function animateTrack(){if(page!=='biz'||bizStep!==3)return;trackProgress=Math.min(trackProgress+0.3,95);const el=$('routeDone'),van=$('trackVan');if(el){el.style.width=trackProgress+'%';van.style.left=(10+trackProgress*0.8)+'%';}requestAnimationFrame(animateTrack)}
+
+function simulateDelivery(){trackProgress=100;const el=$('routeDone'),van=$('trackVan'),eta=$('trackETA');if(el){el.style.width='100%';van.style.left='90%';eta.textContent='DELIVERED ✅'}showToast('Delivery complete! POD ready.');setTimeout(()=>bizNext(4),1500)}
+
+function renderBizS4(){
+  $('bizContent').innerHTML=`
+  <div class="section-title">✅ Delivery Complete</div>
+  <p class="section-sub">Proof of Delivery from Dave P.</p>
+  <div class="card">
+    <div style="text-align:center;margin-bottom:12px"><span style="font-size:48px">📸</span><div style="font-weight:700;margin-top:8px">Photo Proof</div><div style="font-size:12px;color:#64748b">Goods delivered to reception desk</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">📍 GPS:</span> <strong>Manchester M1 2WQ</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">🕐 Time:</span> <strong>14:32 · 28 Feb</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">✍️ Signed:</span> <strong>J. Williams</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">📋 Status:</span> <strong style="color:#16a34a">Confirmed</strong></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:12px">⭐ Rate your driver</div>
+    <div class="stars" id="bizStars">${[1,2,3,4,5].map(i=>`<span class="star" onclick="setBizRating(${i})" id="bizStar${i}">★</span>`).join('')}</div>
+    <textarea class="form-input" style="margin-top:10px;height:80px;resize:none" placeholder="How was your experience? (optional)" id="bizReviewText"></textarea>
+    <button class="btn btn-amber" style="margin-top:10px" onclick="submitBizRating()">Submit Rating</button>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:700;font-size:14px">Invoice #INV-0847</div><div style="font-size:12px;color:#64748b">Auto-generated · Payment due in 7 days</div></div>
+      <span class="badge badge-amber">Pending</span>
+    </div>
+    <div style="border-top:1px solid #f1f5f9;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between">
+      <span style="color:#64748b;font-size:13px">Total</span>
+      <span style="font-weight:900;font-size:20px;font-family:'Space Mono',monospace">£${calcP(86,selVeh,selTier)}</span>
+    </div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn btn-dark btn-sm" onclick="showToast('Invoice downloaded!')">📄 Download</button>
+      <button class="btn btn-outline btn-sm" onclick="showToast('Payment link sent!')">💳 Pay Now</button>
+    </div>
+  </div>
+  <button class="btn btn-amber" style="margin-top:8px" onclick="openBiz()">Book Another Delivery</button>`}
+
+let bizRating=0;
+function setBizRating(n){bizRating=n;for(let i=1;i<=5;i++)$('bizStar'+i).className=i<=n?'star filled':'star'}
+function submitBizRating(){if(!bizRating)return showToast('Please select a star rating');showToast(`Thanks! You rated Dave P. ${bizRating} star${bizRating>1?'s':''}`)}
+
+/* ═══════ DRIVER DASHBOARD ═══════ */
+const DRV_TABS=[
+  {id:"loads",label:"🔍 Loads",count:LOADS.length},
+  {id:"active",label:"📋 Active",count:2},
+  {id:"tracking",label:"📍 Track"},
+  {id:"pod",label:"📸 POD"},
+  {id:"ratings",label:"⭐ Ratings"},
+  {id:"payments",label:"💰 Payments"},
+  {id:"invoices",label:"📄 Invoices"},
+  {id:"avail",label:"📍 Avail."},
+];
+
+function renderDrvTabs(){$('drvTabs').innerHTML=DRV_TABS.map(t=>`<button class="tab ${drvTab===t.id?'active':''}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.label}${t.count?` <span class="tab-badge">${t.count}</span>`:''}</button>`).join('')}
+
+function switchTab(id){drvTab=id;renderDrvTabs();const fns={loads:renderLoads,active:renderActive,tracking:renderDrvTracking,pod:renderPOD,ratings:renderRatings,payments:renderPayments,invoices:renderInvoices,avail:renderAvail};fns[id]();window.scrollTo(0,0)}
+
+/* LOADS */
+function renderLoads(){
+  const fl=loadFilter==='all'?LOADS:LOADS.filter(l=>l.type===loadFilter);
+  let h=`<div style="display:flex;gap:6px;margin-bottom:10px">${[{id:'all',l:'All loads'},{id:'fixed',l:'⚡ Fixed'},{id:'quote',l:'💬 Quotes'}].map(f=>`<button style="padding:5px 12px;border-radius:50px;font-size:11px;font-weight:600;border:1px solid ${loadFilter===f.id?'#2563eb':'#e2e8f0'};background:${loadFilter===f.id?'#2563eb':'#fff'};color:${loadFilter===f.id?'#fff':'#475569'}" onclick="loadFilter='${f.id}';renderLoads()">${f.l}</button>`).join('')}</div>`;
+  fl.forEach(l=>{const v=vn(l.veh);h+=`<div class="lcard"><div class="lcard-body"><div class="lcard-top"><div style="display:flex;align-items:center;gap:6px"><span class="badge ${l.type==='fixed'?'badge-amber':'badge-blue'}">${l.type==='fixed'?'⚡ FIXED':'💬 QUOTE'}</span><span style="font-size:11px;color:#94a3b8">${l.time}</span></div>${l.type==='fixed'?`<span style="font-size:20px;font-weight:900;font-family:'Space Mono',monospace">£${l.budget}</span>`:`<span style="font-size:11px;color:#94a3b8">${l.quotes} quotes</span>`}</div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="flex:1"><div><span style="display:inline-block;width:9px;height:9px;background:#22c55e;border-radius:50%;margin-right:5px;vertical-align:middle"></span><span style="font-size:13px;font-weight:600">${l.from}</span></div><div style="margin-left:4px;border-left:2px dashed #e2e8f0;height:10px"></div><div><span style="display:inline-block;width:9px;height:9px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle"></span><span style="font-size:13px;font-weight:600">${l.to}</span></div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700">${l.dist}mi</div><div style="font-size:11px;color:#94a3b8">${l.urg}</div></div></div><div style="font-size:11px;color:#64748b;margin-top:6px">${v.icon} ${v.name} · ${l.wt} · ${l.desc}</div><div style="font-size:11px;color:#94a3b8;margin-top:3px">Posted by: <strong style="color:#475569">${l.ship}</strong></div></div><div class="lcard-actions">${l.type==='fixed'?`<button class="btn-sm ${accepted[l.id]?'btn-green':'btn-amber'}" style="flex:1" onclick="acceptLoad(${l.id},${l.budget},'${l.from}','${l.to}')">${accepted[l.id]?'✓ Accepted':`Accept — £${l.budget}`}</button>${!accepted[l.id]?`<button class="btn-sm btn-outline">Counter</button>`:''}`:`<button class="btn-sm btn-blue" style="flex:1" onclick="openQuoteModal(${l.id})">Send Quote</button><button class="btn-sm btn-outline">Details</button>`}</div></div>`});
+  $('drvContent').innerHTML=h}
+
+function acceptLoad(id,b,f,t){if(accepted[id])return;accepted[id]=true;showToast(`Job accepted! £${b} — ${f} → ${t}`);renderLoads()}
+
+function openQuoteModal(id){const l=LOADS.find(x=>x.id===id);const v=vn(l.veh);openModal(`<h3>Send Quote</h3><div style="background:#f8fafc;border-radius:12px;padding:10px;margin-bottom:10px"><div style="font-size:13px;font-weight:600">${l.from} → ${l.to}</div><div style="font-size:11px;color:#64748b;margin-top:3px">${l.dist}mi · ${v.name} · ${l.desc}</div></div><div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:10px;font-size:12px;color:#92400e;margin-bottom:12px">💡 Average: <strong>£${Math.round(l.dist*.95)}–£${Math.round(l.dist*1.15)}</strong></div><div style="margin-bottom:10px"><label class="form-label">Your price (£)</label><input type="number" class="form-input" style="font-size:24px;font-weight:900;text-align:center;font-family:'Space Mono',monospace" id="qPrice" placeholder="0" oninput="document.getElementById('qPPM').textContent=this.value?'£'+(this.value/${l.dist}).toFixed(2)+'/mile':''"></div><div style="text-align:center;font-size:12px;color:#94a3b8;margin-bottom:12px" id="qPPM"></div><button class="btn btn-blue" onclick="submitQ('${l.ship}')">Send Quote</button><button style="width:100%;background:none;color:#64748b;padding:8px;font-size:13px;margin-top:6px" onclick="closeModal()">Cancel</button>`)}
+function submitQ(ship){const p=$('qPrice').value;if(p){closeModal();showToast(`Quote of £${p} sent to ${ship}`)}}
+
+/* ACTIVE */
+function renderActive(){let h='';ACTIVE_JOBS.forEach(j=>{const sl={transit:['🚐 In Transit','badge-blue'],collecting:['📦 Collecting','badge-amber'],delivered:['✅ Delivered','badge-green']}[j.status];h+=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="badge ${sl[1]}">${sl[0]}</span><span style="font-size:11px;color:#94a3b8">ETA: ${j.eta}</span></div><div style="font-size:14px;font-weight:600">${j.from} <span style="color:#cbd5e1">→</span> ${j.to}</div><div style="font-size:12px;color:#64748b;margin-top:3px">${j.ship} · ${j.veh} · <strong style="font-family:'Space Mono',monospace">£${j.price}</strong></div><div class="progress-bar" style="background:#f1f5f9;border-radius:50px;height:7px;overflow:hidden;margin-top:10px"><div style="background:#2563eb;height:100%;border-radius:50px;width:${j.progress}%"></div></div>${j.status!=='delivered'?`<div class="btn-row"><button class="btn btn-sm btn-green" style="flex:1" onclick="showToast('Status updated!')">${j.status==='collecting'?'Confirm Collection':'Mark Delivered'}</button><button class="btn btn-sm btn-outline">Contact</button></div>`:''}</div>`});$('drvContent').innerHTML=h}
+
+/* TRACKING */
+function renderDrvTracking(){let tp=65;$('drvContent').innerHTML=`
+  <div class="section-title">📍 Job Tracking</div>
+  <p class="section-sub">London EC1 → Cambridge CB1 · Mike R.</p>
+  <div class="track-map"><div class="track-route"><div class="track-route-done" style="width:65%"></div></div><div class="track-pin-a">📍</div><div class="track-pin-b">🏁</div><div class="track-van" style="left:62%">🚐</div><div class="track-label track-label-a">London EC1</div><div class="track-label track-label-b">Cambridge CB1</div><div class="track-eta">ETA 14:32</div></div>
+  <div class="track-status-bar"><div class="track-step done">✓ Booked</div><div class="track-step done">✓ Collected</div><div class="track-step current">🚐 Transit</div><div class="track-step pending">📦 Deliver</div></div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:8px">Updates</div><div class="track-updates"><div class="track-update"><span class="track-update-time">14:05</span><span>Passing junction 6, M42</span></div><div class="track-update"><span class="track-update-time">13:42</span><span>Collection confirmed</span></div><div class="track-update"><span class="track-update-time">13:28</span><span>Arrived at pickup</span></div></div></div>
+  <div class="share-link"><div><span style="font-weight:600">📎 Customer link</span><br><code>loadlink.co/track/LL-0847</code></div><button class="btn-sm btn-dark" onclick="showToast('Link copied!')">Copy</button></div>`}
+
+/* POD */
+function renderPOD(){$('drvContent').innerHTML=`
+  <div class="section-title">📸 Capture Proof of Delivery</div>
+  <p class="section-sub">Leeds LS2 → York YO1 · Yorkshire Print</p>
+  <div class="card">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px">1. Photo Evidence</div>
+    <div class="pod-photo-area" id="photoArea" onclick="capturePhoto()">
+      <span style="font-size:36px" id="photoIcon">📷</span>
+      <span style="font-size:13px;color:#64748b;margin-top:6px" id="photoText">Tap to take photo of delivered goods</span>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px">2. Customer Signature</div>
+    <div class="pod-sig" id="sigBox">
+      <canvas id="sigCanvas" width="680" height="156"></canvas>
+      <div class="pod-sig-label" id="sigLabel">Sign here with finger or mouse</div>
+    </div>
+    <div style="text-align:right"><button class="btn-sm btn-ghost" onclick="clearSig()">Clear</button></div>
+  </div>
+  <div class="card">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px">3. Auto-captured Details</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">📍 GPS:</span> <strong>York YO1 7NR</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">🕐 Time:</span> <strong>${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · Today</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">🚐 Driver:</span> <strong>James Mitchell</strong></div>
+      <div style="background:#f8fafc;border-radius:10px;padding:10px;font-size:12px"><span style="color:#94a3b8">📋 Job:</span> <strong>#LL-2026-0102</strong></div>
+    </div>
+  </div>
+  <button class="btn btn-green" onclick="submitPOD()">✅ Submit POD & Complete Delivery</button>`;
+  initSig()}
+
+function capturePhoto(){podPhotoDone=true;$('photoIcon').textContent='✅';$('photoText').textContent='Photo captured successfully!';$('photoArea').style.borderColor='#22c55e';$('photoArea').style.background='#f0fdf4';showToast('Photo captured!')}
+
+function initSig(){const c=$('sigCanvas');if(!c)return;sigCtx=c.getContext('2d');sigCtx.strokeStyle='#0f172a';sigCtx.lineWidth=2.5;sigCtx.lineCap='round';
+  c.addEventListener('mousedown',e=>{sigDrawing=true;sigCtx.beginPath();sigCtx.moveTo(e.offsetX,e.offsetY);$('sigLabel').style.display='none';podSigDone=true});
+  c.addEventListener('mousemove',e=>{if(sigDrawing){sigCtx.lineTo(e.offsetX,e.offsetY);sigCtx.stroke()}});
+  c.addEventListener('mouseup',()=>sigDrawing=false);
+  c.addEventListener('mouseleave',()=>sigDrawing=false);
+  c.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0],r=c.getBoundingClientRect();sigDrawing=true;sigCtx.beginPath();sigCtx.moveTo(t.clientX-r.left,t.clientY-r.top);$('sigLabel').style.display='none';podSigDone=true},{passive:false});
+  c.addEventListener('touchmove',e=>{e.preventDefault();if(sigDrawing){const t=e.touches[0],r=c.getBoundingClientRect();sigCtx.lineTo(t.clientX-r.left,t.clientY-r.top);sigCtx.stroke()}},{passive:false});
+  c.addEventListener('touchend',()=>sigDrawing=false)}
+function clearSig(){if(sigCtx){sigCtx.clearRect(0,0,680,156);$('sigLabel').style.display='block';podSigDone=false}}
+function submitPOD(){if(!podPhotoDone)return showToast('Please capture a photo first');if(!podSigDone)return showToast('Please get customer signature');showToast('POD submitted! Job complete. Invoice auto-generated.');setTimeout(()=>switchTab('payments'),1500)}
+
+/* RATINGS */
+function renderRatings(){let h=`
+  <div class="section-title">⭐ Your Ratings & Reviews</div>
+  <p class="section-sub">4.9 average from 312 jobs</p>
+  <div class="card" style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+    <div style="text-align:center"><div style="font-size:48px;font-weight:900;font-family:'Space Mono',monospace;color:#f59e0b">4.9</div><div style="color:#f59e0b;font-size:20px;letter-spacing:2px">★★★★★</div><div style="font-size:12px;color:#64748b;margin-top:4px">312 ratings</div></div>
+    <div style="flex:1">
+      ${[{s:5,p:92},{s:4,p:6},{s:3,p:1.5},{s:2,p:0.3},{s:1,p:0.2}].map(r=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:11px;color:#64748b;width:14px">${r.s}★</span><div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden"><div style="height:100%;background:#f59e0b;border-radius:3px;width:${r.p}%"></div></div><span style="font-size:10px;color:#94a3b8;width:32px;text-align:right">${r.p}%</span></div>`).join('')}
+    </div>
+  </div>`;
+  REVIEWS.forEach(r=>{h+=`<div class="review-card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div class="review-avatar" style="background:${r.color}">${r.av}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">${r.from}</div><div style="font-size:11px;color:#94a3b8">${r.date}</div></div><div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div><div style="font-size:13px;color:#475569;line-height:1.5">${r.text}</div></div>`});
+  $('drvContent').innerHTML=h}
+
+/* PAYMENTS */
+function renderPayments(){let h=`
+  <div class="pay-card"><div class="pay-card-circle"></div>
+    <div class="pay-sub">Available balance</div>
+    <div class="pay-balance">£847.15</div>
+    <div class="btn-row" style="margin-top:14px"><button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;flex:1" onclick="showToast('Withdrawal initiated — arrives tomorrow')">🏦 Withdraw to bank</button><button class="btn btn-sm" style="background:#f59e0b;color:#fff;flex:1" onclick="showToast('Instant payout sent! £847.15 (fee: £25.41)')">⚡ Instant payout</button></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:14px">This week</span><span style="font-size:12px;color:#94a3b8">24-28 Feb 2026</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+      <div style="background:#f0fdf4;border-radius:12px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:900;font-family:'Space Mono',monospace;color:#16a34a">£408</div><div style="font-size:10px;color:#64748b;margin-top:2px">Earned</div></div>
+      <div style="background:#fef2f2;border-radius:12px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:900;font-family:'Space Mono',monospace;color:#ef4444">-£16.85</div><div style="font-size:10px;color:#64748b;margin-top:2px">Fees</div></div>
+      <div style="background:#eff6ff;border-radius:12px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:900;font-family:'Space Mono',monospace;color:#2563eb">5</div><div style="font-size:10px;color:#64748b;margin-top:2px">Jobs</div></div>
+    </div>
+  </div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:8px">Recent transactions</div>`;
+  TRANSACTIONS.forEach(t=>{h+=`<div class="tx-row"><div class="tx-left"><div class="tx-icon" style="background:${t.bg}">${t.icon}</div><div><div style="font-size:13px;font-weight:600">${t.desc}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${t.from} · ${t.date}</div></div></div><span class="tx-amount ${t.type}">${t.type==='credit'?'+':''}£${Math.abs(t.amount).toFixed(2)}</span></div>`});
+  h+=`</div>`;$('drvContent').innerHTML=h}
+
+/* INVOICES */
+function renderInvoices(){let h=`<div class="section-title">📄 Invoices</div><p class="section-sub">Auto-generated when POD is confirmed</p>`;
+  INVOICES.forEach(inv=>{const sc={paid:'badge-green',pending:'badge-amber',overdue:'badge-red'}[inv.status];h+=`<div class="inv-row"><div style="flex:1"><div style="font-weight:700;font-size:13px">${inv.id}</div><div style="font-size:12px;color:#64748b;margin-top:2px">${inv.job} · ${inv.client}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${inv.date}</div></div><div style="text-align:right"><div style="font-weight:900;font-size:16px;font-family:'Space Mono',monospace">£${inv.amount}</div><span class="badge ${sc}" style="margin-top:4px">${inv.status}</span></div></div>`});
+  h+=`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;font-size:12px;color:#1e40af;margin-top:12px">💡 Invoices are auto-created when POD is submitted. Payment reminders are sent at 7, 14, and 30 days.</div>`;
+  $('drvContent').innerHTML=h}
+
+/* AVAILABILITY */
+function renderAvail(){$('drvContent').innerHTML=`
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:4px">Post Your Availability</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:14px">Shippers can find and book you directly</p>
+    <div class="form-row" style="margin-bottom:10px"><div><label class="form-label">Current location</label><input class="form-input" value="Leeds LS1"></div><div><label class="form-label">Heading to</label><input class="form-input" value="Anywhere"></div></div>
+    <div class="form-row" style="margin-bottom:10px"><div><label class="form-label">Vehicle</label><select class="form-input">${VEH.map(v=>`<option>${v.icon} ${v.name}</option>`).join('')}</select></div><div><label class="form-label">Max range</label><select class="form-input">${[50,100,150,200,250,300].map(m=>`<option>${m} miles</option>`).join('')}</select></div></div>
+    <div class="form-row" style="margin-bottom:14px"><div><label class="form-label">Hours available</label><select class="form-input">${["1-2hrs","2-3hrs","3-4hrs","4-5hrs","5-6hrs","Full day"].map(h=>`<option>${h}</option>`).join('')}</select></div><div><label class="form-label">Rate (£/mile)</label><input class="form-input" value="1.10"></div></div>
+    <button class="btn ${availPosted?'btn-ghost" style="background:#fee2e2;color:#b91c1c':'btn-green'}" onclick="toggleAvail()">${availPosted?'🔴 Remove Availability':'🟢 Go Available'}</button>
+  </div>
+  ${availPosted?`<div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:2px solid #bbf7d0;border-radius:18px;padding:14px;margin-top:12px"><div style="width:12px;height:12px;background:#22c55e;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0"></div><div><strong style="color:#15803d;font-size:13px">You're Live!</strong><p style="font-size:12px;color:#16a34a;margin-top:2px">Shippers can see you and book directly.</p></div></div>`:''}`}
+function toggleAvail(){availPosted=!availPosted;showToast(availPosted?'You\'re now available!':'Availability removed');renderAvail()}
+
+/* ═══════ INIT ═══════ */
+renderNotifs();
+</script>
+</body>
+</html>
