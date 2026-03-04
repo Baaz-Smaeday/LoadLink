@@ -1,234 +1,208 @@
-<p align="center">
-  <img src="assets/images/loadlink-banner.png" alt="LoadLink" width="600">
-</p>
+# LoadLink
 
-<h1 align="center">LoadLink</h1>
+**The UK's smartest courier platform — connecting businesses directly to drivers.**
 
-<p align="center">
-  <strong>The UK's first platform connecting businesses directly to courier drivers.</strong><br>
-  No middlemen. No phone calls. Book, track, deliver, get paid — all in one place.
-</p>
+No middlemen. No subscriptions. No lock-in contracts. Just fair work, guaranteed pay, and escrow-protected payments.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0-blue?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/phase-2%20of%204-green?style=flat-square" alt="Phase">
-  <img src="https://img.shields.io/badge/license-MIT-orange?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/status-in%20development-yellow?style=flat-square" alt="Status">
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
-</p>
+[![Version](https://img.shields.io/badge/version-0.3.0-blue?style=flat-square)](https://github.com/Baaz-Smaeday/LoadLink)
+[![Screens](https://img.shields.io/badge/screens-14%20built-green?style=flat-square)](#-screens)
+[![Phase](https://img.shields.io/badge/phase-2%20of%204-green?style=flat-square)](#-roadmap)
+[![License](https://img.shields.io/badge/license-MIT-orange?style=flat-square)](/LICENSE)
+[![Status](https://img.shields.io/badge/status-pre--launch-yellow?style=flat-square)](#)
 
-<p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-demo">Demo</a> •
-  <a href="#-getting-started">Getting Started</a> •
-  <a href="#-roadmap">Roadmap</a> •
-  <a href="#-contributing">Contributing</a> •
-  <a href="#-license">License</a>
-</p>
+[Live Preview](https://baaz-smaeday.github.io/LoadLink/) •
+[Screens](#-screens) •
+[Features](#-features) •
+[How It Works](#-how-it-works) •
+[Roadmap](#-roadmap) •
+[Contributing](#-contributing)
 
 ---
 
 ## 🚀 What is LoadLink?
 
-LoadLink is a transport marketplace that connects **businesses** who need deliveries with **courier drivers** who can deliver them — instantly.
+LoadLink is a transport marketplace that connects **businesses** who need deliveries with **courier drivers** who can deliver them — directly, instantly, and fairly.
 
-Think of it as **Uber for courier deliveries**, but built specifically for the UK transport industry.
+Think of it as the **fair alternative to Courier Exchange**, built for drivers and businesses who are tired of overpriced subscriptions, lock-in contracts, and forced payment processors.
 
 ### The Problem
 
-Currently, businesses needing urgent deliveries must:
-1. Call a courier company
-2. Who then posts the job on an exchange (like Courier Exchange)
-3. Where drivers compete on price
-4. Adding multiple middlemen and delays
-
-**Courier Exchange** (the current market leader) charges drivers **£2,300+/year** with 12-month lock-in contracts, offers only one booking method (quotes), and runs on outdated technology.
+The UK's dominant courier exchange charges drivers **£2,300+/year** with a **12-month non-compete clause**, forces a specific payment processor, and offers limited dispute resolution. Businesses pay subscription fees just to post jobs.
 
 ### Our Solution
 
-LoadLink cuts out the middlemen and offers:
+| | Courier Exchange | **LoadLink** |
+|---|---|---|
+| **Pricing** | £2,300+/year subscription | **4% commission (capped monthly)** |
+| **Contract** | 12-month lock-in + non-compete | **Cancel anytime, zero lock-in** |
+| **Payment Processor** | Forced (SmartPay) | **Your choice — any bank** |
+| **Payment Protection** | Limited | **Full escrow on every job** |
+| **Dispute Resolution** | Basic | **Structured 5-step fair process** |
+| **Instant Payments** | ❌ | **✅ Available** |
+| **Termination** | Penalty + no refund | **Leave anytime, no penalty** |
 
-| Feature | Courier Exchange | LoadLink |
-|---------|:---:|:---:|
-| Booking modes | 1 (quotes only) | **3** (quotes + fixed price + driver availability) |
-| Instant booking | ❌ | ✅ Uber-style |
-| Driver availability posts | ❌ | ✅ |
-| Customer tracking links | ❌ | ✅ Shareable |
-| Digital POD (photo + signature) | Basic | ✅ Full (photo + sig + GPS + timestamp) |
-| Auto invoicing | ❌ | ✅ |
-| Direct business booking | ❌ | ✅ |
-| Mobile apps | 3 separate apps | **1 unified app** |
-| Driver pricing | £2,300+/year locked | **£49-79/month or free + 8%** |
-| Contract | 12-month lock-in | **Cancel anytime** |
+---
+
+## 🖥 Screens
+
+**14 fully interactive screens** built with a custom dark-theme design system. Each screen works with real buttons, filters, modals, and flows.
+
+**[→ Browse all screens live](https://baaz-smaeday.github.io/LoadLink/)**
+
+### Public Pages
+| Screen | Description |
+|--------|-------------|
+| [Landing Page](https://baaz-smaeday.github.io/LoadLink/LoadLink-Landing-Page.html) | Hero, features, pricing comparison, waitlist signup |
+| [Login & Sign Up](https://baaz-smaeday.github.io/LoadLink/LoadLink-Login.html) | Role selection, vehicle types, password strength, social login |
+
+### Driver Screens
+| Screen | Description |
+|--------|-------------|
+| [Driver Dashboard](https://baaz-smaeday.github.io/LoadLink/LoadLink-Driver-Dashboard.html) | Go Live toggle, earnings, active job tracker, 12 quick actions + 24 more tools |
+| [Load Board](https://baaz-smaeday.github.io/LoadLink/LoadLink-Load-Board.html) | 6 jobs with AI match scores, filters, accept & counter-offer modal |
+| [Wallet & Payments](https://baaz-smaeday.github.io/LoadLink/LoadLink-Wallet.html) | Balance, earnings chart, escrow holdings, commission tracker, withdraw modal |
+| [Compliance & Trust](https://baaz-smaeday.github.io/LoadLink/LoadLink-Compliance.html) | Trust score ring, 8 documents, tier progression, badges, expiry alerts |
+
+### Business Screens
+| Screen | Description |
+|--------|-------------|
+| [Business Dashboard](https://baaz-smaeday.github.io/LoadLink/LoadLink-Business-Dashboard.html) | Spending overview, active deliveries, pending offers, quick actions |
+| [Post a Job](https://baaz-smaeday.github.io/LoadLink/LoadLink-Post-Job.html) | 4-step wizard: route, cargo/vehicle, pricing (AI suggested), review & escrow |
+
+### Shared Screens
+| Screen | Description |
+|--------|-------------|
+| [Job Tracking](https://baaz-smaeday.github.io/LoadLink/LoadLink-Job-Tracking.html) | Live map, 7-step timeline, POD signature, photo evidence, waiting timer |
+| [Invoice Flow](https://baaz-smaeday.github.io/LoadLink/LoadLink-Invoice.html) | Full invoice document, approve/dispute, POD evidence, escrow release |
+| [Messaging](https://baaz-smaeday.github.io/LoadLink/LoadLink-Messaging.html) | Communication Shield, chat list, live conversation, file sharing |
+| [Disputes](https://baaz-smaeday.github.io/LoadLink/LoadLink-Disputes.html) | Active & resolved disputes, 5-step timeline, evidence, fair resolution |
+| [Ratings & Reviews](https://baaz-smaeday.github.io/LoadLink/LoadLink-Ratings.html) | 4.9 rating hero, category breakdown, reviews with replies, pending ratings |
+| [Settings & Profile](https://baaz-smaeday.github.io/LoadLink/LoadLink-Settings.html) | Account, vehicle info, notifications, payment methods, preferences |
 
 ---
 
 ## ✨ Features
 
-### 3 Booking Modes
+### For Drivers
+- **4% commission, capped monthly** — once you hit the cap, the rest is free
+- **Escrow protection** — funds locked before you even start driving
+- **AI match scores** — jobs scored 0-99 based on your location, vehicle, and preferences
+- **Smart pricing** — £0.80-£2.00/mi suggestions based on distance, cargo, and demand
+- **Counter-offers** — up to 3 rounds of negotiation on any job
+- **Digital POD** — photo evidence + signature + GPS + timestamp
+- **Trust tiers** — New → Verified → Reliable → Elite, with commission discounts at higher tiers
+- **Communication Shield** — phone numbers hidden, calls recorded for safety
 
-- **💬 Quote Request** — Post a load, drivers send their prices, pick the best one
-- **⚡ Fixed Price (Uber-style)** — Set your price, nearest driver accepts instantly
-- **📍 Driver Availability** — Drivers post their location, vehicle & rate. Businesses book them directly
+### For Businesses
+- **4% commission, capped monthly** — no subscriptions, no minimums
+- **Escrow pre-funding** — new businesses fund a wallet before posting, building trust
+- **AI-suggested pricing** — get fair price estimates before posting
+- **Invoice lifecycle** — approve, dispute, or schedule payments (instant, 7-day, 15-day, 30-day)
+- **Live tracking** — real-time driver location with shareable customer tracking links
+- **Structured disputes** — 5-step fair process with evidence review and escrow protection
 
-### 4 User Types
-
-- 🏭 **Direct Businesses** — Book transport with zero industry knowledge needed
-- 📦 **Freight Forwarders** — Manage loads, preferred carriers, customer tracking
-- 🏢 **Courier Companies** — Fleet management, dispatch, subbie networks
-- 🚐 **Owner Drivers** — Find loads, post availability, get paid fast
-
-### Phase 2 Features (Current)
-
-- 📍 **Live GPS Tracking** — Real-time map with animated van, ETA, status updates
-- 📸 **Digital POD** — Photo evidence + signature pad + GPS stamp + timestamp
-- ⭐ **Rating & Reviews** — 5-star system with written reviews and driver profiles
-- 💰 **Payments** — Wallet, transaction history, instant payout option
-- 📄 **Auto Invoicing** — Generated on POD submission, payment reminders at 7/14/30 days
-- 🔔 **Push Notifications** — New loads, quote accepted, reviews, payments, POD confirmations
-
----
-
-## 🎮 Demo
-
-### Quick Start
-
-1. Download `src/LoadLink-Phase2.html`
-2. Double-click to open in any browser
-3. That's it — no install, no setup
-
-### Screenshots
-
-<p align="center">
-  <img src="assets/images/screenshot-home.png" alt="Home" width="250">
-  <img src="assets/images/screenshot-booking.png" alt="Booking" width="250">
-  <img src="assets/images/screenshot-tracking.png" alt="Tracking" width="250">
-</p>
-
-> Screenshots coming soon — take them from the live prototype!
+### Platform-Wide
+- **No non-compete clause** — use LoadLink alongside any other platform
+- **No forced payment processor** — withdraw to any UK bank account
+- **Cancel anytime** — no penalties, no refund issues, no lock-in
+- **Instant payments available** — drivers can get paid same day
+- **Full HMRC compliance tools** — mileage tracker, fuel expenses, tax summaries
 
 ---
 
-## 🏗 Getting Started
+## 🔄 How It Works
 
-### Prerequisites
+**For a Business:**
+1. Post a job (route, cargo, vehicle type, price)
+2. Funds are locked in escrow
+3. Driver accepts or counter-offers
+4. Track the delivery live
+5. Review POD evidence and approve invoice
+6. Payment released to driver
 
-For the **prototype** (Phase 1-2): Nothing! Just a web browser.
-
-For the **production build** (Phase 3+):
-- Node.js 18+
-- npm or yarn
-- PostgreSQL 15+
-- Redis
-- Stripe account
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/loadlink.git
-
-# Open the prototype
-cd loadlink
-open src/LoadLink-Phase2.html
-```
-
-### Project Structure
-
-```
-loadlink/
-├── src/                          # Source code
-│   ├── LoadLink-Phase1-MVP.html  # Phase 1 prototype
-│   ├── LoadLink-Phase2.html      # Phase 2 prototype (current)
-│   └── components/               # Reusable components (coming Phase 3)
-├── docs/                         # Documentation
-│   ├── ARCHITECTURE.md           # System architecture
-│   ├── API.md                    # API documentation
-│   ├── FEATURES.md               # Detailed feature specs
-│   └── BUSINESS-PLAN.md          # Business model & pricing
-├── assets/                       # Static assets
-│   ├── images/                   # Screenshots, banners
-│   └── icons/                    # App icons, favicons
-├── .github/                      # GitHub config
-│   └── ISSUE_TEMPLATE/           # Issue templates
-├── README.md                     # This file
-├── ROADMAP.md                    # Development roadmap
-├── CHANGELOG.md                  # Version history
-├── CONTRIBUTING.md               # How to contribute
-├── LICENSE                       # MIT License
-├── CODE_OF_CONDUCT.md            # Community guidelines
-├── package.json                  # Project metadata
-└── .gitignore                    # Git ignore rules
-```
-
----
-
-## 🗺 Roadmap
-
-| Phase | Status | Features |
-|-------|--------|----------|
-| **Phase 1 — MVP** | ✅ Complete | User registration, load posting, 3 booking modes, driver availability, dashboards |
-| **Phase 2 — Core** | ✅ Complete | GPS tracking, digital POD, ratings, payments, invoicing, notifications |
-| **Phase 3 — Growth** | 🔄 Next | Native mobile apps, analytics, compliance, route optimisation, fleet tools, API |
-| **Phase 4 — Scale** | 📋 Planned | AI matching, automated pricing, multi-language, European expansion |
-
-See [ROADMAP.md](ROADMAP.md) for detailed breakdown.
+**For a Driver:**
+1. Browse the Load Board or get AI-matched jobs
+2. Accept at listed price or counter-offer
+3. Collect, deliver, capture POD
+4. Invoice auto-generated
+5. Business approves → funds released from escrow
+6. Withdraw to your bank instantly or on schedule
 
 ---
 
 ## 💰 Business Model
 
-- **Businesses**: 8-12% per transaction (no subscription needed)
-- **Drivers**: Free tier + 8% commission OR £49-79/month Pro
-- **Freight Forwarders**: £79-149/month subscription
-- **Courier Companies**: £29-49/vehicle/month
-- **Instant Payout**: 2-3% fee per payout
-- **Featured Listings**: £10-30/week
+| | Rate | Cap |
+|---|---|---|
+| **Drivers** | 4% per job | Capped monthly — then free |
+| **Businesses** | 4% per job | Capped monthly — then free |
+| **Instant Payout** | Small fee per payout | Optional |
+
+No subscriptions. No sign-up fees. No hidden charges.
+
+---
+
+## 🗺 Roadmap
+
+| Phase | Status | What's Included |
+|-------|--------|-----------------|
+| **Phase 1 — MVP** | ✅ Complete | Core app prototype, 3 booking modes, dashboards, load board |
+| **Phase 2 — Full Prototype** | ✅ Complete | 14 interactive screens, escrow, invoicing, disputes, messaging, compliance |
+| **Phase 3 — Real App Build** | 🔜 Next | React Native + Supabase, Cursor migration, real payments, push notifications |
+| **Phase 4 — Launch** | 📋 Planned | Beta testing, App Store / Google Play, marketing, first 100 drivers |
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Frontend | React / Next.js | Fast, modern, mobile-responsive |
-| Mobile | React Native | One codebase → iOS + Android |
-| Backend | Node.js | Real-time, scalable |
-| Database | PostgreSQL + Redis | Reliable + fast caching |
-| Maps | Google Maps / Mapbox | Live tracking, routing |
-| Payments | Stripe Connect | Marketplace payments, instant payouts |
-| Real-time | WebSockets / Socket.io | Live tracking, notifications |
-| Hosting | AWS / Vercel | Auto-scaling, reliable |
+| Layer | Current (Prototype) | Production (Phase 3) |
+|-------|--------------------|-----------------------|
+| Frontend | HTML/CSS/JS | React Native (Expo) |
+| Backend | — | Supabase (PostgreSQL) |
+| Payments | Simulated | Stripe Connect |
+| Maps | CSS mock | Google Maps / Mapbox |
+| Hosting | GitHub Pages | Vercel + custom domain |
+| Real-time | — | Supabase Realtime |
+
+---
+
+## 🏗 Design System
+
+All screens use a consistent dark-theme design system:
+
+- **Background:** `#0a0f1a` with noise texture overlay
+- **Cards:** `#1a2234` with `#2a3650` borders
+- **Primary accent:** `#22c55e` (green)
+- **Fonts:** Fraunces (display) + DM Sans (body)
+- **Status colours:** Green (success), Amber (warning), Red (danger), Blue (info), Purple (feature)
+- **Mobile-first:** 480px max width, responsive
+- **Animations:** Fade-in on scroll, pulse indicators, smooth transitions
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome! See [CONTRIBUTING.md](/CONTRIBUTING.md) for guidelines.
 
 1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes
+4. Push and open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](/LICENSE) for details.
 
 ---
 
 ## 📞 Contact
 
-- **Email**: hello@loadlink.co.uk
-- **Twitter**: [@LoadLinkUK](https://twitter.com/LoadLinkUK)
-- **Website**: [loadlink.co.uk](https://loadlink.co.uk) *(coming soon)*
+- **Email:** [hello@loadlink.co.uk](mailto:hello@loadlink.co.uk)
+- **Website:** [loadlink.co.uk](https://loadlink.co.uk) *(coming soon)*
 
 ---
 
-<p align="center">
-  <strong>Built with ❤️ for the UK courier industry</strong><br>
-  <sub>Fed up with overpriced exchanges? So were we.</sub>
-</p>
+**Built in Leeds 🇬🇧 for the UK courier industry.**
+Fair pay. Fair play. No middlemen.
