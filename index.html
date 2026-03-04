@@ -1,287 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LoadLink — Book a Courier in 60 Seconds</title>
-<meta name="description" content="The UK's first platform connecting businesses directly to courier drivers. 3 booking modes, live tracking, instant payments. From £49/month.">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:#020617;color:#e2e8f0;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-.mono{font-family:'Space Mono',monospace}
 
-/* NAV */
-nav{position:fixed;top:0;width:100%;z-index:100;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,6,23,0.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05)}
-.nav-brand{display:flex;align-items:center;gap:10px}
-.nav-logo{background:#f59e0b;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:900;color:#020617;font-size:13px}
-.nav-name{font-size:18px;font-weight:900;color:#fff;letter-spacing:-.5px}
-.nav-links{display:flex;align-items:center;gap:24px}
-.nav-link{font-size:13px;color:#94a3b8;font-weight:500;transition:.2s}
-.nav-link:hover{color:#fff}
-.nav-cta{background:#f59e0b;color:#020617;padding:8px 18px;border-radius:50px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:.2s}
-.nav-cta:hover{background:#fbbf24;transform:scale(1.03)}
 
-/* HERO */
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(245,158,11,0.08) 0%,transparent 70%);pointer-events:none}
-.hero::after{content:'';position:absolute;top:50%;right:-200px;width:500px;height:500px;background:radial-gradient(circle,rgba(37,99,235,0.06) 0%,transparent 70%);pointer-events:none}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:50px;padding:6px 16px;margin-bottom:32px;animation:fadeDown .6s ease}
-.hero-badge-dot{width:7px;height:7px;background:#fbbf24;border-radius:50%;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.hero h1{font-size:clamp(36px,6vw,72px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;animation:fadeUp .6s ease .1s both}
-.hero h1 span{background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{font-size:clamp(16px,2vw,20px);color:#94a3b8;max-width:540px;line-height:1.7;margin-bottom:40px;animation:fadeUp .6s ease .2s both}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;animation:fadeUp .6s ease .3s both}
-.btn-hero{padding:14px 32px;border-radius:14px;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:8px}
-.btn-primary{background:#f59e0b;color:#020617;box-shadow:0 8px 30px rgba(245,158,11,0.25)}
-.btn-primary:hover{background:#fbbf24;transform:translateY(-2px);box-shadow:0 12px 40px rgba(245,158,11,0.35)}
-.btn-secondary{background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.1)}
-.btn-secondary:hover{background:rgba(255,255,255,0.1);transform:translateY(-2px)}
-.hero-stats{display:flex;gap:40px;margin-top:60px;animation:fadeUp .6s ease .4s both}
-.hero-stat{text-align:center}
-.hero-stat-n{font-size:28px;font-weight:900;font-family:'Space Mono',monospace;color:#fff}
-.hero-stat-l{font-size:12px;color:#64748b;margin-top:2px}
 
-/* SECTION */
-section{padding:100px 24px}
-.section-inner{max-width:1000px;margin:0 auto}
-.section-tag{display:inline-block;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:50px;padding:4px 14px;font-size:11px;font-weight:700;color:#f59e0b;letter-spacing:.5px;text-transform:uppercase;margin-bottom:16px;font-family:'Space Mono',monospace}
-.section-title{font-size:clamp(28px,4vw,44px);font-weight:900;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
-.section-sub{font-size:16px;color:#64748b;max-width:500px;line-height:1.7;margin-bottom:48px}
+LoadLink
 
-/* PROBLEM */
-.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.problem-card{background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:20px;padding:28px}
-.problem-icon{font-size:28px;margin-bottom:12px}
-.problem-h{font-size:16px;font-weight:700;color:#fca5a5;margin-bottom:6px}
-.problem-p{font-size:13px;color:#94a3b8;line-height:1.6}
+Preview Build
+All Screens
+View Landing Page →
 
-/* MODES */
-.modes-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.mode-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:28px;transition:.3s;position:relative;overflow:hidden}
-.mode-card:hover{border-color:rgba(245,158,11,0.3);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.3)}
-.mode-num{position:absolute;top:16px;right:18px;font-size:48px;font-weight:900;color:rgba(255,255,255,0.03);font-family:'Space Mono',monospace}
-.mode-icon{font-size:32px;margin-bottom:14px}
-.mode-tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:12px}
-.mode-h{font-size:17px;font-weight:700;color:#fff;margin-bottom:8px}
-.mode-p{font-size:13px;color:#94a3b8;line-height:1.6}
-
-/* VS TABLE */
-.vs-section{background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05)}
-.vs-table{width:100%;border-collapse:collapse;margin-top:24px}
-.vs-table th{text-align:left;padding:12px 16px;font-size:12px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,0.06)}
-.vs-table td{padding:12px 16px;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.03)}
-.vs-table .feat{color:#e2e8f0}
-.vs-cx{color:#64748b;text-align:center;font-size:18px}
-.vs-us{color:#22c55e;text-align:center;font-size:18px;font-weight:700}
-.vs-table tr:hover{background:rgba(255,255,255,0.02)}
-
-/* PRICING */
-.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:700px}
-.price-card{border-radius:20px;padding:32px;position:relative;overflow:hidden}
-.price-card.cx{background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15)}
-.price-card.us{background:rgba(34,197,94,0.05);border:2px solid rgba(34,197,94,0.3)}
-.price-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
-.price-amount{font-size:36px;font-weight:900;font-family:'Space Mono',monospace;margin-bottom:4px}
-.price-sub{font-size:13px;color:#64748b;margin-bottom:16px}
-.price-features{list-style:none}
-.price-features li{font-size:13px;padding:6px 0;color:#94a3b8;display:flex;align-items:center;gap:8px}
-
-/* FEATURES */
-.feat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-.feat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;transition:.2s}
-.feat-card:hover{border-color:rgba(255,255,255,0.12)}
-.feat-icon{font-size:28px;margin-bottom:10px}
-.feat-h{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
-.feat-p{font-size:12px;color:#64748b;line-height:1.5}
-
-/* CTA */
-.cta-section{text-align:center;background:linear-gradient(180deg,#020617 0%,#0f172a 50%,#020617 100%);position:relative}
-.cta-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(245,158,11,0.06) 0%,transparent 70%);pointer-events:none}
-.cta-section h2{font-size:clamp(28px,4vw,48px);font-weight:900;color:#fff;letter-spacing:-1.5px;margin-bottom:16px}
-.cta-section p{font-size:16px;color:#64748b;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7}
-
-/* FOOTER */
-footer{border-top:1px solid rgba(255,255,255,0.05);padding:40px 24px;text-align:center}
-footer p{font-size:13px;color:#475569}
-footer a{color:#f59e0b}
-
-/* MOBILE */
-@media(max-width:768px){
-  .nav-links .nav-link{display:none}
-  .hero-stats{gap:24px}
-  .hero-stat-n{font-size:22px}
-  .problem-grid,.modes-grid,.feat-grid{grid-template-columns:1fr}
-  .price-grid{grid-template-columns:1fr}
-  .vs-table{font-size:12px}
-  .vs-table td,.vs-table th{padding:8px 10px}
-}
-</style>
-</head>
-<body>
-
-<nav>
-  <div class="nav-brand"><div class="nav-logo">LL</div><span class="nav-name">LoadLink</span></div>
-  <div class="nav-links">
-    <a class="nav-link" href="#problem">Problem</a>
-    <a class="nav-link" href="#modes">How It Works</a>
-    <a class="nav-link" href="#compare">vs CX</a>
-    <a class="nav-link" href="#pricing">Pricing</a>
-    <a class="nav-cta" href="LoadLink-Phase4.html">Try the Prototype →</a>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-badge"><div class="hero-badge-dot"></div><span style="color:#fbbf24;font-size:11px;font-weight:600;letter-spacing:.5px" class="mono">NOW IN DEVELOPMENT</span></div>
-  <h1>Transport booked in<br><span>under 60 seconds.</span></h1>
-  <p class="hero-sub">The UK's first platform connecting businesses directly to courier drivers. No middlemen. No phone calls. Just book, track, deliver, get paid.</p>
-  <div class="hero-btns">
-    <a class="btn-hero btn-primary" href="LoadLink-Phase4.html">🚀 Try Live Prototype</a>
-    <a class="btn-hero btn-secondary" href="https://github.com/Baaz-Smaeday/LoadLink">⭐ View on GitHub</a>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="hero-stat-n">3</div><div class="hero-stat-l">Booking Modes</div></div>
-    <div class="hero-stat"><div class="hero-stat-n">80%</div><div class="hero-stat-l">Cheaper Than CX</div></div>
-    <div class="hero-stat"><div class="hero-stat-n">60s</div><div class="hero-stat-l">Book to Booked</div></div>
-    <div class="hero-stat"><div class="hero-stat-n">£0</div><div class="hero-stat-l">Lock-in Contracts</div></div>
-  </div>
-</section>
-
-<!-- PROBLEM -->
-<section id="problem">
-  <div class="section-inner">
-    <div class="section-tag">The Problem</div>
-    <div class="section-title">Courier Exchange is broken.</div>
-    <p class="section-sub">Drivers are paying £2,300+/year for outdated tech, locked into 12-month contracts with zero flexibility.</p>
-    <div class="problem-grid">
-      <div class="problem-card"><div class="problem-icon">💸</div><div class="problem-h">£2,300+/year</div><div class="problem-p">Driver subscriptions have tripled since 2015. No monthly option. No refunds. Pay up front or leave.</div></div>
-      <div class="problem-card"><div class="problem-icon">🔒</div><div class="problem-h">12-Month Lock-in</div><div class="problem-p">Quiet month? Tough. You're paying anyway. No pause, no cancel, no flexibility.</div></div>
-      <div class="problem-card"><div class="problem-icon">🐌</div><div class="problem-h">One Booking Mode</div><div class="problem-p">Quotes only. No instant booking, no driver availability posts, no Uber-style accept.</div></div>
-      <div class="problem-card"><div class="problem-icon">📱</div><div class="problem-h">3 Separate Apps</div><div class="problem-p">Need 3 different apps to do what should take one. Clunky, outdated, frustrating.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- MODES -->
-<section id="modes" style="background:rgba(255,255,255,0.01)">
-  <div class="section-inner">
-    <div class="section-tag">How It Works</div>
-    <div class="section-title">3 ways to move goods.</div>
-    <p class="section-sub">CX gives you one. We give you three — pick whatever works for your situation.</p>
-    <div class="modes-grid">
-      <div class="mode-card"><div class="mode-num">01</div><div class="mode-icon">💬</div><div class="mode-tag" style="background:rgba(59,130,246,0.15);color:#60a5fa">Like CX but better</div><div class="mode-h">Quote Request</div><div class="mode-p">Post a job, drivers send their prices, pick the best quote. Simple, familiar, competitive.</div></div>
-      <div class="mode-card" style="border-color:rgba(245,158,11,0.2)"><div class="mode-num">02</div><div class="mode-icon">⚡</div><div class="mode-tag" style="background:rgba(245,158,11,0.15);color:#fbbf24">NEW — Uber-style</div><div class="mode-h">Fixed Price</div><div class="mode-p">Set your price. Nearest driver taps Accept. Job booked in seconds — no waiting, no bidding.</div></div>
-      <div class="mode-card"><div class="mode-num">03</div><div class="mode-icon">📍</div><div class="mode-tag" style="background:rgba(124,58,237,0.15);color:#a78bfa">NEW — Game changer</div><div class="mode-h">Driver Availability</div><div class="mode-p">Drivers post their location, vehicle & rate. Businesses book them directly. No more dead miles.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- VS TABLE -->
-<section id="compare" class="vs-section">
-  <div class="section-inner">
-    <div class="section-tag">Comparison</div>
-    <div class="section-title">LoadLink vs Courier Exchange</div>
-    <p class="section-sub">Feature by feature, there's no contest.</p>
-    <table class="vs-table">
-      <thead><tr><th style="width:50%">Feature</th><th style="width:25%;text-align:center">CX</th><th style="width:25%;text-align:center">LoadLink</th></tr></thead>
-      <tbody>
-        <tr><td class="feat">Booking modes</td><td class="vs-cx">1</td><td class="vs-us">3</td></tr>
-        <tr><td class="feat">Instant booking (Uber-style)</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Driver availability posts</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Customer tracking links</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Digital POD (photo + signature)</td><td class="vs-cx">Basic</td><td class="vs-us">✓ Full</td></tr>
-        <tr><td class="feat">Auto invoicing</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Instant payout</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Route optimisation</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat">Fleet management</td><td class="vs-cx">Basic</td><td class="vs-us">✓ Full</td></tr>
-        <tr><td class="feat">Analytics dashboard</td><td class="vs-cx">Basic</td><td class="vs-us">✓ Full</td></tr>
-        <tr><td class="feat">One unified app</td><td class="vs-cx">3 apps</td><td class="vs-us">✓ 1 app</td></tr>
-        <tr><td class="feat">Direct business booking</td><td class="vs-cx">✗</td><td class="vs-us">✓</td></tr>
-        <tr><td class="feat" style="font-weight:700;color:#fff">Monthly price (drivers)</td><td class="vs-cx" style="font-size:14px;color:#ef4444;font-weight:700">£190+</td><td class="vs-us" style="font-size:14px;color:#22c55e;font-weight:700">£49-79</td></tr>
-        <tr><td class="feat" style="font-weight:700;color:#fff">Contract</td><td class="vs-cx" style="font-size:13px;color:#ef4444">12 months</td><td class="vs-us" style="font-size:13px;color:#22c55e">Cancel anytime</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- PRICING -->
-<section id="pricing">
-  <div class="section-inner">
-    <div class="section-tag">Pricing</div>
-    <div class="section-title">Fair pricing. Zero lock-in.</div>
-    <p class="section-sub">Start free with 8% commission, or go Pro for a flat monthly fee.</p>
-    <div class="price-grid">
-      <div class="price-card cx">
-        <div class="price-label" style="color:#ef4444">❌ Courier Exchange</div>
-        <div class="price-amount" style="color:#fca5a5">£190+<span style="font-size:14px;font-weight:400">/mo</span></div>
-        <div class="price-sub">£2,300+/year · 12-month lock-in</div>
-        <ul class="price-features">
-          <li><span style="color:#ef4444">✗</span> 12-month contract, no cancellation</li>
-          <li><span style="color:#ef4444">✗</span> Price tripled since 2015</li>
-          <li><span style="color:#ef4444">✗</span> No free tier available</li>
-          <li><span style="color:#ef4444">✗</span> No refunds</li>
-          <li><span style="color:#ef4444">✗</span> Only 1 booking mode</li>
-        </ul>
-      </div>
-      <div class="price-card us">
-        <div class="price-label" style="color:#22c55e">✓ LoadLink</div>
-        <div class="price-amount" style="color:#86efac">FREE<span style="font-size:14px;font-weight:400"> or £49/mo</span></div>
-        <div class="price-sub">Free tier + 8% · OR · Pro from £49/mo · Cancel anytime</div>
-        <ul class="price-features">
-          <li><span style="color:#22c55e">✓</span> Free tier — pay only when you earn</li>
-          <li><span style="color:#22c55e">✓</span> Pro: £49-79/month, no commission</li>
-          <li><span style="color:#22c55e">✓</span> Cancel anytime, no lock-in</li>
-          <li><span style="color:#22c55e">✓</span> 80% cheaper than CX</li>
-          <li><span style="color:#22c55e">✓</span> 3 booking modes + all features</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section style="background:rgba(255,255,255,0.01)">
-  <div class="section-inner">
-    <div class="section-tag">Features</div>
-    <div class="section-title">Everything you need. Nothing you don't.</div>
-    <p class="section-sub">Built for drivers and businesses who are tired of overpaying for outdated tools.</p>
-    <div class="feat-grid">
-      <div class="feat-card"><div class="feat-icon">📍</div><div class="feat-h">Live GPS Tracking</div><div class="feat-p">Real-time map with ETA, status updates, and shareable customer tracking links.</div></div>
-      <div class="feat-card"><div class="feat-icon">📸</div><div class="feat-h">Digital POD</div><div class="feat-p">Photo + signature + GPS stamp + timestamp. Automatic proof every delivery.</div></div>
-      <div class="feat-card"><div class="feat-icon">💰</div><div class="feat-h">Instant Payments</div><div class="feat-p">Get paid same day. Wallet, bank transfer, or instant payout. Auto invoicing.</div></div>
-      <div class="feat-card"><div class="feat-icon">📊</div><div class="feat-h">Analytics</div><div class="feat-p">Earnings, rates per mile, dead miles, top routes, fuel calculator — all in one dashboard.</div></div>
-      <div class="feat-card"><div class="feat-icon">🛣️</div><div class="feat-h">Route Optimisation</div><div class="feat-p">Smart backload matching. Never drive home empty. Save hundreds in dead miles.</div></div>
-      <div class="feat-card"><div class="feat-icon">🏢</div><div class="feat-h">Fleet Management</div><div class="feat-p">Multi-driver dashboard. Dispatch, track, and manage your entire fleet from one screen.</div></div>
-      <div class="feat-card"><div class="feat-icon">⭐</div><div class="feat-h">Ratings & Reviews</div><div class="feat-p">Build your reputation. 5-star ratings, written reviews, verified driver profiles.</div></div>
-      <div class="feat-card"><div class="feat-icon">🛡️</div><div class="feat-h">Compliance</div><div class="feat-p">Upload insurance, MOT, licence. Auto-expiry alerts. Verified badge for trusted drivers.</div></div>
-      <div class="feat-card"><div class="feat-icon">💬</div><div class="feat-h">In-app Messaging</div><div class="feat-p">Chat directly with shippers and drivers. No phone calls needed. Full history saved.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="section-inner">
-    <div class="section-tag">Try It Now</div>
-    <h2>Ready to see it in action?</h2>
-    <p>We've built a full interactive prototype. Click around, try both sides — business and driver. See what CX should have been.</p>
-    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
-      <a class="btn-hero btn-primary" href="LoadLink-Phase4.html" style="font-size:16px;padding:16px 36px">🚀 Launch Prototype</a>
-      <a class="btn-hero btn-secondary" href="https://github.com/Baaz-Smaeday/LoadLink" style="font-size:16px;padding:16px 36px">📂 View Source Code</a>
-    </div>
-    <p style="color:#475569;font-size:13px;margin-top:24px">Open source · MIT License · Built in the UK</p>
-  </div>
-</section>
-
-<footer>
-  <p style="margin-bottom:8px"><strong style="color:#fff">LoadLink</strong> — The Courier Exchange alternative</p>
-  <p>Built with ❤️ for the UK courier industry · <a href="https://github.com/Baaz-Smaeday/LoadLink">GitHub</a></p>
-</footer>
-
-</body>
-</html>
+10 screens designed & built
+The UK's Smartest Courier Platform
+LoadLink connects businesses directly to courier drivers with escrow protection, AI matching, and zero lock-in contracts. Browse every screen below.
+10
+Screens Built
+4%
+Commission
+£0
+Subscriptions
+0
+Non-Compete
+All Screens
+Click any screen to open it. Each is fully interactive with working buttons, filters, and flows.
+🌐 PUBLIC PAGES
+🏠
+Landing Page
+Hero, features, pricing comparison, waitlist signup
+PUBLIC 
+→
+🔐
+Login & Sign Up
+Role selection, password strength, social login, forgot password
+DRIVER + BUSINESS 
+→
+🚐 DRIVER SCREENS
+📊
+Driver Dashboard
+Go Live toggle, earnings, active job, 12 quick actions + 24 more tools
+DRIVER 
+→
+📦
+Load Board
+6 jobs, filters, AI match scores, accept & counter-offer modal
+DRIVER 
+→
+🏢 BUSINESS SCREENS
+📋
+Business Dashboard
+Spending overview, active deliveries, pending offers, quick actions
+BUSINESS 
+→
+➕
+Post a Job
+4-step wizard: route, cargo, pricing (AI suggested), review & escrow
+BUSINESS 
+→
+🔄 SHARED SCREENS (DRIVER & BUSINESS)
+📍
+Job Tracking
+Live map, 7-step timeline, POD signature, photo evidence, waiting timer
+DRIVER + BUSINESS 
+→
+💰
+Wallet & Payments
+Balance, earnings chart, escrow holdings, withdraw modal, transactions
+DRIVER 
+→
+🧾
+Invoice Flow
+Full invoice document, approve/dispute, POD evidence, escrow release
+DRIVER + BUSINESS 
+→
+🛡️
+Compliance & Trust
+Trust score, 8 documents, tier progression, badges, expiry alerts
+DRIVER 
+→
+LoadLink
+Built in Leeds 🇬🇧 • Escrow-protected payments • 4% commission capped
+Preview build — not yet connected to backend 
