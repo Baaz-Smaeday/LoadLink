@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Ratings</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;padding-top:32px;padding-bottom:40px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.tester-bar{position:fixed;top:0;left:0;right:0;z-index:10000;font-family:'DM Sans',-apple-system,sans-serif}
+.tester-toggle{display:flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(34,197,94,0.95);cursor:pointer;user-select:none}
+.tester-logo{width:22px;height:22px;border-radius:6px;background:#0a0f1a;color:#22c55e;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
+.tester-title{font-size:12px;font-weight:700;color:#0a0f1a;flex:1}
+.tester-arrow{font-size:10px;color:#0a0f1a;transition:transform 0.3s}
+.tester-bar.open .tester-arrow{transform:rotate(180deg)}
+.tester-links{display:none;background:rgba(10,15,26,0.97);backdrop-filter:blur(20px);padding:8px;border-bottom:1px solid #2a3650;overflow-x:auto;white-space:nowrap}
+.tester-bar.open .tester-links{display:flex;gap:4px;align-items:center}
+.tl-item{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;transition:all 0.2s;flex-shrink:0}
+.tl-item:hover,.tl-item.active{background:rgba(34,197,94,0.15);color:#22c55e}
+.tl-home{background:rgba(34,197,94,0.1);color:#22c55e}
+.tl-divider{width:1px;height:16px;background:#2a3650;flex-shrink:0}
+
+.header{position:sticky;top:32px;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+
+.content{padding:16px 20px}
+
+/* Rating Hero */
+.rating-hero{background:linear-gradient(135deg,#132a15 0%,#0a1f14 40%,#0f2420 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:28px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.rating-hero::before{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(34,197,94,0.08) 0%,transparent 70%);top:-60px;right:-60px;border-radius:50%}
+.rating-big{font-family:var(--font-display);font-size:56px;font-weight:900;color:var(--ll-white);letter-spacing:-3px;line-height:1;position:relative;z-index:1}
+.rating-stars{font-size:24px;margin:8px 0;position:relative;z-index:1}
+.rating-count{font-size:13px;color:var(--ll-muted);position:relative;z-index:1}
+.rating-badges{display:flex;justify-content:center;gap:8px;margin-top:14px;position:relative;z-index:1}
+.r-badge{padding:4px 12px;border-radius:var(--radius-full);font-size:10px;font-weight:700}
+.r-badge.green{background:var(--ll-green-soft);color:var(--ll-green)}
+.r-badge.amber{background:var(--ll-amber-soft);color:var(--ll-amber)}
+
+/* Breakdown */
+.breakdown-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px}
+.breakdown-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:14px}
+.breakdown-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.breakdown-row:last-child{margin-bottom:0}
+.b-label{font-size:12px;color:var(--ll-muted);width:24px;text-align:right}
+.b-bar{flex:1;height:8px;background:var(--ll-border);border-radius:4px;overflow:hidden}
+.b-bar-fill{height:100%;border-radius:4px;background:var(--ll-green)}
+.b-count{font-size:11px;color:var(--ll-muted);width:28px;text-align:right}
+
+/* Category Ratings */
+.cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.cat-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;text-align:center}
+.cat-val{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--ll-white)}
+.cat-stars{font-size:12px;margin:2px 0}
+.cat-label{font-size:10px;color:var(--ll-muted)}
+
+/* Section */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white)}
+.sec-count{font-size:11px;color:var(--ll-muted)}
+
+/* Review Cards */
+.review-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px;margin-bottom:10px}
+.review-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.review-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;font-weight:800;color:var(--ll-black);flex-shrink:0}
+.review-avatar.blue{background:linear-gradient(135deg,#2563eb,var(--ll-blue))}
+.review-avatar.green{background:linear-gradient(135deg,var(--ll-green-dim),var(--ll-green))}
+.review-avatar.amber{background:linear-gradient(135deg,#d97706,var(--ll-amber))}
+.review-avatar.purple{background:linear-gradient(135deg,#7c3aed,var(--ll-purple))}
+.review-info{flex:1}
+.review-name{font-size:13px;font-weight:700;color:var(--ll-white)}
+.review-meta{font-size:10px;color:var(--ll-muted);margin-top:1px}
+.review-stars{font-size:14px;flex-shrink:0}
+.review-text{font-size:13px;color:var(--ll-text);line-height:1.6;margin-bottom:8px}
+.review-job{font-size:11px;color:var(--ll-muted);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);display:inline-flex;align-items:center;gap:6px}
+.review-reply{margin-top:10px;padding:10px;background:rgba(34,197,94,0.04);border-left:3px solid var(--ll-green);border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+.review-reply-label{font-size:10px;font-weight:700;color:var(--ll-green);margin-bottom:4px}
+.review-reply-text{font-size:12px;color:var(--ll-muted);line-height:1.5}
+
+/* Pending Review */
+.pending-review{background:var(--ll-card);border:1px solid var(--ll-amber);border-radius:var(--radius-xl);padding:16px;margin-bottom:16px}
+.pending-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pending-icon{font-size:28px}
+.pending-info h3{font-size:14px;font-weight:700;color:var(--ll-white)}
+.pending-info p{font-size:11px;color:var(--ll-muted);margin-top:2px}
+.star-select{display:flex;gap:4px;margin-bottom:12px}
+.star-btn{width:44px;height:44px;border-radius:12px;background:var(--ll-card-hover);border:1px solid var(--ll-border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.2s}
+.star-btn.selected{background:var(--ll-amber-soft);border-color:var(--ll-amber);transform:scale(1.1)}
+.review-input{width:100%;padding:12px;background:var(--ll-card-hover);border:1px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:13px;font-family:var(--font-body);outline:none;resize:none;height:70px;transition:border-color 0.3s}
+.review-input:focus{border-color:var(--ll-green)}
+.review-input::placeholder{color:#4a5568}
+.submit-btn{width:100%;padding:14px;border-radius:var(--radius-md);background:var(--ll-green);color:var(--ll-black);font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);margin-top:8px;transition:all 0.3s}
+.submit-btn:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3)}
+
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}.s4{animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<!-- TESTER NAV -->
+<div class="tester-bar" id="testerBar">
+  <div class="tester-toggle" onclick="document.getElementById('testerBar').classList.toggle('open')">
+    <span class="tester-logo">LL</span>
+    <span class="tester-title">LoadLink Preview</span>
+    <span class="tester-arrow">▼</span>
+  </div>
+  <div class="tester-links">
+    <a href="index.html" class="tl-item tl-home">🏠 Hub</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Driver-Dashboard.html" class="tl-item">🚐 Driver</a>
+    <a href="LoadLink-Business-Dashboard.html" class="tl-item">🏢 Business</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Settings.html" class="tl-item">⚙️ Settings</a>
+    <a href="LoadLink-Messaging.html" class="tl-item">💬 Chat</a>
+    <a href="LoadLink-Disputes.html" class="tl-item">⚖️ Disputes</a>
+    <a href="LoadLink-Ratings.html" class="tl-item active">⭐ Ratings</a>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="window.location='LoadLink-Driver-Dashboard.html'">← Back</button>
+    <h1 class="header-title">Ratings & Reviews</h1>
+    <div style="width:36px"></div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- RATING HERO -->
+  <div class="rating-hero fade-in">
+    <div class="rating-big">4.9</div>
+    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+    <div class="rating-count">Based on 247 deliveries</div>
+    <div class="rating-badges">
+      <span class="r-badge green">🎯 Top Rated</span>
+      <span class="r-badge green">⚡ 98% On-Time</span>
+      <span class="r-badge amber">🥇 Gold Tier</span>
+    </div>
+  </div>
+
+  <!-- BREAKDOWN -->
+  <div class="breakdown-card fade-in s1">
+    <div class="breakdown-title">Rating Breakdown</div>
+    <div class="breakdown-row"><span class="b-label">5 ⭐</span><div class="b-bar"><div class="b-bar-fill" style="width:88%"></div></div><span class="b-count">217</span></div>
+    <div class="breakdown-row"><span class="b-label">4 ⭐</span><div class="b-bar"><div class="b-bar-fill" style="width:10%"></div></div><span class="b-count">24</span></div>
+    <div class="breakdown-row"><span class="b-label">3 ⭐</span><div class="b-bar"><div class="b-bar-fill" style="width:2%"></div></div><span class="b-count">4</span></div>
+    <div class="breakdown-row"><span class="b-label">2 ⭐</span><div class="b-bar"><div class="b-bar-fill" style="width:1%;background:var(--ll-amber)"></div></div><span class="b-count">1</span></div>
+    <div class="breakdown-row"><span class="b-label">1 ⭐</span><div class="b-bar"><div class="b-bar-fill" style="width:0.5%;background:var(--ll-red)"></div></div><span class="b-count">1</span></div>
+  </div>
+
+  <!-- CATEGORY RATINGS -->
+  <div class="cat-grid fade-in s1">
+    <div class="cat-card">
+      <div class="cat-val">5.0</div>
+      <div class="cat-stars">⭐⭐⭐⭐⭐</div>
+      <div class="cat-label">Communication</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-val">4.9</div>
+      <div class="cat-stars">⭐⭐⭐⭐⭐</div>
+      <div class="cat-label">Punctuality</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-val">4.8</div>
+      <div class="cat-stars">⭐⭐⭐⭐⭐</div>
+      <div class="cat-label">Care of Goods</div>
+    </div>
+    <div class="cat-card">
+      <div class="cat-val">4.9</div>
+      <div class="cat-stars">⭐⭐⭐⭐⭐</div>
+      <div class="cat-label">Professionalism</div>
+    </div>
+  </div>
+
+  <!-- PENDING REVIEW -->
+  <div class="pending-review fade-in s2">
+    <div class="pending-header">
+      <div class="pending-icon">✍️</div>
+      <div class="pending-info">
+        <h3>Rate Yorkshire Print</h3>
+        <p>Job LL-1087 • Leeds → London • Completed today</p>
+      </div>
+    </div>
+    <div class="star-select" id="starSelect">
+      <div class="star-btn" onclick="selectStar(1)">⭐</div>
+      <div class="star-btn" onclick="selectStar(2)">⭐</div>
+      <div class="star-btn" onclick="selectStar(3)">⭐</div>
+      <div class="star-btn" onclick="selectStar(4)">⭐</div>
+      <div class="star-btn" onclick="selectStar(5)">⭐</div>
+    </div>
+    <textarea class="review-input" placeholder="Write a review (optional)..."></textarea>
+    <button class="submit-btn" onclick="alert('⭐ Review submitted!\n\nThank you for rating Yorkshire Print.')">Submit Review</button>
+  </div>
+
+  <!-- REVIEWS RECEIVED -->
+  <div class="sec-header fade-in s3">
+    <div class="sec-title">Reviews Received</div>
+    <div class="sec-count">247 total</div>
+  </div>
+
+  <div class="review-card fade-in s3">
+    <div class="review-header">
+      <div class="review-avatar purple">TF</div>
+      <div class="review-info">
+        <div class="review-name">TechFlow</div>
+        <div class="review-meta">27 Feb 2026</div>
+      </div>
+      <div class="review-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="review-text">Absolutely fantastic service. James was early, communicated perfectly, and handled our fragile items with great care. Will definitely book again!</div>
+    <div class="review-job">📦 LL-1078 • London → Bristol • £155</div>
+    <div class="review-reply">
+      <div class="review-reply-label">Your Reply</div>
+      <div class="review-reply-text">Thanks so much! Always happy to help. Looking forward to working with you again 👍</div>
+    </div>
+  </div>
+
+  <div class="review-card fade-in s3">
+    <div class="review-header">
+      <div class="review-avatar amber">BR</div>
+      <div class="review-info">
+        <div class="review-name">BuildRight</div>
+        <div class="review-meta">1 Mar 2026</div>
+      </div>
+      <div class="review-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="review-text">Quick and reliable as always. Good communication throughout. Third time using James and he never disappoints.</div>
+    <div class="review-job">📦 LL-1082 • Leeds → Birmingham • £287</div>
+  </div>
+
+  <div class="review-card fade-in s4">
+    <div class="review-header">
+      <div class="review-avatar green">FS</div>
+      <div class="review-info">
+        <div class="review-name">FastShip Ltd</div>
+        <div class="review-meta">3 Mar 2026</div>
+      </div>
+      <div class="review-stars">⭐⭐⭐⭐⭐</div>
+    </div>
+    <div class="review-text">Excellent driver. Arrived on time despite the rain, all goods dry and accounted for. POD was thorough with great photos.</div>
+    <div class="review-job">📦 LL-1085 • Leeds → Sheffield • £52</div>
+  </div>
+
+  <div class="review-card fade-in s4">
+    <div class="review-header">
+      <div class="review-avatar blue">LT</div>
+      <div class="review-info">
+        <div class="review-name">LogiTech</div>
+        <div class="review-meta">8 Feb 2026</div>
+      </div>
+      <div class="review-stars">⭐⭐⭐⭐</div>
+    </div>
+    <div class="review-text">Good delivery overall. Slight delay due to traffic but James kept us updated throughout. Would use again.</div>
+    <div class="review-job">📦 LL-1058 • Manchester → York • £72</div>
+  </div>
+
+  <div style="text-align:center;padding:20px;font-size:12px;color:var(--ll-muted)">
+    Showing 4 of 247 reviews • <span style="color:var(--ll-green);cursor:pointer">Load more</span>
+  </div>
+
+</div>
+
+<script>
+function selectStar(n) {
+  var btns = document.querySelectorAll('.star-btn');
+  btns.forEach(function(b, i) {
+    if (i < n) b.classList.add('selected');
+    else b.classList.remove('selected');
+  });
+}
+</script>
+
+</body>
+</html>

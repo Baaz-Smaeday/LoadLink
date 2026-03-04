@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Messages</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;padding-top:32px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.tester-bar{position:fixed;top:0;left:0;right:0;z-index:10000;font-family:'DM Sans',-apple-system,sans-serif}
+.tester-toggle{display:flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(34,197,94,0.95);cursor:pointer;user-select:none}
+.tester-logo{width:22px;height:22px;border-radius:6px;background:#0a0f1a;color:#22c55e;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
+.tester-title{font-size:12px;font-weight:700;color:#0a0f1a;flex:1}
+.tester-arrow{font-size:10px;color:#0a0f1a;transition:transform 0.3s}
+.tester-bar.open .tester-arrow{transform:rotate(180deg)}
+.tester-links{display:none;background:rgba(10,15,26,0.97);backdrop-filter:blur(20px);padding:8px;border-bottom:1px solid #2a3650;overflow-x:auto;white-space:nowrap}
+.tester-bar.open .tester-links{display:flex;gap:4px;align-items:center}
+.tl-item{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;transition:all 0.2s;flex-shrink:0}
+.tl-item:hover,.tl-item.active{background:rgba(34,197,94,0.15);color:#22c55e}
+.tl-home{background:rgba(34,197,94,0.1);color:#22c55e}
+.tl-divider{width:1px;height:16px;background:#2a3650;flex-shrink:0}
+
+.header{position:sticky;top:32px;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+/* Shield Banner */
+.shield-banner{margin:16px 20px 0;background:linear-gradient(135deg,#0d1f2d,#0a1924);border:1px solid rgba(59,130,246,0.2);border-radius:var(--radius-xl);padding:16px;display:flex;align-items:center;gap:12px}
+.shield-icon-big{width:44px;height:44px;border-radius:12px;background:var(--ll-blue-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.shield-info h3{font-size:13px;font-weight:700;color:var(--ll-blue)}
+.shield-info p{font-size:11px;color:var(--ll-muted);line-height:1.5;margin-top:2px}
+
+/* View Toggle */
+.view-toggle{display:flex;gap:4px;margin:16px 20px 0;background:var(--ll-card);border-radius:var(--radius-md);padding:3px;border:1px solid var(--ll-border)}
+.view-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--ll-muted);border-radius:var(--radius-sm);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all 0.2s}
+.view-tab.active{background:var(--ll-green);color:var(--ll-black);font-weight:700}
+
+/* Panels */
+.panel{display:none;padding:12px 20px 40px}
+.panel.active{display:block}
+
+/* Chat List */
+.chat-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);margin-bottom:8px;cursor:pointer;transition:all 0.2s;position:relative}
+.chat-item:hover{border-color:rgba(34,197,94,0.3)}
+.chat-item.unread{border-left:3px solid var(--ll-green)}
+.chat-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:15px;font-weight:800;flex-shrink:0;color:var(--ll-black)}
+.chat-avatar.green{background:linear-gradient(135deg,var(--ll-green-dim),var(--ll-green))}
+.chat-avatar.blue{background:linear-gradient(135deg,#2563eb,var(--ll-blue))}
+.chat-avatar.amber{background:linear-gradient(135deg,#d97706,var(--ll-amber))}
+.chat-avatar.purple{background:linear-gradient(135deg,#7c3aed,var(--ll-purple))}
+.chat-info{flex:1;min-width:0}
+.chat-name{font-size:13px;font-weight:700;color:var(--ll-white);display:flex;align-items:center;gap:6px}
+.chat-name .job-tag{font-size:9px;font-weight:700;color:var(--ll-muted);background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px}
+.chat-preview{font-size:12px;color:var(--ll-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chat-item.unread .chat-preview{color:var(--ll-text);font-weight:600}
+.chat-meta{text-align:right;flex-shrink:0}
+.chat-time{font-size:10px;color:var(--ll-muted)}
+.chat-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--ll-green);margin-top:6px;margin-left:auto}
+
+/* Conversation View */
+.convo-header{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--ll-card);border-bottom:1px solid var(--ll-border);position:sticky;top:80px;z-index:40}
+.convo-back{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ll-green)}
+.convo-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2563eb,var(--ll-blue));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;font-weight:800;color:var(--ll-black)}
+.convo-info{flex:1}
+.convo-name{font-size:14px;font-weight:700;color:var(--ll-white)}
+.convo-status{font-size:10px;color:var(--ll-green);font-weight:600}
+.convo-actions{display:flex;gap:6px}
+.convo-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+
+/* Messages */
+.messages{padding:16px 20px 100px}
+.msg-date{text-align:center;font-size:10px;color:var(--ll-muted);font-weight:600;margin:16px 0 12px}
+.msg-row{display:flex;margin-bottom:8px}
+.msg-row.them{justify-content:flex-start}
+.msg-row.me{justify-content:flex-end}
+.msg-bubble{max-width:80%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6}
+.msg-row.them .msg-bubble{background:var(--ll-card);border:1px solid var(--ll-border);color:var(--ll-text);border-bottom-left-radius:4px}
+.msg-row.me .msg-bubble{background:var(--ll-green);color:var(--ll-black);font-weight:500;border-bottom-right-radius:4px}
+.msg-time{font-size:9px;color:var(--ll-muted);margin-top:2px}
+.msg-row.me .msg-time{text-align:right}
+.msg-shield{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--ll-blue-soft);border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius-md);margin:12px 0;font-size:11px;color:var(--ll-blue)}
+.msg-shield-icon{font-size:14px}
+
+/* Message Input */
+.msg-input-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(17,24,39,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--ll-border);padding:12px 16px;display:flex;align-items:center;gap:8px;z-index:100}
+.msg-input{flex:1;padding:10px 16px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-full);color:var(--ll-white);font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.3s}
+.msg-input:focus{border-color:var(--ll-green)}
+.msg-input::placeholder{color:#4a5568}
+.msg-send{width:40px;height:40px;border-radius:50%;background:var(--ll-green);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:none;flex-shrink:0;transition:all 0.2s}
+.msg-send:hover{background:#4ade80;transform:scale(1.05)}
+.msg-attach{width:40px;height:40px;border-radius:50%;background:var(--ll-card);border:1px solid var(--ll-border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
+
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- TESTER NAV -->
+<div class="tester-bar" id="testerBar">
+  <div class="tester-toggle" onclick="document.getElementById('testerBar').classList.toggle('open')">
+    <span class="tester-logo">LL</span>
+    <span class="tester-title">LoadLink Preview</span>
+    <span class="tester-arrow">▼</span>
+  </div>
+  <div class="tester-links">
+    <a href="index.html" class="tl-item tl-home">🏠 Hub</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Driver-Dashboard.html" class="tl-item">🚐 Driver</a>
+    <a href="LoadLink-Business-Dashboard.html" class="tl-item">🏢 Business</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Settings.html" class="tl-item">⚙️ Settings</a>
+    <a href="LoadLink-Messaging.html" class="tl-item active">💬 Chat</a>
+    <a href="LoadLink-Disputes.html" class="tl-item">⚖️ Disputes</a>
+    <a href="LoadLink-Ratings.html" class="tl-item">⭐ Ratings</a>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="window.location='LoadLink-Driver-Dashboard.html'">← Back</button>
+    <h1 class="header-title">Messages</h1>
+    <div class="h-btn" onclick="alert('Search conversations')">🔍</div>
+  </div>
+</div>
+
+<!-- SHIELD BANNER -->
+<div class="shield-banner fade-in">
+  <div class="shield-icon-big">🛡️</div>
+  <div class="shield-info">
+    <h3>Communication Shield Active</h3>
+    <p>Phone numbers are hidden. All calls are recorded for safety. Messages stay on-platform.</p>
+  </div>
+</div>
+
+<!-- VIEW TOGGLE -->
+<div class="view-toggle fade-in">
+  <button class="view-tab active" onclick="switchView(this,'listPanel')">All Chats</button>
+  <button class="view-tab" onclick="switchView(this,'convoPanel')">Open Conversation</button>
+</div>
+
+<!-- ============ CHAT LIST ============ -->
+<div class="panel active" id="listPanel">
+
+  <div class="chat-item unread" onclick="switchView(document.querySelectorAll('.view-tab')[1],'convoPanel')">
+    <div class="chat-avatar blue">YP</div>
+    <div class="chat-info">
+      <div class="chat-name">Yorkshire Print <span class="job-tag">LL-1087</span></div>
+      <div class="chat-preview">Hi James, what's your ETA? Customer is asking</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">2 min</div>
+      <div class="chat-unread-dot"></div>
+    </div>
+  </div>
+
+  <div class="chat-item unread" onclick="alert('Open FastShip chat')">
+    <div class="chat-avatar green">FS</div>
+    <div class="chat-info">
+      <div class="chat-name">FastShip Ltd <span class="job-tag">LL-1089</span></div>
+      <div class="chat-preview">Can you collect 30 min earlier tomorrow?</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">14 min</div>
+      <div class="chat-unread-dot"></div>
+    </div>
+  </div>
+
+  <div class="chat-item" onclick="alert('Open BuildRight chat')">
+    <div class="chat-avatar amber">BR</div>
+    <div class="chat-info">
+      <div class="chat-name">BuildRight <span class="job-tag">LL-1082</span></div>
+      <div class="chat-preview">Invoice approved. Payment on the way 👍</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">Yesterday</div>
+    </div>
+  </div>
+
+  <div class="chat-item" onclick="alert('Open TechFlow chat')">
+    <div class="chat-avatar purple">TF</div>
+    <div class="chat-info">
+      <div class="chat-name">TechFlow <span class="job-tag">LL-1078</span></div>
+      <div class="chat-preview">Great service, left you a 5-star review!</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">27 Feb</div>
+    </div>
+  </div>
+
+  <div class="chat-item" onclick="alert('Open QuickParts chat')">
+    <div class="chat-avatar blue">QP</div>
+    <div class="chat-info">
+      <div class="chat-name">QuickParts <span class="job-tag">LL-1072</span></div>
+      <div class="chat-preview">Dispute update: awaiting review from LoadLink</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">22 Feb</div>
+    </div>
+  </div>
+
+  <div class="chat-item" onclick="alert('LoadLink Support chat')">
+    <div class="chat-avatar green">LL</div>
+    <div class="chat-info">
+      <div class="chat-name" style="color:var(--ll-green)">LoadLink Support</div>
+      <div class="chat-preview">Welcome to LoadLink! Here's how to get started...</div>
+    </div>
+    <div class="chat-meta">
+      <div class="chat-time">15 Feb</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ CONVERSATION VIEW ============ -->
+<div class="panel" id="convoPanel">
+
+  <div class="convo-header">
+    <button class="convo-back" onclick="switchView(document.querySelectorAll('.view-tab')[0],'listPanel')">←</button>
+    <div class="convo-avatar">YP</div>
+    <div class="convo-info">
+      <div class="convo-name">Yorkshire Print</div>
+      <div class="convo-status">● Online • Job LL-1087</div>
+    </div>
+    <div class="convo-actions">
+      <div class="convo-btn" onclick="alert('📞 Calling Yorkshire Print\n\nVia Communication Shield\nNumber hidden • Call recorded')">📞</div>
+      <div class="convo-btn" onclick="alert('Job details\nLL-1087 • Leeds → London\n£185 • In Transit')">📋</div>
+    </div>
+  </div>
+
+  <div class="messages">
+    <div class="msg-shield">
+      <span class="msg-shield-icon">🛡️</span>
+      This conversation is protected by Communication Shield. Phone numbers are hidden and calls are recorded.
+    </div>
+
+    <div class="msg-date">Today</div>
+
+    <div class="msg-row them">
+      <div>
+        <div class="msg-bubble">Hi James, thanks for accepting the job! We've got 3 pallets ready at the loading bay. Ask for Mike when you arrive.</div>
+        <div class="msg-time">08:15</div>
+      </div>
+    </div>
+
+    <div class="msg-row me">
+      <div>
+        <div class="msg-bubble">Cheers! On my way now, should be with you by 8:30 👍</div>
+        <div class="msg-time">08:18</div>
+      </div>
+    </div>
+
+    <div class="msg-row them">
+      <div>
+        <div class="msg-bubble">Perfect. Loading bay is around the back, through the car park. I'll let reception know you're coming.</div>
+        <div class="msg-time">08:20</div>
+      </div>
+    </div>
+
+    <div class="msg-row me">
+      <div>
+        <div class="msg-bubble">All loaded up, heading out now. Everything looks good, 3 pallets secured.</div>
+        <div class="msg-time">08:48</div>
+      </div>
+    </div>
+
+    <div class="msg-row me">
+      <div>
+        <div class="msg-bubble">📸 Photo sent — collection evidence</div>
+        <div class="msg-time">08:49</div>
+      </div>
+    </div>
+
+    <div class="msg-row them">
+      <div>
+        <div class="msg-bubble">Great, thanks! What's your ETA for London? Customer is asking.</div>
+        <div class="msg-time">12:30</div>
+      </div>
+    </div>
+
+    <div class="msg-row me">
+      <div>
+        <div class="msg-bubble">Just passed Leicester on the M1, looking like about 14:30. Traffic is clear at the moment 🤞</div>
+        <div class="msg-time">12:32</div>
+      </div>
+    </div>
+
+    <div class="msg-row them">
+      <div>
+        <div class="msg-bubble">Hi James, what's your ETA? Customer is asking</div>
+        <div class="msg-time">14:05</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Input -->
+  <div class="msg-input-bar">
+    <div class="msg-attach" onclick="alert('Attach:\n📷 Photo\n📄 Document\n📍 Location')">📎</div>
+    <input type="text" class="msg-input" placeholder="Type a message..." id="msgInput">
+    <button class="msg-send" onclick="sendMsg()">↑</button>
+  </div>
+
+</div>
+
+<script>
+function switchView(el, panelId) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+
+function sendMsg() {
+  var input = document.getElementById('msgInput');
+  var text = input.value.trim();
+  if (!text) return;
+  var msgs = document.querySelector('.messages');
+  var row = document.createElement('div');
+  row.className = 'msg-row me';
+  var now = new Date();
+  var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  row.innerHTML = '<div><div class="msg-bubble">' + text + '</div><div class="msg-time">' + time + '</div></div>';
+  msgs.appendChild(row);
+  input.value = '';
+  row.scrollIntoView({behavior:'smooth'});
+}
+
+document.getElementById('msgInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendMsg();
+});
+</script>
+
+</body>
+</html>

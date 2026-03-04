@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Disputes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;padding-top:32px;padding-bottom:40px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.tester-bar{position:fixed;top:0;left:0;right:0;z-index:10000;font-family:'DM Sans',-apple-system,sans-serif}
+.tester-toggle{display:flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(34,197,94,0.95);cursor:pointer;user-select:none}
+.tester-logo{width:22px;height:22px;border-radius:6px;background:#0a0f1a;color:#22c55e;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
+.tester-title{font-size:12px;font-weight:700;color:#0a0f1a;flex:1}
+.tester-arrow{font-size:10px;color:#0a0f1a;transition:transform 0.3s}
+.tester-bar.open .tester-arrow{transform:rotate(180deg)}
+.tester-links{display:none;background:rgba(10,15,26,0.97);backdrop-filter:blur(20px);padding:8px;border-bottom:1px solid #2a3650;overflow-x:auto;white-space:nowrap}
+.tester-bar.open .tester-links{display:flex;gap:4px;align-items:center}
+.tl-item{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;transition:all 0.2s;flex-shrink:0}
+.tl-item:hover,.tl-item.active{background:rgba(34,197,94,0.15);color:#22c55e}
+.tl-home{background:rgba(34,197,94,0.1);color:#22c55e}
+.tl-divider{width:1px;height:16px;background:#2a3650;flex-shrink:0}
+
+.header{position:sticky;top:32px;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+.content{padding:16px 20px}
+
+/* Stats */
+.dispute-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.d-stat{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;text-align:center}
+.d-stat-val{font-family:var(--font-display);font-size:22px;font-weight:900}
+.d-stat-val.amber{color:var(--ll-amber)}
+.d-stat-val.green{color:var(--ll-green)}
+.d-stat-val.red{color:var(--ll-red)}
+.d-stat-label{font-size:10px;color:var(--ll-muted);margin-top:2px}
+
+/* Dispute Cards */
+.dispute-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);overflow:hidden;margin-bottom:12px;cursor:pointer;transition:all 0.2s}
+.dispute-card:hover{border-color:rgba(34,197,94,0.3)}
+.dispute-card-header{padding:16px;display:flex;align-items:flex-start;gap:12px}
+.dispute-status-bar{width:4px;border-radius:2px;align-self:stretch;flex-shrink:0}
+.dispute-status-bar.active{background:var(--ll-amber)}
+.dispute-status-bar.resolved{background:var(--ll-green)}
+.dispute-status-bar.escalated{background:var(--ll-red)}
+.dispute-main{flex:1;min-width:0}
+.dispute-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.dispute-id{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white)}
+.dispute-badge{padding:3px 10px;border-radius:var(--radius-full);font-size:10px;font-weight:700}
+.dispute-badge.active{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.dispute-badge.resolved{background:var(--ll-green-soft);color:var(--ll-green)}
+.dispute-badge.escalated{background:var(--ll-red-soft);color:var(--ll-red)}
+.dispute-route{font-size:12px;color:var(--ll-muted);margin-bottom:4px}
+.dispute-reason{font-size:13px;font-weight:600;color:var(--ll-text);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.dispute-meta{font-size:11px;color:var(--ll-muted);display:flex;gap:12px}
+.dispute-amount{font-family:var(--font-display);font-size:18px;font-weight:800;flex-shrink:0}
+.dispute-amount.amber{color:var(--ll-amber)}
+.dispute-amount.green{color:var(--ll-green)}
+.dispute-amount.red{color:var(--ll-red)}
+
+/* Expanded Dispute Detail */
+.dispute-detail{display:none;padding:0 16px 16px}
+.dispute-card.expanded .dispute-detail{display:block}
+
+/* Timeline */
+.d-timeline{position:relative;padding-left:24px;margin-bottom:16px}
+.d-timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--ll-border)}
+.d-step{position:relative;padding-bottom:14px}
+.d-step:last-child{padding-bottom:0}
+.d-step-dot{position:absolute;left:-24px;top:2px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900}
+.d-step-dot.done{background:var(--ll-green);color:var(--ll-black)}
+.d-step-dot.current{background:var(--ll-amber);color:var(--ll-black);box-shadow:0 0 8px var(--ll-amber-soft)}
+.d-step-dot.pending{background:var(--ll-border);color:var(--ll-muted)}
+.d-step-title{font-size:12px;font-weight:700;color:var(--ll-white)}
+.d-step-desc{font-size:11px;color:var(--ll-muted);margin-top:1px;line-height:1.5}
+.d-step-time{font-size:10px;color:var(--ll-muted);margin-top:2px}
+
+/* Evidence */
+.evidence-row{display:flex;gap:8px;margin-bottom:12px}
+.evidence-item{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--ll-card-hover);border:1px solid var(--ll-border);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer}
+
+/* Escrow Freeze */
+.escrow-freeze{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-md);padding:12px;font-size:12px;color:var(--ll-amber);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+
+/* Actions */
+.d-actions{display:flex;gap:8px}
+.d-btn{flex:1;padding:12px;border-radius:var(--radius-md);font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);text-align:center;transition:all 0.2s}
+.d-btn.primary{background:var(--ll-green);color:var(--ll-black)}
+.d-btn.outline{background:var(--ll-card);color:var(--ll-text);border:1px solid var(--ll-border)}
+.d-btn.amber{background:var(--ll-amber);color:var(--ll-black)}
+
+/* Section Title */
+.sec-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+
+/* Fair Process Card */
+.fair-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px}
+.fair-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fair-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.fair-step:last-child{border-bottom:none}
+.fair-num{width:24px;height:24px;border-radius:50%;background:var(--ll-green-soft);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--ll-green);flex-shrink:0}
+.fair-text{font-size:12px;color:var(--ll-muted);line-height:1.6}
+.fair-text strong{color:var(--ll-text)}
+
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}
+</style>
+</head>
+<body>
+
+<!-- TESTER NAV -->
+<div class="tester-bar" id="testerBar">
+  <div class="tester-toggle" onclick="document.getElementById('testerBar').classList.toggle('open')">
+    <span class="tester-logo">LL</span>
+    <span class="tester-title">LoadLink Preview</span>
+    <span class="tester-arrow">▼</span>
+  </div>
+  <div class="tester-links">
+    <a href="index.html" class="tl-item tl-home">🏠 Hub</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Driver-Dashboard.html" class="tl-item">🚐 Driver</a>
+    <a href="LoadLink-Business-Dashboard.html" class="tl-item">🏢 Business</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Settings.html" class="tl-item">⚙️ Settings</a>
+    <a href="LoadLink-Messaging.html" class="tl-item">💬 Chat</a>
+    <a href="LoadLink-Disputes.html" class="tl-item active">⚖️ Disputes</a>
+    <a href="LoadLink-Ratings.html" class="tl-item">⭐ Ratings</a>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="window.location='LoadLink-Settings.html'">← Back</button>
+    <h1 class="header-title">Disputes</h1>
+    <div class="h-btn" onclick="alert('Dispute help & policies')">❓</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- STATS -->
+  <div class="dispute-stats fade-in">
+    <div class="d-stat">
+      <div class="d-stat-val amber">1</div>
+      <div class="d-stat-label">Active</div>
+    </div>
+    <div class="d-stat">
+      <div class="d-stat-val green">3</div>
+      <div class="d-stat-label">Resolved</div>
+    </div>
+    <div class="d-stat">
+      <div class="d-stat-val" style="color:var(--ll-white)">97%</div>
+      <div class="d-stat-label">Clean Rate</div>
+    </div>
+  </div>
+
+  <!-- ACTIVE -->
+  <div class="sec-title fade-in s1">⚠️ Active Disputes</div>
+
+  <div class="dispute-card expanded fade-in s1" id="dispute1">
+    <div class="dispute-card-header" onclick="document.getElementById('dispute1').classList.toggle('expanded')">
+      <div class="dispute-status-bar active"></div>
+      <div class="dispute-main">
+        <div class="dispute-top">
+          <div class="dispute-id">DIS-0047</div>
+          <span class="dispute-badge active">⏳ Under Review</span>
+        </div>
+        <div class="dispute-route">LL-1072 • Leeds → Newcastle</div>
+        <div class="dispute-reason">📦 Missing Items — 1 box not delivered</div>
+        <div class="dispute-meta">
+          <span>Raised by: QuickParts</span>
+          <span>22 Feb 2026</span>
+        </div>
+      </div>
+      <div class="dispute-amount amber">£94</div>
+    </div>
+
+    <div class="dispute-detail">
+      <!-- Timeline -->
+      <div class="d-timeline">
+        <div class="d-step">
+          <div class="d-step-dot done">✓</div>
+          <div class="d-step-title">Dispute Raised</div>
+          <div class="d-step-desc">QuickParts reported 1 of 4 boxes missing from delivery</div>
+          <div class="d-step-time">22 Feb, 16:45</div>
+        </div>
+        <div class="d-step">
+          <div class="d-step-dot done">✓</div>
+          <div class="d-step-title">Escrow Frozen</div>
+          <div class="d-step-desc">£94 held in escrow pending resolution</div>
+          <div class="d-step-time">22 Feb, 16:45</div>
+        </div>
+        <div class="d-step">
+          <div class="d-step-dot done">✓</div>
+          <div class="d-step-title">Your Response Submitted</div>
+          <div class="d-step-desc">You submitted POD photos showing 4 boxes loaded. Stated all items delivered to reception.</div>
+          <div class="d-step-time">23 Feb, 09:12</div>
+        </div>
+        <div class="d-step">
+          <div class="d-step-dot current">●</div>
+          <div class="d-step-title">LoadLink Reviewing</div>
+          <div class="d-step-desc">Our team is reviewing evidence from both parties. Expected resolution within 48 hours.</div>
+          <div class="d-step-time">In progress</div>
+        </div>
+        <div class="d-step">
+          <div class="d-step-dot pending">5</div>
+          <div class="d-step-title">Resolution</div>
+          <div class="d-step-desc">Funds released or partial refund issued</div>
+        </div>
+      </div>
+
+      <!-- Evidence -->
+      <div style="font-size:11px;font-weight:700;color:var(--ll-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Your Evidence</div>
+      <div class="evidence-row">
+        <div class="evidence-item" onclick="alert('Collection photo — 4 boxes loaded')">📷</div>
+        <div class="evidence-item" onclick="alert('Delivery photo — 4 boxes at reception')">📷</div>
+        <div class="evidence-item" onclick="alert('POD signature — signed by N. Ahmed')">✍️</div>
+        <div class="evidence-item" onclick="alert('GPS timestamp — delivery confirmed')">📍</div>
+      </div>
+
+      <!-- Escrow Status -->
+      <div class="escrow-freeze">
+        🛡️ £94 frozen in escrow until dispute is resolved. No action needed from you.
+      </div>
+
+      <!-- Actions -->
+      <div class="d-actions">
+        <button class="d-btn outline" onclick="window.location='LoadLink-Messaging.html'">💬 Message QuickParts</button>
+        <button class="d-btn outline" onclick="alert('Add more evidence\n\nUpload additional photos, documents, or GPS data')">📎 Add Evidence</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESOLVED -->
+  <div class="sec-title fade-in s2">✅ Resolved</div>
+
+  <div class="dispute-card fade-in s2" id="dispute2" onclick="document.getElementById('dispute2').classList.toggle('expanded')">
+    <div class="dispute-card-header">
+      <div class="dispute-status-bar resolved"></div>
+      <div class="dispute-main">
+        <div class="dispute-top">
+          <div class="dispute-id">DIS-0041</div>
+          <span class="dispute-badge resolved">✅ Resolved — In Your Favour</span>
+        </div>
+        <div class="dispute-route">LL-1058 • Manchester → York</div>
+        <div class="dispute-reason">⏰ Late Delivery — traffic delay</div>
+        <div class="dispute-meta">
+          <span>Raised by: LogiTech</span>
+          <span>8 Feb 2026</span>
+        </div>
+      </div>
+      <div class="dispute-amount green">£72</div>
+    </div>
+    <div class="dispute-detail">
+      <div style="padding:12px;background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);font-size:12px;color:var(--ll-green);margin-bottom:12px">
+        <strong>Resolution:</strong> Full payment released. LoadLink determined the delay was caused by a road closure (A1M) which was beyond the driver's control. GPS data confirmed driver took the fastest alternative route.
+      </div>
+      <div style="font-size:11px;color:var(--ll-muted)">Resolved: 10 Feb 2026 • Duration: 2 days</div>
+    </div>
+  </div>
+
+  <div class="dispute-card fade-in s2" id="dispute3" onclick="document.getElementById('dispute3').classList.toggle('expanded')">
+    <div class="dispute-card-header">
+      <div class="dispute-status-bar resolved"></div>
+      <div class="dispute-main">
+        <div class="dispute-top">
+          <div class="dispute-id">DIS-0035</div>
+          <span class="dispute-badge resolved">✅ Resolved — Split</span>
+        </div>
+        <div class="dispute-route">LL-1042 • Leeds → Birmingham</div>
+        <div class="dispute-reason">🧤 Goods Damaged — minor scuff on 1 item</div>
+        <div class="dispute-meta">
+          <span>Raised by: DesignHub</span>
+          <span>18 Jan 2026</span>
+        </div>
+      </div>
+      <div class="dispute-amount green">£108</div>
+    </div>
+    <div class="dispute-detail">
+      <div style="padding:12px;background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-md);font-size:12px;color:var(--ll-amber);margin-bottom:12px">
+        <strong>Resolution:</strong> Partial — 85% payment released (£91.80). £16.20 refunded to DesignHub for minor cosmetic damage to one item. Both parties accepted.
+      </div>
+      <div style="font-size:11px;color:var(--ll-muted)">Resolved: 21 Jan 2026 • Duration: 3 days</div>
+    </div>
+  </div>
+
+  <div class="dispute-card fade-in s3" id="dispute4" onclick="document.getElementById('dispute4').classList.toggle('expanded')">
+    <div class="dispute-card-header">
+      <div class="dispute-status-bar resolved"></div>
+      <div class="dispute-main">
+        <div class="dispute-top">
+          <div class="dispute-id">DIS-0028</div>
+          <span class="dispute-badge resolved">✅ Resolved — In Your Favour</span>
+        </div>
+        <div class="dispute-route">LL-1031 • London → Reading</div>
+        <div class="dispute-reason">💰 Incorrect Amount — business underpaid</div>
+        <div class="dispute-meta">
+          <span>Raised by: You</span>
+          <span>5 Jan 2026</span>
+        </div>
+      </div>
+      <div class="dispute-amount green">£45</div>
+    </div>
+    <div class="dispute-detail">
+      <div style="padding:12px;background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);font-size:12px;color:var(--ll-green);margin-bottom:12px">
+        <strong>Resolution:</strong> Full agreed amount released. The counter-offer acceptance was confirmed in the app — the original lower amount was a system error. Corrected and paid.
+      </div>
+      <div style="font-size:11px;color:var(--ll-muted)">Resolved: 6 Jan 2026 • Duration: 1 day</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="fair-card fade-in s3">
+    <div class="fair-title">⚖️ Fair Dispute Process</div>
+    <div class="fair-step">
+      <div class="fair-num">1</div>
+      <div class="fair-text"><strong>Dispute raised</strong> — either party can raise within 48 hours of delivery</div>
+    </div>
+    <div class="fair-step">
+      <div class="fair-num">2</div>
+      <div class="fair-text"><strong>Escrow frozen</strong> — funds are locked, protecting both sides</div>
+    </div>
+    <div class="fair-step">
+      <div class="fair-num">3</div>
+      <div class="fair-text"><strong>Evidence submitted</strong> — both parties provide photos, POD, messages</div>
+    </div>
+    <div class="fair-step">
+      <div class="fair-num">4</div>
+      <div class="fair-text"><strong>LoadLink reviews</strong> — our team reviews within 48 hours</div>
+    </div>
+    <div class="fair-step">
+      <div class="fair-num">5</div>
+      <div class="fair-text"><strong>Resolution</strong> — funds released, split, or refunded. Both parties notified.</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
