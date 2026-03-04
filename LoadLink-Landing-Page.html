@@ -959,13 +959,62 @@ body::before {
   .footer-grid { grid-template-columns: 1fr; }
   .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
 }
+body{padding-top:32px !important}
 </style>
 </head>
 <body>
+<!-- TESTER NAV -->
+<div class="tester-bar" id="testerBar">
+  <div class="tester-toggle" onclick="document.getElementById('testerBar').classList.toggle('open')">
+    <span class="tester-logo">LL</span>
+    <span class="tester-title">LoadLink Preview</span>
+    <span class="tester-arrow" id="testerArrow">▼</span>
+  </div>
+  <div class="tester-links">
+    <a href="index.html" class="tl-item tl-home">🏠 Hub</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Landing-Page.html" class="tl-item">Landing</a>
+    <a href="LoadLink-Login.html" class="tl-item">Login</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Driver-Dashboard.html" class="tl-item">🚐 Driver</a>
+    <a href="LoadLink-Load-Board.html" class="tl-item">Load Board</a>
+    <a href="LoadLink-Wallet.html" class="tl-item">Wallet</a>
+    <a href="LoadLink-Compliance.html" class="tl-item">Compliance</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Business-Dashboard.html" class="tl-item">🏢 Business</a>
+    <a href="LoadLink-Post-Job.html" class="tl-item">Post Job</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Job-Tracking.html" class="tl-item">📍 Tracking</a>
+    <a href="LoadLink-Invoice.html" class="tl-item">Invoice</a>
+  </div>
+</div>
+<style>
+.tester-bar{position:fixed;top:0;left:0;right:0;z-index:10000;font-family:'DM Sans',-apple-system,sans-serif}
+.tester-toggle{display:flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(34,197,94,0.95);cursor:pointer;user-select:none}
+.tester-logo{width:22px;height:22px;border-radius:6px;background:#0a0f1a;color:#22c55e;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
+.tester-title{font-size:12px;font-weight:700;color:#0a0f1a;flex:1}
+.tester-arrow{font-size:10px;color:#0a0f1a;transition:transform 0.3s}
+.tester-bar.open .tester-arrow{transform:rotate(180deg)}
+.tester-links{display:none;background:rgba(10,15,26,0.97);backdrop-filter:blur(20px);padding:8px;border-bottom:1px solid #2a3650;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.tester-bar.open .tester-links{display:flex;gap:4px;align-items:center}
+.tl-item{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;transition:all 0.2s;flex-shrink:0}
+.tl-item:hover,.tl-item.active{background:rgba(34,197,94,0.15);color:#22c55e}
+.tl-home{background:rgba(34,197,94,0.1);color:#22c55e}
+.tl-divider{width:1px;height:16px;background:#2a3650;flex-shrink:0}
+</style>
+<script>
+(function(){
+  var path=window.location.pathname.split('/').pop()||'index.html';
+  var links=document.querySelectorAll('.tl-item');
+  links.forEach(function(l){if(l.getAttribute('href')===path)l.classList.add('active');});
+})();
+</script>
+<!-- END TESTER NAV -->
+
 
 <!-- NAVIGATION -->
 <nav class="nav" id="nav">
-  <a href="#" class="nav-logo">
+  <a href="LoadLink-Login.html" class="nav-logo">
     <div class="nav-logo-icon">L</div>
     <span class="nav-logo-text">LoadLink</span>
   </a>
@@ -973,7 +1022,7 @@ body::before {
     <a href="#features" class="nav-link">Features</a>
     <a href="#pricing" class="nav-link">Pricing</a>
     <a href="#compare" class="nav-link">Compare</a>
-    <a href="#waitlist" class="nav-cta">Join Waitlist</a>
+    <a href="LoadLink-Login.html" class="nav-cta">Join Waitlist</a>
   </div>
 </nav>
 
@@ -993,10 +1042,10 @@ body::before {
     No more chasing payments. No more dodgy companies. Just fair work, guaranteed pay.
   </p>
   <div class="hero-actions">
-    <a href="#waitlist" class="btn-primary">
+    <a href="LoadLink-Login.html" class="btn-primary">
       Join as Driver →
     </a>
-    <a href="#waitlist" class="btn-secondary">
+    <a href="LoadLink-Login.html" class="btn-secondary">
       Register as Business
     </a>
   </div>
@@ -1261,13 +1310,13 @@ body::before {
         <li><a href="#features">Features</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="#compare">Compare</a></li>
-        <li><a href="#waitlist">Join Waitlist</a></li>
+        <li><a href="LoadLink-Login.html">Join Waitlist</a></li>
       </ul>
     </div>
     <div>
       <div class="footer-heading">Drivers</div>
       <ul class="footer-links">
-        <li><a href="#">How It Works</a></li>
+        <li><a href="LoadLink-Login.html">How It Works</a></li>
         <li><a href="#">Escrow Protection</a></li>
         <li><a href="#">Rate Calculator</a></li>
         <li><a href="#">Trust Tiers</a></li>

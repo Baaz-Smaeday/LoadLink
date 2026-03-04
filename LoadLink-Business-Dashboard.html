@@ -613,9 +613,58 @@ body::before {
 .s3{animation-delay:.15s} .s4{animation-delay:.2s}
 .s5{animation-delay:.25s} .s6{animation-delay:.3s}
 .s7{animation-delay:.35s}
+body{padding-top:32px !important}
 </style>
 </head>
 <body>
+<!-- TESTER NAV -->
+<div class="tester-bar" id="testerBar">
+  <div class="tester-toggle" onclick="document.getElementById('testerBar').classList.toggle('open')">
+    <span class="tester-logo">LL</span>
+    <span class="tester-title">LoadLink Preview</span>
+    <span class="tester-arrow" id="testerArrow">▼</span>
+  </div>
+  <div class="tester-links">
+    <a href="index.html" class="tl-item tl-home">🏠 Hub</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Landing-Page.html" class="tl-item">Landing</a>
+    <a href="LoadLink-Login.html" class="tl-item">Login</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Driver-Dashboard.html" class="tl-item">🚐 Driver</a>
+    <a href="LoadLink-Load-Board.html" class="tl-item">Load Board</a>
+    <a href="LoadLink-Wallet.html" class="tl-item">Wallet</a>
+    <a href="LoadLink-Compliance.html" class="tl-item">Compliance</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Business-Dashboard.html" class="tl-item">🏢 Business</a>
+    <a href="LoadLink-Post-Job.html" class="tl-item">Post Job</a>
+    <div class="tl-divider"></div>
+    <a href="LoadLink-Job-Tracking.html" class="tl-item">📍 Tracking</a>
+    <a href="LoadLink-Invoice.html" class="tl-item">Invoice</a>
+  </div>
+</div>
+<style>
+.tester-bar{position:fixed;top:0;left:0;right:0;z-index:10000;font-family:'DM Sans',-apple-system,sans-serif}
+.tester-toggle{display:flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(34,197,94,0.95);cursor:pointer;user-select:none}
+.tester-logo{width:22px;height:22px;border-radius:6px;background:#0a0f1a;color:#22c55e;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0}
+.tester-title{font-size:12px;font-weight:700;color:#0a0f1a;flex:1}
+.tester-arrow{font-size:10px;color:#0a0f1a;transition:transform 0.3s}
+.tester-bar.open .tester-arrow{transform:rotate(180deg)}
+.tester-links{display:none;background:rgba(10,15,26,0.97);backdrop-filter:blur(20px);padding:8px;border-bottom:1px solid #2a3650;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.tester-bar.open .tester-links{display:flex;gap:4px;align-items:center}
+.tl-item{padding:6px 12px;border-radius:8px;font-size:11px;font-weight:600;color:#94a3b8;text-decoration:none;transition:all 0.2s;flex-shrink:0}
+.tl-item:hover,.tl-item.active{background:rgba(34,197,94,0.15);color:#22c55e}
+.tl-home{background:rgba(34,197,94,0.1);color:#22c55e}
+.tl-divider{width:1px;height:16px;background:#2a3650;flex-shrink:0}
+</style>
+<script>
+(function(){
+  var path=window.location.pathname.split('/').pop()||'index.html';
+  var links=document.querySelectorAll('.tl-item');
+  links.forEach(function(l){if(l.getAttribute('href')===path)l.classList.add('active');});
+})();
+</script>
+<!-- END TESTER NAV -->
+
 
 <!-- HEADER -->
 <div class="header fade-in">
@@ -846,7 +895,7 @@ body::before {
     <div class="sec-title">Quick Actions</div>
   </div>
   <div class="actions-grid">
-    <div class="action-btn" onclick="alert('Post Job')">
+    <div class="action-btn" onclick="window.location='LoadLink-Post-Job.html'">
       <div class="action-icon green">➕</div>
       <div class="action-label">Post Job</div>
     </div>
@@ -858,7 +907,7 @@ body::before {
       <div class="action-icon purple">💳</div>
       <div class="action-label">Payments</div>
     </div>
-    <div class="action-btn" onclick="alert('All Jobs')">
+    <div class="action-btn" onclick="window.location='LoadLink-Load-Board.html'">
       <div class="action-icon green">📋</div>
       <div class="action-label">All Jobs</div>
     </div>
@@ -903,8 +952,8 @@ body::before {
     <div class="tools-cat-label">More</div>
     <div class="actions-grid">
       <div class="action-btn" onclick="alert('Refer — £25')"><div class="action-icon green">🎁</div><div class="action-label">Refer</div></div>
-      <div class="action-btn" onclick="alert('Compliance')"><div class="action-icon green">🏅</div><div class="action-label">Compliance</div></div>
-      <div class="action-btn" onclick="alert('Settings')"><div class="action-icon purple">⚙️</div><div class="action-label">Settings</div></div>
+      <div class="action-btn" onclick="window.location='LoadLink-Compliance.html'"><div class="action-icon green">🏅</div><div class="action-label">Compliance</div></div>
+      <div class="action-btn" onclick="window.location='LoadLink-Compliance.html'"><div class="action-icon purple">⚙️</div><div class="action-label">Settings</div></div>
     </div>
   </div>
 </div>
@@ -976,16 +1025,16 @@ body::before {
     <span class="n-icon">🏠</span>
     <span class="n-label">Home</span>
   </button>
-  <button class="nav-item" onclick="alert('All Jobs')">
+  <button class="nav-item" onclick="window.location='LoadLink-Load-Board.html'">
     <span class="n-icon">📋</span>
     <span class="n-label">Jobs</span>
   </button>
   <button class="nav-fab" onclick="alert('Post a New Job')">+</button>
-  <button class="nav-item" onclick="alert('Payments')">
+  <button class="nav-item" onclick="window.location='LoadLink-Wallet.html'">
     <span class="n-icon">💳</span>
     <span class="n-label">Payments</span>
   </button>
-  <button class="nav-item" onclick="alert('Settings')">
+  <button class="nav-item" onclick="window.location='LoadLink-Compliance.html'">
     <span class="n-icon">⚙️</span>
     <span class="n-label">Settings</span>
   </button>
