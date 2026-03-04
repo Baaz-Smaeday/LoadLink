@@ -555,12 +555,23 @@ async function signup() {
   if (pass.length < 6) return showAuthError('Password must be at least 6 characters');
   document.getElementById('signupBtn').disabled = true;
   document.getElementById('signupBtn').textContent = 'Creating account...';
-  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password: pass,
+    options: {
+      data: {
+        full_name: name,
+        role: selectedRole,
+        city: city,
+        company_name: selectedRole === 'business' ? company : null
+      }
+    }
+  });
   document.getElementById('signupBtn').disabled = false;
   document.getElementById('signupBtn').textContent = 'Create Account';
   if (error) return showAuthError(error.message);
   if (data.user) {
-    // Create profile
+    // Also try direct insert as backup (trigger should handle it)
     await sb.from('profiles').upsert({
       id: data.user.id,
       email: email,
@@ -578,8 +589,7 @@ async function signup() {
       bypass_strikes: 0,
       is_suspended: false
     });
-    // Create wallet
-    await sb.from('wallets').insert({
+    await sb.from('wallets').upsert({
       user_id: data.user.id,
       balance: 0,
       pending: 0,
@@ -589,7 +599,14 @@ async function signup() {
       auto_withdraw: false,
       auto_withdraw_threshold: 100
     });
-    showAuthSuccess('Account created! Check your email for verification, or try logging in.');
+    // Try auto-login
+    const { data: loginData, error: loginErr } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (loginData?.user) {
+      await loadApp(loginData.user);
+      toast('Welcome to LoadLinks! 🎉');
+      return;
+    }
+    showAuthSuccess('Account created! Try logging in now.');
   }
 }
 
