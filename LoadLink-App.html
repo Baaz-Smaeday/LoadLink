@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLinks — Live App</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;position:relative}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* Loading */
+.loading{display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px}
+.spinner{width:40px;height:40px;border:3px solid var(--ll-border);border-top-color:var(--ll-green);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Screen management */
+.screen{display:none;min-height:100vh;padding-bottom:80px}
+.screen.active{display:block}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.hdr-row{display:flex;align-items:center;justify-content:space-between}
+.hdr-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.hdr-logo{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--ll-green)}
+.hdr-logo span{color:var(--ll-white)}
+.hdr-btn{padding:8px 14px;border-radius:var(--radius-md);border:1px solid var(--ll-border);background:var(--ll-card);color:var(--ll-text);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+.hdr-back{background:none;border:none;color:var(--ll-green);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body)}
+
+.content{padding:16px 20px}
+
+/* ====== AUTH SCREEN ====== */
+.auth-container{display:flex;flex-direction:column;align-items:center;padding:60px 24px;min-height:100vh}
+.auth-logo{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--ll-green);margin-bottom:4px}
+.auth-logo span{color:var(--ll-white)}
+.auth-sub{font-size:13px;color:var(--ll-muted);margin-bottom:32px}
+.auth-tabs{display:flex;gap:4px;background:var(--ll-card);border-radius:var(--radius-md);padding:3px;margin-bottom:24px;width:100%;border:1px solid var(--ll-border)}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:600;color:var(--ll-muted);border-radius:var(--radius-sm);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all 0.2s}
+.auth-tab.active{background:var(--ll-green);color:var(--ll-black);font-weight:700}
+.auth-form{width:100%}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--ll-muted);margin-bottom:6px;display:block}
+.form-input{width:100%;padding:12px 16px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:14px;font-family:var(--font-body);outline:none;transition:border-color 0.3s}
+.form-input:focus{border-color:var(--ll-green)}
+.form-input::placeholder{color:#4a5568}
+.role-select{display:flex;gap:8px;margin-bottom:14px}
+.role-btn{flex:1;padding:14px;border-radius:var(--radius-lg);background:var(--ll-card);border:2px solid var(--ll-border);text-align:center;cursor:pointer;transition:all 0.2s;font-family:var(--font-body)}
+.role-btn.selected{border-color:var(--ll-green);background:var(--ll-green-glow)}
+.role-btn-icon{font-size:28px;margin-bottom:4px}
+.role-btn-label{font-size:13px;font-weight:700;color:var(--ll-white)}
+.role-btn-desc{font-size:10px;color:var(--ll-muted);margin-top:2px}
+.auth-btn{width:100%;padding:14px;border-radius:var(--radius-md);background:var(--ll-green);color:var(--ll-black);font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);margin-top:8px;transition:all 0.3s}
+.auth-btn:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3)}
+.auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+.auth-error{background:var(--ll-red-soft);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-md);padding:10px 14px;font-size:12px;color:var(--ll-red);margin-bottom:14px;display:none}
+.auth-success{background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-md);padding:10px 14px;font-size:12px;color:var(--ll-green);margin-bottom:14px;display:none}
+
+/* ====== DASHBOARD ====== */
+.welcome-card{background:linear-gradient(135deg,#132a15 0%,#0a1f14 40%,#0f2420 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.welcome-name{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--ll-white)}
+.welcome-role{font-size:12px;color:var(--ll-green);font-weight:600;margin-top:2px}
+.welcome-stats{display:flex;gap:16px;margin-top:16px}
+.w-stat{text-align:center;flex:1}
+.w-stat-val{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--ll-white)}
+.w-stat-label{font-size:10px;color:var(--ll-muted);margin-top:2px}
+
+/* Go Live Toggle */
+.golive-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.golive-info h3{font-size:14px;font-weight:700;color:var(--ll-white)}
+.golive-info p{font-size:11px;color:var(--ll-muted);margin-top:2px}
+.toggle{width:52px;height:28px;border-radius:14px;background:var(--ll-border);position:relative;cursor:pointer;transition:background 0.3s}
+.toggle.on{background:var(--ll-green)}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+.toggle.on::after{transform:translateX(24px)}
+
+/* Quick Actions */
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.q-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.2s}
+.q-btn:hover{border-color:var(--ll-green);transform:translateY(-1px)}
+.q-icon{font-size:22px}
+.q-label{font-size:10px;font-weight:600;color:var(--ll-muted);text-align:center}
+
+/* Section */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white)}
+.sec-link{font-size:12px;color:var(--ll-green);font-weight:600;cursor:pointer}
+
+/* Job Cards */
+.job-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px;margin-bottom:10px;cursor:pointer;transition:all 0.2s}
+.job-card:hover{border-color:rgba(34,197,94,0.3)}
+.job-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.job-title{font-size:14px;font-weight:700;color:var(--ll-white)}
+.job-price{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-green)}
+.job-route{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;color:var(--ll-muted)}
+.job-route .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.job-route .dot.green{background:var(--ll-green)}
+.job-route .dot.red{background:var(--ll-red)}
+.job-route .line{flex:1;height:1px;background:var(--ll-border);border-style:dashed}
+.job-meta{display:flex;gap:8px;flex-wrap:wrap}
+.job-tag{padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.job-tag.vehicle{background:var(--ll-blue-soft);color:var(--ll-blue)}
+.job-tag.urgent{background:var(--ll-red-soft);color:var(--ll-red)}
+.job-tag.status{background:var(--ll-green-soft);color:var(--ll-green)}
+.job-tag.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.job-tag.distance{background:rgba(255,255,255,0.05);color:var(--ll-muted)}
+
+/* Job Detail */
+.jd-price-card{background:linear-gradient(135deg,#132a15,#0a1f14);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:20px;text-align:center;margin-bottom:16px}
+.jd-price{font-family:var(--font-display);font-size:36px;font-weight:900;color:var(--ll-green)}
+.jd-ppm{font-size:12px;color:var(--ll-muted);margin-top:4px}
+.jd-route-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px}
+.jd-point{display:flex;align-items:flex-start;gap:12px;padding:8px 0}
+.jd-dot{width:12px;height:12px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.jd-dot.pickup{background:var(--ll-green)}
+.jd-dot.delivery{background:var(--ll-red)}
+.jd-addr{font-size:13px;font-weight:600;color:var(--ll-white)}
+.jd-city{font-size:11px;color:var(--ll-muted);margin-top:1px}
+.jd-line{width:2px;height:20px;background:var(--ll-border);margin-left:5px;border-left:2px dashed var(--ll-border)}
+.jd-info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.jd-info{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:12px;text-align:center}
+.jd-info-val{font-size:14px;font-weight:700;color:var(--ll-white)}
+.jd-info-label{font-size:10px;color:var(--ll-muted);margin-top:2px}
+.jd-actions{display:flex;gap:8px;margin-bottom:16px}
+.jd-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);text-align:center;transition:all 0.2s}
+.jd-btn.accept{background:var(--ll-green);color:var(--ll-black)}
+.jd-btn.accept:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3)}
+.jd-btn.counter{background:var(--ll-card);color:var(--ll-amber);border:1px solid var(--ll-amber)}
+.jd-btn.decline{background:var(--ll-card);color:var(--ll-red);border:1px solid rgba(239,68,68,0.2)}
+
+/* Counter Offer Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{width:100%;max-width:480px;background:var(--ll-dark);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:24px;border-top:1px solid var(--ll-border)}
+.modal-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white);margin-bottom:16px}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ll-muted);font-size:20px;cursor:pointer}
+
+/* Post Job Form */
+.post-step{display:none}
+.post-step.active{display:block}
+.step-indicator{display:flex;gap:4px;margin-bottom:20px}
+.step-dot{flex:1;height:4px;border-radius:2px;background:var(--ll-border)}
+.step-dot.active{background:var(--ll-green)}
+.step-dot.done{background:var(--ll-green-dim)}
+
+/* ====== MESSAGES ====== */
+.chat-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+.chat-item:hover{border-color:rgba(34,197,94,0.3)}
+.chat-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--ll-green-dim),var(--ll-green));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:800;color:var(--ll-black);flex-shrink:0}
+.chat-info{flex:1;min-width:0}
+.chat-name{font-size:13px;font-weight:700;color:var(--ll-white)}
+.chat-preview{font-size:11px;color:var(--ll-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.chat-time{font-size:10px;color:var(--ll-muted)}
+
+/* Messages */
+.msg-list{padding:16px 0 100px;min-height:300px}
+.msg-row{display:flex;margin-bottom:8px}
+.msg-row.them{justify-content:flex-start}
+.msg-row.me{justify-content:flex-end}
+.msg-bubble{max-width:80%;padding:10px 14px;border-radius:16px;font-size:13px;line-height:1.6}
+.msg-row.them .msg-bubble{background:var(--ll-card);border:1px solid var(--ll-border);color:var(--ll-text);border-bottom-left-radius:4px}
+.msg-row.me .msg-bubble{background:var(--ll-green);color:var(--ll-black);font-weight:500;border-bottom-right-radius:4px}
+.msg-time{font-size:9px;color:var(--ll-muted);margin-top:2px}
+.msg-row.me .msg-time{text-align:right}
+.msg-input-bar{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(17,24,39,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--ll-border);padding:10px 16px;display:flex;align-items:center;gap:8px;z-index:100}
+.msg-input{flex:1;padding:10px 16px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-full);color:var(--ll-white);font-size:14px;font-family:var(--font-body);outline:none}
+.msg-input:focus{border-color:var(--ll-green)}
+.msg-input::placeholder{color:#4a5568}
+.msg-send{width:40px;height:40px;border-radius:50%;background:var(--ll-green);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:none}
+
+/* ====== WALLET ====== */
+.wallet-hero{background:linear-gradient(135deg,#132a15 0%,#0a1f14 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:28px;text-align:center;margin-bottom:16px}
+.wallet-bal{font-family:var(--font-display);font-size:40px;font-weight:900;color:var(--ll-white)}
+.wallet-label{font-size:12px;color:var(--ll-muted);margin-bottom:4px}
+.wallet-stats{display:flex;justify-content:center;gap:24px;margin-top:16px}
+.ws{text-align:center}
+.ws-val{font-size:16px;font-weight:700}
+.ws-label{font-size:10px;color:var(--ll-muted);margin-top:2px}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:72px;background:rgba(17,24,39,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--ll-border);display:flex;align-items:center;justify-content:space-around;padding:0 8px;z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;cursor:pointer;border-radius:var(--radius-md);min-width:56px;position:relative;background:none;border:none;font-family:var(--font-body)}
+.nav-item.active .ni{color:var(--ll-green)}.nav-item.active .nl{color:var(--ll-green)}
+.nav-item.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--ll-green);border-radius:2px}
+.ni{font-size:22px;color:var(--ll-muted)}.nl{font-size:10px;font-weight:600;color:var(--ll-muted)}
+.nav-badge{position:absolute;top:2px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--ll-red);font-size:9px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* Empty State */
+.empty{text-align:center;padding:40px 20px}
+.empty-icon{font-size:48px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:700;color:var(--ll-white);margin-bottom:4px}
+.empty-desc{font-size:13px;color:var(--ll-muted)}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);max-width:400px;padding:12px 20px;border-radius:var(--radius-md);font-size:13px;font-weight:600;z-index:10000;transition:transform 0.3s}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--ll-green);color:var(--ll-black)}
+.toast.error{background:var(--ll-red);color:#fff}
+
+/* Fade anim */
+.fade-in{animation:fadeIn 0.4s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ LOADING ============ -->
+<div class="screen active" id="loadingScreen">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div style="font-size:13px;color:var(--ll-muted)">Loading LoadLinks...</div>
+  </div>
+</div>
+
+<!-- ============ AUTH ============ -->
+<div class="screen" id="authScreen">
+  <div class="auth-container">
+    <div class="auth-logo">Load<span>Links</span></div>
+    <div class="auth-sub">The UK's smartest courier platform</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+
+    <!-- LOGIN -->
+    <div class="auth-form" id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="loginPassword" placeholder="Enter password">
+      </div>
+      <button class="auth-btn" onclick="login()" id="loginBtn">Log In</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="auth-form" id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">I am a...</label>
+        <div class="role-select">
+          <div class="role-btn selected" onclick="selectRole('driver',this)">
+            <div class="role-btn-icon">🚐</div>
+            <div class="role-btn-label">Driver</div>
+            <div class="role-btn-desc">Find & deliver loads</div>
+          </div>
+          <div class="role-btn" onclick="selectRole('business',this)">
+            <div class="role-btn-icon">🏢</div>
+            <div class="role-btn-label">Business</div>
+            <div class="role-btn-desc">Post & manage jobs</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="signupName" placeholder="James Mitchell">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="signupEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="signupPassword" placeholder="Min 6 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">City</label>
+        <input type="text" class="form-input" id="signupCity" placeholder="Leeds">
+      </div>
+      <div class="form-group" id="companyField" style="display:none">
+        <label class="form-label">Company Name</label>
+        <input type="text" class="form-input" id="signupCompany" placeholder="Your company name">
+      </div>
+      <button class="auth-btn" onclick="signup()" id="signupBtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div class="screen" id="dashScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-logo">Load<span>Links</span></div>
+      <button class="hdr-btn" onclick="logout()">Log Out</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="welcome-card fade-in" id="welcomeCard">
+      <div class="welcome-name" id="welcomeName">Welcome</div>
+      <div class="welcome-role" id="welcomeRole">Driver</div>
+      <div class="welcome-stats" id="welcomeStats"></div>
+    </div>
+
+    <!-- Driver: Go Live -->
+    <div class="golive-card" id="goLiveCard" style="display:none">
+      <div class="golive-info">
+        <h3 id="goLiveStatus">You're Offline</h3>
+        <p>Toggle to receive job notifications</p>
+      </div>
+      <div class="toggle" id="goLiveToggle" onclick="toggleGoLive()"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="sec-hdr"><div class="sec-title">Quick Actions</div></div>
+    <div class="quick-grid" id="quickActions"></div>
+
+    <!-- Recent Jobs -->
+    <div class="sec-hdr">
+      <div class="sec-title" id="jobsSectionTitle">Recent Jobs</div>
+      <div class="sec-link" onclick="nav('jobs')">View All →</div>
+    </div>
+    <div id="dashJobsList"></div>
+  </div>
+</div>
+
+<!-- ============ JOBS / LOAD BOARD ============ -->
+<div class="screen" id="jobsScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-title" id="jobsScreenTitle">Load Board</div>
+      <button class="hdr-btn" id="postJobHeaderBtn" onclick="nav('postjob')" style="display:none">+ Post Job</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="jobsList"></div>
+  </div>
+</div>
+
+<!-- ============ JOB DETAIL ============ -->
+<div class="screen" id="jobDetailScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <button class="hdr-back" onclick="nav('jobs')">← Back</button>
+      <div class="hdr-title">Job Details</div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div class="content" id="jobDetailContent"></div>
+</div>
+
+<!-- ============ POST JOB ============ -->
+<div class="screen" id="postjobScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <button class="hdr-back" onclick="nav('jobs')">← Cancel</button>
+      <div class="hdr-title">Post a Job</div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="step-indicator"><div class="step-dot active" id="s1"></div><div class="step-dot" id="s2"></div><div class="step-dot" id="s3"></div></div>
+
+    <!-- Step 1: Route -->
+    <div class="post-step active" id="postStep1">
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ll-white);margin-bottom:16px">📍 Route Details</div>
+      <div class="form-group"><label class="form-label">Job Title</label><input class="form-input" id="pjTitle" placeholder="e.g. 3 pallets Leeds to London"></div>
+      <div class="form-group"><label class="form-label">Pickup Address</label><input class="form-input" id="pjPickAddr" placeholder="123 Business Park"></div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1"><label class="form-label">Pickup City</label><input class="form-input" id="pjPickCity" placeholder="Leeds"></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Postcode</label><input class="form-input" id="pjPickPost" placeholder="LS1 4AP"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Delivery Address</label><input class="form-input" id="pjDelAddr" placeholder="456 High Street"></div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1"><label class="form-label">Delivery City</label><input class="form-input" id="pjDelCity" placeholder="London"></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Postcode</label><input class="form-input" id="pjDelPost" placeholder="EC1 2AD"></div>
+      </div>
+      <button class="auth-btn" onclick="postJobStep(2)">Next → Cargo Details</button>
+    </div>
+
+    <!-- Step 2: Cargo -->
+    <div class="post-step" id="postStep2">
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ll-white);margin-bottom:16px">📦 Cargo & Vehicle</div>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="pjDesc" placeholder="What are you sending?"></div>
+      <div class="form-group">
+        <label class="form-label">Vehicle Type</label>
+        <select class="form-input" id="pjVehicle" style="cursor:pointer">
+          <option value="small_van">Small Van</option>
+          <option value="swb_van">SWB Van</option>
+          <option value="lwb_van" selected>LWB Van</option>
+          <option value="xlwb_van">XLWB Van</option>
+          <option value="luton">Luton</option>
+          <option value="7_5t">7.5t Truck</option>
+          <option value="18t">18t Truck</option>
+          <option value="artic">Artic</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1"><label class="form-label">Weight (kg)</label><input type="number" class="form-input" id="pjWeight" placeholder="500"></div>
+        <div class="form-group" style="flex:1"><label class="form-label">Distance (miles)</label><input type="number" class="form-input" id="pjDist" placeholder="195"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="jd-btn decline" onclick="postJobStep(1)" style="flex:1">← Back</button>
+        <button class="auth-btn" onclick="postJobStep(3)" style="flex:2;margin-top:0">Next → Pricing</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Price & Post -->
+    <div class="post-step" id="postStep3">
+      <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ll-white);margin-bottom:16px">💰 Pricing</div>
+      <div class="form-group"><label class="form-label">Your Price (£)</label><input type="number" class="form-input" id="pjPrice" placeholder="185" style="font-size:24px;font-weight:700;text-align:center"></div>
+      <div style="text-align:center;font-size:11px;color:var(--ll-muted);margin-bottom:16px" id="pjPriceTip">AI suggested: calculating...</div>
+      <div class="form-group">
+        <label class="form-label">Payment Terms</label>
+        <select class="form-input" id="pjTerms" style="cursor:pointer">
+          <option value="instant">⚡ Instant</option>
+          <option value="7_day" selected>7 Days</option>
+          <option value="15_day">15 Days</option>
+          <option value="30_day">30 Days</option>
+        </select>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer">
+        <input type="checkbox" id="pjUrgent" style="width:18px;height:18px;accent-color:var(--ll-green)">
+        <span style="font-size:13px;color:var(--ll-text)">🚨 Mark as Urgent</span>
+      </label>
+      <div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:12px;font-size:12px;color:var(--ll-green);margin-bottom:16px;text-align:center">
+        🛡️ Funds will be held in escrow until delivery is confirmed
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="jd-btn decline" onclick="postJobStep(2)" style="flex:1">← Back</button>
+        <button class="auth-btn" onclick="submitJob()" id="submitJobBtn" style="flex:2;margin-top:0">Post Job →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MESSAGES ============ -->
+<div class="screen" id="msgScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-title">Messages</div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div class="content" id="msgListContent">
+    <div style="background:var(--ll-blue-soft);border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius-lg);padding:12px;font-size:11px;color:var(--ll-blue);margin-bottom:12px;display:flex;align-items:center;gap:8px">🛡️ Communication Shield — phone numbers hidden, all messages saved</div>
+    <div id="chatList"></div>
+  </div>
+  <div id="chatViewContent" style="display:none">
+    <div class="hdr">
+      <div class="hdr-row">
+        <button class="hdr-back" onclick="closeChatView()">← Back</button>
+        <div class="hdr-title" id="chatViewName">Chat</div>
+        <div style="width:36px"></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="msg-list" id="messagesList"></div>
+    </div>
+    <div class="msg-input-bar">
+      <input class="msg-input" id="msgInput" placeholder="Type a message...">
+      <button class="msg-send" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WALLET ============ -->
+<div class="screen" id="walletScreen">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-title">Wallet</div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div class="content" id="walletContent"></div>
+</div>
+
+<!-- ============ COUNTER OFFER MODAL ============ -->
+<div class="modal-overlay" id="counterModal">
+  <div class="modal">
+    <div class="modal-title">💰 Counter Offer</div>
+    <div class="form-group"><label class="form-label">Your Price (£)</label><input type="number" class="form-input" id="counterAmount" placeholder="150" style="font-size:20px;font-weight:700;text-align:center"></div>
+    <div class="form-group"><label class="form-label">Message (optional)</label><input class="form-input" id="counterMsg" placeholder="I can do it for this price because..."></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="jd-btn decline" onclick="closeCounterModal()" style="flex:1">Cancel</button>
+      <button class="jd-btn accept" onclick="submitCounter()" style="flex:2">Send Offer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BOTTOM NAV ============ -->
+<nav class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-item active" onclick="nav('dash')"><span class="ni">🏠</span><span class="nl">Home</span></button>
+  <button class="nav-item" onclick="nav('jobs')"><span class="ni">📦</span><span class="nl" id="navJobsLabel">Jobs</span></button>
+  <button class="nav-item" onclick="nav('msg')"><span class="ni">💬</span><span class="nl">Chat</span></button>
+  <button class="nav-item" onclick="nav('wallet')"><span class="ni">💰</span><span class="nl">Wallet</span></button>
+</nav>
+
+<script>
+// ====== SUPABASE INIT ======
+const SUPABASE_URL = 'https://izvkqngxkcdivtgvhcur.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6dmtxbmd4a2NkaXZ0Z3ZoY3VyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODAzNzgsImV4cCI6MjA4Nzk1NjM3OH0.hSoafd_QOo3yNb49ZydO8d8MSV_QXqtE8uPcSwS1Gv0';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let selectedRole = 'driver';
+let currentJobId = null;
+let currentChatUserId = null;
+let currentChatJobId = null;
+
+// ====== TOAST ======
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ====== AUTH ======
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+
+function selectRole(role, el) {
+  selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('companyField').style.display = role === 'business' ? 'block' : 'none';
+}
+
+async function login() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  if (!email || !pass) return showAuthError('Please fill in all fields');
+  document.getElementById('loginBtn').disabled = true;
+  document.getElementById('loginBtn').textContent = 'Logging in...';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginBtn').textContent = 'Log In';
+  if (error) return showAuthError(error.message);
+  await loadApp(data.user);
+}
+
+async function signup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPassword').value;
+  const city = document.getElementById('signupCity').value.trim();
+  const company = document.getElementById('signupCompany').value.trim();
+  if (!name || !email || !pass) return showAuthError('Please fill in all fields');
+  if (pass.length < 6) return showAuthError('Password must be at least 6 characters');
+  document.getElementById('signupBtn').disabled = true;
+  document.getElementById('signupBtn').textContent = 'Creating account...';
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  document.getElementById('signupBtn').disabled = false;
+  document.getElementById('signupBtn').textContent = 'Create Account';
+  if (error) return showAuthError(error.message);
+  if (data.user) {
+    // Create profile
+    await sb.from('profiles').upsert({
+      id: data.user.id,
+      email: email,
+      full_name: name,
+      role: selectedRole,
+      city: city,
+      company_name: selectedRole === 'business' ? company : null,
+      trust_score: 50,
+      rating: 5.0,
+      total_jobs: 0,
+      ontime_pct: 100,
+      verification_level: 'new',
+      tier: 'new',
+      is_live: false,
+      bypass_strikes: 0,
+      is_suspended: false
+    });
+    // Create wallet
+    await sb.from('wallets').insert({
+      user_id: data.user.id,
+      balance: 0,
+      pending: 0,
+      total_earned: 0,
+      total_spent: 0,
+      bank_connected: false,
+      auto_withdraw: false,
+      auto_withdraw_threshold: 100
+    });
+    showAuthSuccess('Account created! Check your email for verification, or try logging in.');
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+}
+function showAuthSuccess(msg) {
+  const el = document.getElementById('authSuccess');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  currentProfile = null;
+  showScreen('authScreen');
+  document.getElementById('bottomNav').style.display = 'none';
+}
+
+// ====== APP INIT ======
+async function loadApp(user) {
+  currentUser = user;
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  currentProfile = profile;
+  if (!profile) {
+    showScreen('authScreen');
+    showAuthError('Profile not found. Please sign up first.');
+    return;
+  }
+  showScreen('dashScreen');
+  document.getElementById('bottomNav').style.display = 'flex';
+  renderDashboard();
+  loadDashJobs();
+}
+
+// ====== NAVIGATION ======
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function nav(target) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (target === 'dash') {
+    showScreen('dashScreen');
+    document.querySelectorAll('.nav-item')[0].classList.add('active');
+    loadDashJobs();
+  } else if (target === 'jobs') {
+    showScreen('jobsScreen');
+    document.querySelectorAll('.nav-item')[1].classList.add('active');
+    loadJobs();
+  } else if (target === 'msg') {
+    showScreen('msgScreen');
+    document.querySelectorAll('.nav-item')[2].classList.add('active');
+    document.getElementById('msgListContent').style.display = 'block';
+    document.getElementById('chatViewContent').style.display = 'none';
+    loadChats();
+  } else if (target === 'wallet') {
+    showScreen('walletScreen');
+    document.querySelectorAll('.nav-item')[3].classList.add('active');
+    loadWallet();
+  } else if (target === 'postjob') {
+    showScreen('postjobScreen');
+    postJobStep(1);
+  }
+}
+
+// ====== DASHBOARD ======
+function renderDashboard() {
+  const p = currentProfile;
+  const isDriver = p.role === 'driver';
+  document.getElementById('welcomeName').textContent = 'Hey, ' + (p.full_name || 'there') + '!';
+  document.getElementById('welcomeRole').textContent = isDriver ? '🚐 Driver • ' + (p.city || '') : '🏢 ' + (p.company_name || 'Business') + ' • ' + (p.city || '');
+  document.getElementById('welcomeStats').innerHTML = isDriver ?
+    '<div class="w-stat"><div class="w-stat-val">' + (p.total_jobs||0) + '</div><div class="w-stat-label">Jobs</div></div>' +
+    '<div class="w-stat"><div class="w-stat-val">' + (p.rating||5.0) + '⭐</div><div class="w-stat-label">Rating</div></div>' +
+    '<div class="w-stat"><div class="w-stat-val">' + (p.ontime_pct||100) + '%</div><div class="w-stat-label">On-Time</div></div>' +
+    '<div class="w-stat"><div class="w-stat-val">' + (p.tier||'New') + '</div><div class="w-stat-label">Tier</div></div>' :
+    '<div class="w-stat"><div class="w-stat-val">' + (p.total_jobs||0) + '</div><div class="w-stat-label">Jobs Posted</div></div>' +
+    '<div class="w-stat"><div class="w-stat-val">' + (p.rating||5.0) + '⭐</div><div class="w-stat-label">Rating</div></div>' +
+    '<div class="w-stat"><div class="w-stat-val">' + (p.trust_score||50) + '</div><div class="w-stat-label">Trust</div></div>';
+
+  // Go Live (drivers only)
+  document.getElementById('goLiveCard').style.display = isDriver ? 'flex' : 'none';
+  if (isDriver) {
+    const live = p.is_live;
+    document.getElementById('goLiveToggle').className = live ? 'toggle on' : 'toggle';
+    document.getElementById('goLiveStatus').textContent = live ? "You're Live! 🟢" : "You're Offline";
+  }
+
+  // Quick Actions
+  const qa = isDriver ? [
+    {icon:'📦',label:'Load Board',action:"nav('jobs')"},
+    {icon:'💰',label:'Wallet',action:"nav('wallet')"},
+    {icon:'💬',label:'Messages',action:"nav('msg')"},
+    {icon:'⚙️',label:'Settings',action:"alert('Settings coming soon')"}
+  ] : [
+    {icon:'➕',label:'Post Job',action:"nav('postjob')"},
+    {icon:'📋',label:'My Jobs',action:"nav('jobs')"},
+    {icon:'💰',label:'Payments',action:"nav('wallet')"},
+    {icon:'💬',label:'Messages',action:"nav('msg')"}
+  ];
+  document.getElementById('quickActions').innerHTML = qa.map(q =>
+    '<div class="q-btn" onclick="' + q.action + '"><div class="q-icon">' + q.icon + '</div><div class="q-label">' + q.label + '</div></div>'
+  ).join('');
+
+  // Screen titles
+  document.getElementById('jobsScreenTitle').textContent = isDriver ? 'Load Board' : 'My Jobs';
+  document.getElementById('postJobHeaderBtn').style.display = isDriver ? 'none' : 'block';
+  document.getElementById('navJobsLabel').textContent = isDriver ? 'Jobs' : 'My Jobs';
+  document.getElementById('jobsSectionTitle').textContent = isDriver ? 'Available Jobs' : 'Your Recent Jobs';
+}
+
+async function toggleGoLive() {
+  const newState = !currentProfile.is_live;
+  await sb.from('profiles').update({ is_live: newState }).eq('id', currentUser.id);
+  currentProfile.is_live = newState;
+  document.getElementById('goLiveToggle').className = newState ? 'toggle on' : 'toggle';
+  document.getElementById('goLiveStatus').textContent = newState ? "You're Live! 🟢" : "You're Offline";
+  toast(newState ? 'You are now live! Jobs will match to you.' : 'You are now offline.');
+}
+
+// ====== JOBS ======
+async function loadDashJobs() {
+  const isDriver = currentProfile.role === 'driver';
+  let query;
+  if (isDriver) {
+    query = sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false }).limit(3);
+  } else {
+    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(3);
+  }
+  const { data: jobs } = await query;
+  document.getElementById('dashJobsList').innerHTML = (jobs && jobs.length > 0) ?
+    jobs.map(j => jobCardHTML(j)).join('') :
+    '<div class="empty"><div class="empty-icon">' + (isDriver ? '📦' : '📋') + '</div><div class="empty-title">No jobs yet</div><div class="empty-desc">' + (isDriver ? 'New jobs will appear here' : 'Post your first job to get started') + '</div></div>';
+}
+
+async function loadJobs() {
+  const isDriver = currentProfile.role === 'driver';
+  let query;
+  if (isDriver) {
+    query = sb.from('jobs').select('*').in('status', ['posted', 'assigned']).order('created_at', { ascending: false });
+  } else {
+    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false });
+  }
+  const { data: jobs } = await query;
+  document.getElementById('jobsList').innerHTML = (jobs && jobs.length > 0) ?
+    jobs.map(j => jobCardHTML(j)).join('') :
+    '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs available</div><div class="empty-desc">Check back soon for new loads</div></div>';
+}
+
+function jobCardHTML(j) {
+  const statusMap = { posted: 'Open', assigned: 'Assigned', in_transit: 'In Transit', collected: 'Collected', delivered: 'Delivered', completed: 'Completed', cancelled: 'Cancelled' };
+  const statusClass = ['completed','delivered'].includes(j.status) ? 'status' : (j.status === 'cancelled' ? 'urgent' : 'pending');
+  return '<div class="job-card" onclick="openJob(\'' + j.id + '\')">' +
+    '<div class="job-top"><div class="job-title">' + (j.title || 'Untitled Job') + '</div><div class="job-price">£' + (j.price || 0) + '</div></div>' +
+    '<div class="job-route"><div class="dot green"></div><span>' + (j.pickup_city || '?') + '</span><div class="line"></div><span>' + (j.delivery_city || '?') + '</span><div class="dot red"></div></div>' +
+    '<div class="job-meta">' +
+      '<span class="job-tag ' + statusClass + '">' + (statusMap[j.status] || j.status) + '</span>' +
+      (j.vehicle_type ? '<span class="job-tag vehicle">' + j.vehicle_type.replace(/_/g,' ') + '</span>' : '') +
+      (j.distance_miles ? '<span class="job-tag distance">' + j.distance_miles + ' mi</span>' : '') +
+      (j.is_urgent ? '<span class="job-tag urgent">🚨 URGENT</span>' : '') +
+    '</div></div>';
+}
+
+async function openJob(id) {
+  currentJobId = id;
+  const { data: job } = await sb.from('jobs').select('*').eq('id', id).single();
+  if (!job) return;
+  const isDriver = currentProfile.role === 'driver';
+  const isOwner = job.business_id === currentUser.id;
+  const ppm = job.distance_miles > 0 ? (job.price / job.distance_miles).toFixed(2) : '—';
+
+  // Get bids
+  const { data: bids } = await sb.from('bids').select('*').eq('job_id', id).order('created_at', { ascending: false });
+  const myBid = bids ? bids.find(b => b.driver_id === currentUser.id) : null;
+
+  let html = '<div class="jd-price-card"><div class="jd-price">£' + (job.price||0) + '</div><div class="jd-ppm">£' + ppm + '/mi • ' + (job.payment_terms||'7_day').replace(/_/g,' ') + ' terms</div></div>';
+
+  html += '<div class="jd-route-card"><div class="jd-point"><div class="jd-dot pickup"></div><div><div class="jd-addr">' + (job.pickup_address||'') + '</div><div class="jd-city">' + (job.pickup_city||'') + ' ' + (job.pickup_postcode||'') + '</div></div></div>';
+  html += '<div class="jd-line" style="margin-left:5px"></div>';
+  html += '<div class="jd-point"><div class="jd-dot delivery"></div><div><div class="jd-addr">' + (job.delivery_address||'') + '</div><div class="jd-city">' + (job.delivery_city||'') + ' ' + (job.delivery_postcode||'') + '</div></div></div></div>';
+
+  html += '<div class="jd-info-grid">' +
+    '<div class="jd-info"><div class="jd-info-val">' + (job.distance_miles||'—') + ' mi</div><div class="jd-info-label">Distance</div></div>' +
+    '<div class="jd-info"><div class="jd-info-val">' + (job.vehicle_type||'—').replace(/_/g,' ') + '</div><div class="jd-info-label">Vehicle</div></div>' +
+    '<div class="jd-info"><div class="jd-info-val">' + (job.weight_kg||'—') + ' kg</div><div class="jd-info-label">Weight</div></div>' +
+    '<div class="jd-info"><div class="jd-info-val">' + (job.ai_match_score||'—') + '</div><div class="jd-info-label">AI Match</div></div></div>';
+
+  if (job.description) html += '<div style="background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:16px;font-size:13px;color:var(--ll-text)">' + job.description + '</div>';
+
+  // Actions for drivers
+  if (isDriver && job.status === 'posted') {
+    if (myBid) {
+      html += '<div style="background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-md);padding:14px;text-align:center;font-size:13px;color:var(--ll-amber)">You sent an offer of <strong>£' + myBid.amount + '</strong> — ' + myBid.status + '</div>';
+    } else {
+      html += '<div class="jd-actions"><button class="jd-btn accept" onclick="acceptJob()">✅ Accept £' + job.price + '</button><button class="jd-btn counter" onclick="openCounterModal()">💰 Counter</button></div>';
+    }
+  }
+
+  // Actions for business - status updates
+  if (isOwner) {
+    if (bids && bids.length > 0) {
+      html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:10px">📩 Offers (' + bids.length + ')</div>';
+      for (const bid of bids) {
+        const { data: driver } = await sb.from('profiles').select('full_name,rating,city').eq('id', bid.driver_id).single();
+        html += '<div style="background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">' +
+          '<div><div style="font-size:13px;font-weight:700;color:var(--ll-white)">' + (driver?.full_name||'Driver') + '</div><div style="font-size:11px;color:var(--ll-muted)">' + (driver?.city||'') + ' • ' + (driver?.rating||5) + '⭐</div>' + (bid.message ? '<div style="font-size:11px;color:var(--ll-muted);margin-top:4px">"' + bid.message + '"</div>' : '') + '</div>' +
+          '<div style="text-align:right"><div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-green)">£' + bid.amount + '</div>' +
+          (bid.status === 'pending' ? '<button style="margin-top:4px;padding:6px 12px;border-radius:8px;background:var(--ll-green);color:var(--ll-black);font-size:11px;font-weight:700;cursor:pointer;border:none" onclick="acceptBid(\'' + bid.id + '\',\'' + bid.driver_id + '\',\'' + bid.job_id + '\')">Accept</button>' : '<span style="font-size:10px;color:var(--ll-muted)">' + bid.status + '</span>') +
+          '</div></div>';
+      }
+    }
+    // Status progression
+    if (job.status === 'assigned') {
+      html += '<div style="text-align:center;padding:16px;font-size:13px;color:var(--ll-amber)">⏳ Waiting for driver to collect</div>';
+    }
+  }
+
+  // Driver status progression
+  if (isDriver && job.driver_id === currentUser.id) {
+    const statuses = ['assigned','collected','in_transit','delivered'];
+    const nextStatus = { assigned:'collected', collected:'in_transit', in_transit:'delivered', delivered:'completed' };
+    const nextLabel = { assigned:'Mark Collected', collected:'Start Transit', in_transit:'Mark Delivered', delivered:'Complete Job' };
+    if (nextStatus[job.status]) {
+      html += '<button class="auth-btn" onclick="updateJobStatus(\'' + id + '\',\'' + nextStatus[job.status] + '\')" style="margin-top:16px">📍 ' + nextLabel[job.status] + '</button>';
+    }
+  }
+
+  document.getElementById('jobDetailContent').innerHTML = html;
+  showScreen('jobDetailScreen');
+}
+
+async function acceptJob() {
+  const { error } = await sb.from('jobs').update({ driver_id: currentUser.id, status: 'assigned' }).eq('id', currentJobId);
+  if (error) return toast('Error: ' + error.message, 'error');
+  toast('Job accepted! 🎉');
+  openJob(currentJobId);
+}
+
+function openCounterModal() {
+  document.getElementById('counterModal').classList.add('open');
+}
+function closeCounterModal() {
+  document.getElementById('counterModal').classList.remove('open');
+}
+
+async function submitCounter() {
+  const amount = document.getElementById('counterAmount').value;
+  const msg = document.getElementById('counterMsg').value;
+  if (!amount) return toast('Enter a price', 'error');
+  const { error } = await sb.from('bids').insert({
+    job_id: currentJobId,
+    driver_id: currentUser.id,
+    amount: parseFloat(amount),
+    message: msg || null,
+    status: 'pending'
+  });
+  if (error) return toast('Error: ' + error.message, 'error');
+  closeCounterModal();
+  toast('Counter offer sent! 💰');
+  openJob(currentJobId);
+}
+
+async function acceptBid(bidId, driverId, jobId) {
+  await sb.from('bids').update({ status: 'accepted' }).eq('id', bidId);
+  const { data: bid } = await sb.from('bids').select('amount').eq('id', bidId).single();
+  await sb.from('jobs').update({ driver_id: driverId, status: 'assigned', price: bid.amount }).eq('id', jobId);
+  // Decline other bids
+  await sb.from('bids').update({ status: 'declined' }).eq('job_id', jobId).neq('id', bidId);
+  toast('Bid accepted! Driver assigned. 🎉');
+  openJob(jobId);
+}
+
+async function updateJobStatus(jobId, newStatus) {
+  const updates = { status: newStatus };
+  if (newStatus === 'collected') updates.actual_pickup = new Date().toISOString();
+  if (newStatus === 'delivered') updates.actual_delivery = new Date().toISOString();
+  await sb.from('jobs').update(updates).eq('id', jobId);
+  if (newStatus === 'completed') {
+    await sb.from('profiles').update({ total_jobs: (currentProfile.total_jobs||0) + 1 }).eq('id', currentUser.id);
+    currentProfile.total_jobs = (currentProfile.total_jobs||0) + 1;
+  }
+  toast('Status updated: ' + newStatus.replace(/_/g,' ') + ' ✅');
+  openJob(jobId);
+}
+
+// ====== POST JOB ======
+function postJobStep(step) {
+  document.querySelectorAll('.post-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('postStep' + step).classList.add('active');
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById('s' + i).className = 'step-dot' + (i < step ? ' done' : (i === step ? ' active' : ''));
+  }
+  if (step === 3) {
+    const dist = document.getElementById('pjDist').value || 0;
+    const suggested = Math.round(dist * 1.2 + 30);
+    document.getElementById('pjPriceTip').textContent = 'AI suggested: £' + suggested + ' (based on ' + dist + ' miles)';
+    if (!document.getElementById('pjPrice').value) document.getElementById('pjPrice').value = suggested;
+  }
+}
+
+async function submitJob() {
+  const btn = document.getElementById('submitJobBtn');
+  btn.disabled = true;
+  btn.textContent = 'Posting...';
+  const price = parseFloat(document.getElementById('pjPrice').value);
+  const commPct = 4;
+  const commAmt = Math.round(price * commPct) / 100;
+  const { error } = await sb.from('jobs').insert({
+    business_id: currentUser.id,
+    status: 'posted',
+    title: document.getElementById('pjTitle').value,
+    description: document.getElementById('pjDesc').value || null,
+    pickup_address: document.getElementById('pjPickAddr').value,
+    pickup_city: document.getElementById('pjPickCity').value,
+    pickup_postcode: document.getElementById('pjPickPost').value,
+    delivery_address: document.getElementById('pjDelAddr').value,
+    delivery_city: document.getElementById('pjDelCity').value,
+    delivery_postcode: document.getElementById('pjDelPost').value,
+    vehicle_type: document.getElementById('pjVehicle').value,
+    weight_kg: parseFloat(document.getElementById('pjWeight').value) || null,
+    distance_miles: parseFloat(document.getElementById('pjDist').value) || null,
+    price: price,
+    commission_pct: commPct,
+    commission_amount: commAmt,
+    payment_terms: document.getElementById('pjTerms').value,
+    is_urgent: document.getElementById('pjUrgent').checked,
+    ai_match_score: Math.floor(Math.random() * 40) + 60
+  });
+  btn.disabled = false;
+  btn.textContent = 'Post Job →';
+  if (error) return toast('Error: ' + error.message, 'error');
+  toast('Job posted! 🎉 Drivers can now bid.');
+  // Clear form
+  ['pjTitle','pjDesc','pjPickAddr','pjPickCity','pjPickPost','pjDelAddr','pjDelCity','pjDelPost','pjWeight','pjDist','pjPrice'].forEach(id => document.getElementById(id).value = '');
+  nav('jobs');
+}
+
+// ====== MESSAGES ======
+async function loadChats() {
+  // Get unique conversations from messages
+  const { data: sent } = await sb.from('messages').select('receiver_id, job_id, content, created_at').eq('sender_id', currentUser.id).order('created_at', { ascending: false });
+  const { data: received } = await sb.from('messages').select('sender_id, job_id, content, created_at').eq('receiver_id', currentUser.id).order('created_at', { ascending: false });
+  
+  const chats = {};
+  const allMsgs = [
+    ...(sent||[]).map(m => ({userId: m.receiver_id, jobId: m.job_id, content: m.content, time: m.created_at})),
+    ...(received||[]).map(m => ({userId: m.sender_id, jobId: m.job_id, content: m.content, time: m.created_at}))
+  ].sort((a,b) => new Date(b.time) - new Date(a.time));
+
+  for (const m of allMsgs) {
+    const key = m.userId;
+    if (!chats[key]) chats[key] = { userId: m.userId, jobId: m.jobId, lastMsg: m.content, time: m.time };
+  }
+
+  const chatArr = Object.values(chats);
+  if (chatArr.length === 0) {
+    document.getElementById('chatList').innerHTML = '<div class="empty"><div class="empty-icon">💬</div><div class="empty-title">No messages yet</div><div class="empty-desc">Messages will appear when you interact with jobs</div></div>';
+    return;
+  }
+
+  let html = '';
+  for (const c of chatArr) {
+    const { data: user } = await sb.from('profiles').select('full_name,company_name,role').eq('id', c.userId).single();
+    const name = user?.role === 'business' ? (user?.company_name || user?.full_name) : (user?.full_name || 'User');
+    const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const timeStr = new Date(c.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    html += '<div class="chat-item" onclick="openChat(\'' + c.userId + '\',\'' + (c.jobId||'') + '\')">' +
+      '<div class="chat-avatar">' + initials + '</div>' +
+      '<div class="chat-info"><div class="chat-name">' + name + '</div><div class="chat-preview">' + (c.lastMsg||'') + '</div></div>' +
+      '<div class="chat-time">' + timeStr + '</div></div>';
+  }
+  document.getElementById('chatList').innerHTML = html;
+}
+
+async function openChat(userId, jobId) {
+  currentChatUserId = userId;
+  currentChatJobId = jobId;
+  document.getElementById('msgListContent').style.display = 'none';
+  document.getElementById('chatViewContent').style.display = 'block';
+  const { data: user } = await sb.from('profiles').select('full_name,company_name,role').eq('id', userId).single();
+  document.getElementById('chatViewName').textContent = user?.role === 'business' ? (user?.company_name || user?.full_name) : (user?.full_name || 'User');
+  loadMessages();
+}
+
+function closeChatView() {
+  document.getElementById('msgListContent').style.display = 'block';
+  document.getElementById('chatViewContent').style.display = 'none';
+}
+
+async function loadMessages() {
+  const { data: msgs } = await sb.from('messages').select('*')
+    .or('sender_id.eq.' + currentUser.id + ',receiver_id.eq.' + currentUser.id)
+    .or('sender_id.eq.' + currentChatUserId + ',receiver_id.eq.' + currentChatUserId)
+    .order('created_at', { ascending: true });
+
+  // Filter to just this conversation
+  const convo = (msgs||[]).filter(m =>
+    (m.sender_id === currentUser.id && m.receiver_id === currentChatUserId) ||
+    (m.sender_id === currentChatUserId && m.receiver_id === currentUser.id)
+  );
+
+  let html = '';
+  for (const m of convo) {
+    const isMe = m.sender_id === currentUser.id;
+    const time = new Date(m.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    html += '<div class="msg-row ' + (isMe ? 'me' : 'them') + '"><div><div class="msg-bubble">' + (m.content||'') + '</div><div class="msg-time">' + time + '</div></div></div>';
+  }
+  document.getElementById('messagesList').innerHTML = html || '<div style="text-align:center;padding:40px;font-size:12px;color:var(--ll-muted)">No messages yet. Say hello!</div>';
+  // Scroll to bottom
+  const list = document.getElementById('messagesList');
+  list.scrollTop = list.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text || !currentChatUserId) return;
+  input.value = '';
+  await sb.from('messages').insert({
+    sender_id: currentUser.id,
+    receiver_id: currentChatUserId,
+    job_id: currentChatJobId || null,
+    content: text,
+    is_read: false,
+    is_blocked: false,
+    bypass_detected: false
+  });
+  loadMessages();
+}
+
+document.getElementById('msgInput')?.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') sendMessage();
+});
+
+// ====== WALLET ======
+async function loadWallet() {
+  const { data: wallet } = await sb.from('wallets').select('*').eq('user_id', currentUser.id).single();
+  const isDriver = currentProfile.role === 'driver';
+  if (!wallet) {
+    document.getElementById('walletContent').innerHTML = '<div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Wallet not set up</div><div class="empty-desc">Your wallet will be created when you complete your first job</div></div>';
+    return;
+  }
+  let html = '<div class="wallet-hero"><div class="wallet-label">Available Balance</div><div class="wallet-bal">£' + (wallet.balance||0).toFixed(2) + '</div>';
+  html += '<div class="wallet-stats">';
+  html += '<div class="ws"><div class="ws-val" style="color:var(--ll-amber)">£' + (wallet.pending||0).toFixed(2) + '</div><div class="ws-label">Pending</div></div>';
+  html += '<div class="ws"><div class="ws-val" style="color:var(--ll-green)">£' + ((isDriver ? wallet.total_earned : wallet.total_spent)||0).toFixed(2) + '</div><div class="ws-label">' + (isDriver ? 'Total Earned' : 'Total Spent') + '</div></div>';
+  html += '</div></div>';
+
+  html += '<div style="background:' + (wallet.bank_connected ? 'var(--ll-green-soft)' : 'var(--ll-amber-soft)') + ';border:1px solid ' + (wallet.bank_connected ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)') + ';border-radius:var(--radius-md);padding:12px;font-size:12px;color:' + (wallet.bank_connected ? 'var(--ll-green)' : 'var(--ll-amber)') + ';margin-bottom:16px;text-align:center">' +
+    (wallet.bank_connected ? '🏦 Bank account connected' : '⚠️ Connect a bank account to withdraw funds') + '</div>';
+
+  document.getElementById('walletContent').innerHTML = html;
+}
+
+// ====== INIT ======
+(async function() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    await loadApp(session.user);
+  } else {
+    showScreen('authScreen');
+  }
+})();
+</script>
+
+</body>
+</html>
