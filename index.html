@@ -1,79 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink — UK's Smartest Courier Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black: #0a0f1a;
+  --ll-dark: #111827;
+  --ll-card: #1a2234;
+  --ll-card-hover: #1f2a3f;
+  --ll-border: #2a3650;
+  --ll-muted: #64748b;
+  --ll-text: #e2e8f0;
+  --ll-white: #f8fafc;
+  --ll-green: #22c55e;
+  --ll-green-dim: #16a34a;
+  --ll-green-glow: rgba(34, 197, 94, 0.15);
+  --ll-green-soft: rgba(34, 197, 94, 0.06);
+  --ll-amber: #f59e0b;
+  --ll-amber-soft: rgba(245, 158, 11, 0.1);
+  --ll-blue: #3b82f6;
+  --ll-blue-soft: rgba(59, 130, 246, 0.1);
+  --ll-purple: #8b5cf6;
+  --ll-purple-soft: rgba(139, 92, 246, 0.1);
+  --ll-red: #ef4444;
+  --ll-red-soft: rgba(239, 68, 68, 0.1);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 100px;
+}
 
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
 
+body {
+  font-family: var(--font-body);
+  background: var(--ll-black);
+  color: var(--ll-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-LoadLink
+/* Noise */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
 
-Preview Build
-All Screens
-View Landing Page →
+/* Floating orbs */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+.orb-1 { width: 400px; height: 400px; background: rgba(34, 197, 94, 0.06); top: -100px; right: -100px; }
+.orb-2 { width: 300px; height: 300px; background: rgba(59, 130, 246, 0.04); bottom: 10%; left: -80px; }
+.orb-3 { width: 250px; height: 250px; background: rgba(139, 92, 246, 0.04); top: 50%; right: -60px; }
 
-10 screens designed & built
-The UK's Smartest Courier Platform
-LoadLink connects businesses directly to courier drivers with escrow protection, AI matching, and zero lock-in contracts. Browse every screen below.
-10
-Screens Built
-4%
-Commission
-£0
-Subscriptions
-0
-Non-Compete
-All Screens
-Click any screen to open it. Each is fully interactive with working buttons, filters, and flows.
-🌐 PUBLIC PAGES
-🏠
-Landing Page
-Hero, features, pricing comparison, waitlist signup
-PUBLIC 
-→
-🔐
-Login & Sign Up
-Role selection, password strength, social login, forgot password
-DRIVER + BUSINESS 
-→
-🚐 DRIVER SCREENS
-📊
-Driver Dashboard
-Go Live toggle, earnings, active job, 12 quick actions + 24 more tools
-DRIVER 
-→
-📦
-Load Board
-6 jobs, filters, AI match scores, accept & counter-offer modal
-DRIVER 
-→
-🏢 BUSINESS SCREENS
-📋
-Business Dashboard
-Spending overview, active deliveries, pending offers, quick actions
-BUSINESS 
-→
-➕
-Post a Job
-4-step wizard: route, cargo, pricing (AI suggested), review & escrow
-BUSINESS 
-→
-🔄 SHARED SCREENS (DRIVER & BUSINESS)
-📍
-Job Tracking
-Live map, 7-step timeline, POD signature, photo evidence, waiting timer
-DRIVER + BUSINESS 
-→
-💰
-Wallet & Payments
-Balance, earnings chart, escrow holdings, withdraw modal, transactions
-DRIVER 
-→
-🧾
-Invoice Flow
-Full invoice document, approve/dispute, POD evidence, escrow release
-DRIVER + BUSINESS 
-→
-🛡️
-Compliance & Trust
-Trust score, 8 documents, tier progression, badges, expiry alerts
-DRIVER 
-→
-LoadLink
-Built in Leeds 🇬🇧 • Escrow-protected payments • 4% commission capped
-Preview build — not yet connected to backend 
+/* Nav */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 15, 26, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(42, 54, 80, 0.5);
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ll-green);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--ll-white); }
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: var(--ll-green-glow);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ll-green);
+  margin-left: 12px;
+}
+.nav-links { display: flex; align-items: center; gap: 8px; }
+.nav-link {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ll-muted);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-link:hover { color: var(--ll-white); background: rgba(255,255,255,0.04); }
+.nav-cta {
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  background: var(--ll-green);
+  color: var(--ll-black);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+.nav-cta:hover { background: #4ade80; box-shadow: 0 4px 20px rgba(34,197,94,0.3); }
+
+/* Hero */
+.hero {
+  padding: 140px 32px 60px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ll-muted);
+  margin-bottom: 24px;
+}
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  background: var(--ll-green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 4px var(--ll-green); }
+  50% { box-shadow: 0 0 12px var(--ll-green); }
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 900;
+  color: var(--ll-white);
+  letter-spacing: -2px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.hero h1 .green { color: var(--ll-green); }
+.hero p {
+  font-size: 17px;
+  color: var(--ll-muted);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 32px;
+}
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.hero-stat {
+  text-align: center;
+}
+.hero-stat-val {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--ll-green);
+}
+.hero-stat-label {
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Screens Section */
+.screens-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+  position: relative;
+  z-index: 1;
+}
+.screens-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ll-white);
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+.screens-sub {
+  font-size: 14px;
+  color: var(--ll-muted);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+/* Screen Categories */
+.category {
+  margin-bottom: 32px;
+}
+.category-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--ll-muted);
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+
+.screens-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.screen-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  text-decoration: none;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.screen-card:hover {
+  border-color: var(--ll-green);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+.screen-card:hover .screen-arrow { opacity: 1; transform: translateX(0); }
+
+.screen-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.screen-icon.green { background: var(--ll-green-soft); border: 1px solid rgba(34,197,94,0.1); }
+.screen-icon.blue { background: var(--ll-blue-soft); border: 1px solid rgba(59,130,246,0.1); }
+.screen-icon.amber { background: var(--ll-amber-soft); border: 1px solid rgba(245,158,11,0.1); }
+.screen-icon.purple { background: var(--ll-purple-soft); border: 1px solid rgba(139,92,246,0.1); }
+.screen-icon.red { background: var(--ll-red-soft); border: 1px solid rgba(239,68,68,0.1); }
+
+.screen-info { flex: 1; }
+.screen-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ll-white);
+  margin-bottom: 3px;
+}
+.screen-desc {
+  font-size: 12px;
+  color: var(--ll-muted);
+  line-height: 1.5;
+}
+.screen-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+.screen-tag.driver { background: var(--ll-green-soft); color: var(--ll-green); }
+.screen-tag.business { background: var(--ll-blue-soft); color: var(--ll-blue); }
+.screen-tag.both { background: var(--ll-purple-soft); color: var(--ll-purple); }
+
+.screen-arrow {
+  font-size: 18px;
+  color: var(--ll-green);
+  font-weight: 800;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 40px 32px 60px;
+  border-top: 1px solid var(--ll-border);
+  position: relative;
+  z-index: 1;
+}
+.footer-logo {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--ll-green);
+  margin-bottom: 8px;
+}
+.footer-text {
+  font-size: 13px;
+  color: var(--ll-muted);
+  line-height: 1.7;
+}
+.footer-text a {
+  color: var(--ll-green);
+  text-decoration: none;
+}
+
+/* Animations */
+.fade-in { animation: fadeIn 0.6s ease both; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}
+.s4{animation-delay:.2s}.s5{animation-delay:.25s}.s6{animation-delay:.3s}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .nav { padding: 12px 16px; }
+  .nav-links { display: none; }
+  .hero { padding: 120px 20px 40px; }
+  .hero-stats { gap: 20px; }
+  .hero-stat-val { font-size: 22px; }
+  .screens-section { padding: 0 16px 60px; }
+  .screens-grid { grid-template-columns: 1fr; }
+  .screen-card { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div style="display:flex;align-items:center">
+    <a href="#" class="nav-logo">Load<span>Link</span></a>
+    <span class="nav-badge"><span class="dot"></span> Preview Build</span>
+  </div>
+  <div class="nav-links">
+    <a href="#screens" class="nav-link">All Screens</a>
+    <a href="LoadLink-Landing-Page.html" class="nav-cta">View Landing Page →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero fade-in">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    10 screens designed & built
+  </div>
+  <h1>The UK's Smartest <span class="green">Courier Platform</span></h1>
+  <p>LoadLink connects businesses directly to courier drivers with escrow protection, AI matching, and zero lock-in contracts. Browse every screen below.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val">10</div>
+      <div class="hero-stat-label">Screens Built</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">4%</div>
+      <div class="hero-stat-label">Commission</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">£0</div>
+      <div class="hero-stat-label">Subscriptions</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">0</div>
+      <div class="hero-stat-label">Non-Compete</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREENS -->
+<div class="screens-section" id="screens">
+  <div class="screens-title fade-in">All Screens</div>
+  <div class="screens-sub fade-in">Click any screen to open it. Each is fully interactive with working buttons, filters, and flows.</div>
+
+  <!-- PUBLIC -->
+  <div class="category fade-in s1">
+    <div class="category-label">🌐 Public Pages</div>
+    <div class="screens-grid">
+      <a href="LoadLink-Landing-Page.html" class="screen-card">
+        <div class="screen-icon green">🏠</div>
+        <div class="screen-info">
+          <div class="screen-name">Landing Page</div>
+          <div class="screen-desc">Hero, features, pricing comparison, waitlist signup</div>
+          <span class="screen-tag both">PUBLIC</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Login.html" class="screen-card">
+        <div class="screen-icon purple">🔐</div>
+        <div class="screen-info">
+          <div class="screen-name">Login & Sign Up</div>
+          <div class="screen-desc">Role selection, password strength, social login, forgot password</div>
+          <span class="screen-tag both">DRIVER + BUSINESS</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- DRIVER -->
+  <div class="category fade-in s2">
+    <div class="category-label">🚐 Driver Screens</div>
+    <div class="screens-grid">
+      <a href="LoadLink-Driver-Dashboard.html" class="screen-card">
+        <div class="screen-icon green">📊</div>
+        <div class="screen-info">
+          <div class="screen-name">Driver Dashboard</div>
+          <div class="screen-desc">Go Live toggle, earnings, active job, 12 quick actions + 24 more tools</div>
+          <span class="screen-tag driver">DRIVER</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Load-Board.html" class="screen-card">
+        <div class="screen-icon amber">📦</div>
+        <div class="screen-info">
+          <div class="screen-name">Load Board</div>
+          <div class="screen-desc">6 jobs, filters, AI match scores, accept & counter-offer modal</div>
+          <span class="screen-tag driver">DRIVER</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- BUSINESS -->
+  <div class="category fade-in s3">
+    <div class="category-label">🏢 Business Screens</div>
+    <div class="screens-grid">
+      <a href="LoadLink-Business-Dashboard.html" class="screen-card">
+        <div class="screen-icon blue">📋</div>
+        <div class="screen-info">
+          <div class="screen-name">Business Dashboard</div>
+          <div class="screen-desc">Spending overview, active deliveries, pending offers, quick actions</div>
+          <span class="screen-tag business">BUSINESS</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Post-Job.html" class="screen-card">
+        <div class="screen-icon green">➕</div>
+        <div class="screen-info">
+          <div class="screen-name">Post a Job</div>
+          <div class="screen-desc">4-step wizard: route, cargo, pricing (AI suggested), review & escrow</div>
+          <span class="screen-tag business">BUSINESS</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- SHARED -->
+  <div class="category fade-in s4">
+    <div class="category-label">🔄 Shared Screens (Driver & Business)</div>
+    <div class="screens-grid">
+      <a href="LoadLink-Job-Tracking.html" class="screen-card">
+        <div class="screen-icon blue">📍</div>
+        <div class="screen-info">
+          <div class="screen-name">Job Tracking</div>
+          <div class="screen-desc">Live map, 7-step timeline, POD signature, photo evidence, waiting timer</div>
+          <span class="screen-tag both">DRIVER + BUSINESS</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Wallet.html" class="screen-card">
+        <div class="screen-icon purple">💰</div>
+        <div class="screen-info">
+          <div class="screen-name">Wallet & Payments</div>
+          <div class="screen-desc">Balance, earnings chart, escrow holdings, withdraw modal, transactions</div>
+          <span class="screen-tag driver">DRIVER</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Invoice.html" class="screen-card">
+        <div class="screen-icon amber">🧾</div>
+        <div class="screen-info">
+          <div class="screen-name">Invoice Flow</div>
+          <div class="screen-desc">Full invoice document, approve/dispute, POD evidence, escrow release</div>
+          <span class="screen-tag both">DRIVER + BUSINESS</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+      <a href="LoadLink-Compliance.html" class="screen-card">
+        <div class="screen-icon red">🛡️</div>
+        <div class="screen-info">
+          <div class="screen-name">Compliance & Trust</div>
+          <div class="screen-desc">Trust score, 8 documents, tier progression, badges, expiry alerts</div>
+          <span class="screen-tag driver">DRIVER</span>
+        </div>
+        <span class="screen-arrow">→</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">LoadLink</div>
+  <div class="footer-text">
+    Built in Leeds 🇬🇧 • Escrow-protected payments • 4% commission capped<br>
+    <span style="opacity:0.5;font-size:11px">Preview build — not yet connected to backend</span>
+  </div>
+</div>
+
+</body>
+</html>
