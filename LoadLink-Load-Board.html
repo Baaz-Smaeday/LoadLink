@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Load Board</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black: #0a0f1a;
+  --ll-dark: #111827;
+  --ll-card: #1a2234;
+  --ll-card-hover: #1f2a3f;
+  --ll-border: #2a3650;
+  --ll-muted: #64748b;
+  --ll-text: #e2e8f0;
+  --ll-white: #f8fafc;
+  --ll-green: #22c55e;
+  --ll-green-dim: #16a34a;
+  --ll-green-glow: rgba(34, 197, 94, 0.15);
+  --ll-green-soft: rgba(34, 197, 94, 0.06);
+  --ll-amber: #f59e0b;
+  --ll-amber-soft: rgba(245, 158, 11, 0.1);
+  --ll-red: #ef4444;
+  --ll-red-soft: rgba(239, 68, 68, 0.1);
+  --ll-blue: #3b82f6;
+  --ll-blue-soft: rgba(59, 130, 246, 0.1);
+  --ll-purple: #8b5cf6;
+  --ll-purple-soft: rgba(139, 92, 246, 0.1);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 100px;
+  --bottom-nav-h: 72px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--ll-black);
+  color: var(--ll-text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: var(--bottom-nav-h);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================
+   STICKY HEADER
+   ============================================ */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10, 15, 26, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--ll-border);
+  padding: 16px 20px 12px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.header-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ll-green);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  padding: 4px 0;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ll-white);
+  letter-spacing: -0.5px;
+}
+
+.header-count {
+  font-size: 12px;
+  color: var(--ll-muted);
+  font-weight: 600;
+  background: var(--ll-card);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--ll-border);
+}
+
+/* Search */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  padding: 0 14px;
+  transition: border-color 0.3s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--ll-green);
+}
+
+.search-icon {
+  font-size: 16px;
+  color: var(--ll-muted);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  color: var(--ll-white);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.search-input::placeholder { color: #4a5568; }
+
+.search-filter-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--ll-green-soft);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.search-filter-btn:hover {
+  background: var(--ll-green-glow);
+}
+
+.search-filter-btn.active {
+  background: var(--ll-green);
+  border-color: var(--ll-green);
+}
+
+/* Filter Chips */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.filter-row::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--ll-border);
+  background: var(--ll-card);
+  color: var(--ll-muted);
+  cursor: pointer;
+  transition: all 0.25s;
+  white-space: nowrap;
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-chip:hover {
+  border-color: var(--ll-muted);
+  color: var(--ll-text);
+}
+
+.filter-chip.active {
+  background: var(--ll-green);
+  border-color: var(--ll-green);
+  color: var(--ll-black);
+  font-weight: 700;
+}
+
+.filter-chip.active-amber {
+  background: var(--ll-amber);
+  border-color: var(--ll-amber);
+  color: var(--ll-black);
+  font-weight: 700;
+}
+
+.filter-chip.active-blue {
+  background: var(--ll-blue);
+  border-color: var(--ll-blue);
+  color: white;
+  font-weight: 700;
+}
+
+.filter-chip.active-red {
+  background: var(--ll-red);
+  border-color: var(--ll-red);
+  color: white;
+  font-weight: 700;
+}
+
+/* ============================================
+   ADVANCED FILTERS PANEL
+   ============================================ */
+.filters-panel {
+  display: none;
+  padding: 16px 20px;
+  background: var(--ll-dark);
+  border-bottom: 1px solid var(--ll-border);
+}
+
+.filters-panel.open { display: block; }
+
+.filter-group {
+  margin-bottom: 14px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ll-muted);
+  margin-bottom: 8px;
+}
+
+.filter-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-option {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--ll-border);
+  background: var(--ll-card);
+  color: var(--ll-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+
+.filter-option:hover { border-color: var(--ll-muted); color: var(--ll-text); }
+
+.filter-option.selected {
+  border-color: var(--ll-green);
+  background: var(--ll-green-soft);
+  color: var(--ll-green);
+}
+
+.filter-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-range input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-sm);
+  color: var(--ll-white);
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  width: 100%;
+}
+
+.filter-range input:focus { border-color: var(--ll-green); }
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.filter-btn.apply {
+  background: var(--ll-green);
+  color: var(--ll-black);
+}
+
+.filter-btn.clear {
+  background: var(--ll-card);
+  color: var(--ll-muted);
+  border: 1px solid var(--ll-border);
+}
+
+/* ============================================
+   SORT BAR
+   ============================================ */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+}
+
+.sort-info {
+  font-size: 12px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+.sort-info strong {
+  color: var(--ll-text);
+}
+
+.sort-select {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ll-green);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+}
+
+/* ============================================
+   JOB CARDS
+   ============================================ */
+.jobs-list {
+  padding: 0 20px;
+}
+
+.job-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.job-card:hover {
+  border-color: rgba(34, 197, 94, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* Top row: type badge + time + price */
+.job-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.job-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.job-type-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.badge-fixed {
+  background: var(--ll-amber-soft);
+  color: var(--ll-amber);
+}
+
+.badge-quote {
+  background: var(--ll-blue-soft);
+  color: var(--ll-blue);
+}
+
+.badge-urgent {
+  background: var(--ll-red-soft);
+  color: var(--ll-red);
+  animation: urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.job-time {
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+.job-price {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--ll-green);
+  letter-spacing: -1px;
+}
+
+.job-price.quote-price {
+  color: var(--ll-blue);
+  font-size: 16px;
+}
+
+/* Route */
+.job-route {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.job-route-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.r-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.r-dot.from { background: var(--ll-green); box-shadow: 0 0 8px var(--ll-green-glow); }
+.r-dot.to { background: var(--ll-red); box-shadow: 0 0 8px var(--ll-red-soft); }
+
+.r-line {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--ll-border);
+  margin: 3px 0;
+}
+
+.job-route-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.route-loc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.route-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ll-white);
+}
+
+.route-postcode {
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 600;
+  background: rgba(255,255,255,0.04);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Tags */
+.job-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.job-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+.job-tag .tag-icon { font-size: 12px; }
+
+/* Match + Escrow Row */
+.job-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ll-border);
+}
+
+.ai-match {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.match-ring {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  position: relative;
+}
+
+.match-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid;
+  border-color: inherit;
+}
+
+.match-ring.high { color: var(--ll-green); border-color: var(--ll-green); background: var(--ll-green-soft); }
+.match-ring.med { color: var(--ll-purple); border-color: var(--ll-purple); background: var(--ll-purple-soft); }
+.match-ring.low { color: var(--ll-blue); border-color: var(--ll-blue); background: var(--ll-blue-soft); }
+
+.match-label {
+  font-size: 10px;
+  color: var(--ll-muted);
+  font-weight: 600;
+}
+
+.escrow-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--ll-green-soft);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ll-green);
+  margin-left: auto;
+}
+
+/* Rate per mile indicator */
+.rate-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rate-indicator.good { color: var(--ll-green); }
+.rate-indicator.fair { color: var(--ll-amber); }
+.rate-indicator.low { color: var(--ll-red); }
+
+/* Action buttons */
+.job-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.job-action-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.25s;
+  border: none;
+  text-align: center;
+}
+
+.job-action-btn.accept {
+  background: var(--ll-green);
+  color: var(--ll-black);
+}
+
+.job-action-btn.accept:hover {
+  background: #4ade80;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+  transform: translateY(-1px);
+}
+
+.job-action-btn.counter {
+  background: var(--ll-card-hover);
+  color: var(--ll-text);
+  border: 1px solid var(--ll-border);
+}
+
+.job-action-btn.counter:hover {
+  border-color: var(--ll-amber);
+  color: var(--ll-amber);
+}
+
+.job-action-btn.quote-btn {
+  background: var(--ll-blue);
+  color: white;
+}
+
+.job-action-btn.quote-btn:hover {
+  background: #60a5fa;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.job-action-btn.details {
+  background: transparent;
+  color: var(--ll-muted);
+  border: 1px solid var(--ll-border);
+}
+
+.job-action-btn.details:hover {
+  border-color: var(--ll-muted);
+  color: var(--ll-text);
+}
+
+/* ============================================
+   COUNTER-OFFER MODAL
+   ============================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--ll-dark);
+  border-top: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 24px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--ll-border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--ll-white);
+  margin-bottom: 4px;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: var(--ll-muted);
+  margin-bottom: 20px;
+}
+
+.modal-job-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: var(--ll-card);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.modal-route {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ll-white);
+}
+
+.modal-route-sub {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 2px;
+}
+
+.modal-listed-price {
+  text-align: right;
+}
+
+.modal-listed-label {
+  font-size: 10px;
+  color: var(--ll-muted);
+}
+
+.modal-listed-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ll-amber);
+}
+
+.modal-input-group {
+  margin-bottom: 16px;
+}
+
+.modal-input-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ll-text);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.modal-price-input {
+  width: 100%;
+  padding: 16px;
+  background: var(--ll-card);
+  border: 2px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  color: var(--ll-white);
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s;
+  letter-spacing: -1px;
+}
+
+.modal-price-input:focus {
+  border-color: var(--ll-green);
+}
+
+.quick-prices {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quick-price {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  color: var(--ll-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+}
+
+.quick-price:hover {
+  border-color: var(--ll-green);
+  color: var(--ll-green);
+  background: var(--ll-green-soft);
+}
+
+.modal-message {
+  width: 100%;
+  padding: 12px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  color: var(--ll-white);
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  resize: none;
+  height: 60px;
+  transition: border-color 0.3s;
+}
+
+.modal-message:focus { border-color: var(--ll-green); }
+.modal-message::placeholder { color: #4a5568; }
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s;
+}
+
+.modal-btn.send {
+  background: var(--ll-green);
+  color: var(--ll-black);
+}
+
+.modal-btn.send:hover {
+  background: #4ade80;
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+}
+
+.modal-btn.cancel {
+  background: var(--ll-card);
+  color: var(--ll-muted);
+  border: 1px solid var(--ll-border);
+}
+
+/* ============================================
+   BOTTOM NAV
+   ============================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: var(--bottom-nav-h);
+  background: rgba(17, 24, 39, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--ll-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: var(--radius-md);
+  min-width: 56px;
+  position: relative;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+}
+
+.nav-item.active .nav-icon { color: var(--ll-green); }
+.nav-item.active .nav-label { color: var(--ll-green); }
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: var(--ll-green);
+  border-radius: 2px;
+}
+
+.nav-icon { font-size: 22px; color: var(--ll-muted); }
+.nav-label { font-size: 10px; font-weight: 600; color: var(--ll-muted); }
+
+.nav-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ll-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--ll-black);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+  margin-top: -20px;
+  transition: all 0.3s;
+}
+
+.nav-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(34, 197, 94, 0.45);
+}
+
+/* Animations */
+.fade-in { animation: fadeIn 0.5s ease both; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.s1 { animation-delay: 0.03s; }
+.s2 { animation-delay: 0.06s; }
+.s3 { animation-delay: 0.09s; }
+.s4 { animation-delay: 0.12s; }
+.s5 { animation-delay: 0.15s; }
+.s6 { animation-delay: 0.18s; }
+.s7 { animation-delay: 0.21s; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <button class="header-back" onclick="alert('Back to Dashboard')">← Back</button>
+    <h1 class="header-title">Load Board</h1>
+    <span class="header-count" id="jobCount">18 jobs</span>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <div class="search-bar" style="flex:1">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" placeholder="Search by city, postcode, cargo..." id="searchInput" oninput="filterJobs()">
+    </div>
+    <div class="search-filter-btn" id="filterToggle" onclick="toggleFilters()">⚙️</div>
+  </div>
+  <div class="filter-row">
+    <button class="filter-chip active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+    <button class="filter-chip" data-filter="fixed" onclick="setFilter(this,'fixed')">⚡ Fixed</button>
+    <button class="filter-chip" data-filter="quote" onclick="setFilter(this,'quote')">💬 Quotes</button>
+    <button class="filter-chip" data-filter="urgent" onclick="setFilter(this,'urgent')">🔴 Urgent</button>
+    <button class="filter-chip" data-filter="nearby" onclick="setFilter(this,'nearby')">📍 Near Me</button>
+    <button class="filter-chip" data-filter="high_pay" onclick="setFilter(this,'high_pay')">💰 £100+</button>
+  </div>
+</div>
+
+<!-- ADVANCED FILTERS -->
+<div class="filters-panel" id="filtersPanel">
+  <div class="filter-group">
+    <div class="filter-label">Vehicle Type</div>
+    <div class="filter-options">
+      <button class="filter-option" onclick="this.classList.toggle('selected')">🚗 Car</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">🚐 SWB</button>
+      <button class="filter-option selected" onclick="this.classList.toggle('selected')">🚐 LWB</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">🚛 Luton</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">🚚 7.5t</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">🧊 Fridge</button>
+    </div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Min Price</div>
+    <div class="filter-range">
+      <input type="number" placeholder="£ Min" value="30">
+      <span style="color:var(--ll-muted)">to</span>
+      <input type="number" placeholder="£ Max">
+    </div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Max Distance</div>
+    <div class="filter-range">
+      <input type="number" placeholder="Miles" value="200">
+      <span style="color:var(--ll-muted);font-size:12px;white-space:nowrap">miles max</span>
+    </div>
+  </div>
+  <div class="filter-group">
+    <div class="filter-label">Payment Terms</div>
+    <div class="filter-options">
+      <button class="filter-option selected" onclick="this.classList.toggle('selected')">Instant</button>
+      <button class="filter-option selected" onclick="this.classList.toggle('selected')">7 Days</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">15 Days</button>
+      <button class="filter-option" onclick="this.classList.toggle('selected')">30 Days</button>
+    </div>
+  </div>
+  <div class="filter-actions">
+    <button class="filter-btn clear" onclick="toggleFilters()">Cancel</button>
+    <button class="filter-btn apply" onclick="toggleFilters()">Apply Filters</button>
+  </div>
+</div>
+
+<!-- SORT BAR -->
+<div class="sort-bar">
+  <span class="sort-info">Showing <strong id="showCount">6</strong> jobs near Leeds</span>
+  <button class="sort-select" onclick="cycleSortBy()">
+    <span id="sortLabel">Best Match</span> ↕
+  </button>
+</div>
+
+<!-- JOB CARDS -->
+<div class="jobs-list">
+
+  <!-- Job 1: Fixed, Urgent -->
+  <div class="job-card fade-in s1" data-type="fixed" data-urgent="true" data-price="52" data-from="Leeds" data-to="Sheffield">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-fixed">⚡ FIXED</span>
+        <span class="job-type-badge badge-urgent">🔴 URGENT</span>
+        <span class="job-time">Just now</span>
+      </div>
+      <div class="job-price">£52</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">Leeds</span>
+          <span class="route-postcode">LS1 4AP</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">Sheffield</span>
+          <span class="route-postcode">S1 2BJ</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚐</span> Small Van</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 35 mi</span>
+      <span class="job-tag"><span class="tag-icon">📄</span> Legal docs</span>
+      <span class="job-tag"><span class="tag-icon">⏱</span> Instant pay</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring high">94</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator good">✅ £1.49/mi</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn accept" onclick="acceptJob('Leeds → Sheffield', 52)">Accept — £52</button>
+      <button class="job-action-btn counter" onclick="openCounter('Leeds → Sheffield', 52, 35)">Counter</button>
+    </div>
+  </div>
+
+  <!-- Job 2: Fixed -->
+  <div class="job-card fade-in s2" data-type="fixed" data-price="155" data-from="London" data-to="Bristol">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-fixed">⚡ FIXED</span>
+        <span class="job-time">3m ago</span>
+      </div>
+      <div class="job-price">£155</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">London</span>
+          <span class="route-postcode">EC2 1AD</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">Bristol</span>
+          <span class="route-postcode">BS1 5QD</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚐</span> LWB Van</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 119 mi</span>
+      <span class="job-tag"><span class="tag-icon">📦</span> 8 pallets office equip</span>
+      <span class="job-tag"><span class="tag-icon">⏱</span> 7-day terms</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring med">82</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator good">✅ £1.30/mi</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn accept" onclick="acceptJob('London → Bristol', 155)">Accept — £155</button>
+      <button class="job-action-btn counter" onclick="openCounter('London → Bristol', 155, 119)">Counter</button>
+    </div>
+  </div>
+
+  <!-- Job 3: Quote -->
+  <div class="job-card fade-in s3" data-type="quote" data-price="0" data-from="Birmingham" data-to="Manchester">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-quote">💬 QUOTE</span>
+        <span class="job-time">12m ago</span>
+      </div>
+      <div class="job-price quote-price">Send your price</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">Birmingham</span>
+          <span class="route-postcode">B1 1BB</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">Manchester</span>
+          <span class="route-postcode">M1 1AE</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚐</span> Small Van</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 86 mi</span>
+      <span class="job-tag"><span class="tag-icon">📦</span> 2 boxes car parts</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring low">67</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator fair">⚠️ Quote your rate</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn quote-btn" onclick="openCounter('Birmingham → Manchester', 0, 86)">Send Quote →</button>
+      <button class="job-action-btn details" onclick="alert('Job details for Birmingham → Manchester')">Details</button>
+    </div>
+  </div>
+
+  <!-- Job 4: Fixed, high value -->
+  <div class="job-card fade-in s4" data-type="fixed" data-price="285" data-from="Glasgow" data-to="London">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-fixed">⚡ FIXED</span>
+        <span class="job-time">18m ago</span>
+      </div>
+      <div class="job-price">£285</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">Glasgow</span>
+          <span class="route-postcode">G1 3SL</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">London</span>
+          <span class="route-postcode">NW1 8QR</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚛</span> Luton + Tail Lift</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 402 mi</span>
+      <span class="job-tag"><span class="tag-icon">📦</span> Medical equipment</span>
+      <span class="job-tag"><span class="tag-icon">⏱</span> Instant pay</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring low">58</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator low">⚠️ £0.71/mi</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn accept" onclick="acceptJob('Glasgow → London', 285)">Accept — £285</button>
+      <button class="job-action-btn counter" onclick="openCounter('Glasgow → London', 285, 402)">Counter</button>
+    </div>
+  </div>
+
+  <!-- Job 5: Quote -->
+  <div class="job-card fade-in s5" data-type="quote" data-price="0" data-from="Leeds" data-to="Hull">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-quote">💬 QUOTE</span>
+        <span class="job-time">25m ago</span>
+      </div>
+      <div class="job-price quote-price">Send your price</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">Leeds</span>
+          <span class="route-postcode">LS2 7QY</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">Hull</span>
+          <span class="route-postcode">HU1 3EA</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚐</span> LWB Van</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 58 mi</span>
+      <span class="job-tag"><span class="tag-icon">📦</span> Furniture</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring high">91</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator fair">⚠️ Quote your rate</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn quote-btn" onclick="openCounter('Leeds → Hull', 0, 58)">Send Quote →</button>
+      <button class="job-action-btn details" onclick="alert('Job details')">Details</button>
+    </div>
+  </div>
+
+  <!-- Job 6: Fixed -->
+  <div class="job-card fade-in s6" data-type="fixed" data-price="42" data-from="Leeds" data-to="York">
+    <div class="job-top">
+      <div class="job-top-left">
+        <span class="job-type-badge badge-fixed">⚡ FIXED</span>
+        <span class="job-time">31m ago</span>
+      </div>
+      <div class="job-price">£42</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="job-route-info">
+        <div class="route-loc">
+          <span class="route-name">Leeds</span>
+          <span class="route-postcode">LS9 8AG</span>
+        </div>
+        <div class="route-loc">
+          <span class="route-name">York</span>
+          <span class="route-postcode">YO1 7HH</span>
+        </div>
+      </div>
+    </div>
+    <div class="job-tags">
+      <span class="job-tag"><span class="tag-icon">🚗</span> Car</span>
+      <span class="job-tag"><span class="tag-icon">📏</span> 24 mi</span>
+      <span class="job-tag"><span class="tag-icon">📦</span> Small parcel</span>
+      <span class="job-tag"><span class="tag-icon">⏱</span> Instant pay</span>
+    </div>
+    <div class="job-bottom">
+      <div class="ai-match">
+        <div class="match-ring high">96</div>
+        <span class="match-label">AI Match</span>
+      </div>
+      <div class="rate-indicator good">✅ £1.75/mi</div>
+      <div class="escrow-badge">🛡️ Escrow</div>
+    </div>
+    <div class="job-actions">
+      <button class="job-action-btn accept" onclick="acceptJob('Leeds → York', 42)">Accept — £42</button>
+      <button class="job-action-btn counter" onclick="openCounter('Leeds → York', 42, 24)">Counter</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- COUNTER-OFFER MODAL -->
+<div class="modal-overlay" id="counterModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Counter Offer</div>
+    <div class="modal-sub" id="modalSub">Make your offer for this job</div>
+    
+    <div class="modal-job-summary">
+      <div>
+        <div class="modal-route" id="modalRoute">Leeds → Sheffield</div>
+        <div class="modal-route-sub" id="modalRouteSub">35 mi • Small Van</div>
+      </div>
+      <div class="modal-listed-price">
+        <div class="modal-listed-label">Listed Price</div>
+        <div class="modal-listed-value" id="modalListedPrice">£52</div>
+      </div>
+    </div>
+
+    <div class="modal-input-group">
+      <label class="modal-input-label">Your Price</label>
+      <input type="number" class="modal-price-input" id="counterPrice" placeholder="£0">
+      <div class="quick-prices" id="quickPrices">
+        <button class="quick-price" onclick="setQuickPrice(45)">£45</button>
+        <button class="quick-price" onclick="setQuickPrice(50)">£50</button>
+        <button class="quick-price" onclick="setQuickPrice(55)">£55</button>
+        <button class="quick-price" onclick="setQuickPrice(60)">£60</button>
+      </div>
+    </div>
+
+    <div class="modal-input-group">
+      <label class="modal-input-label">Message (optional)</label>
+      <textarea class="modal-message" placeholder="e.g. Available now, can collect in 20 mins"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeCounter()">Cancel</button>
+      <button class="modal-btn send" onclick="sendOffer()">Send Offer →</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="alert('Home')">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-item active">
+    <span class="nav-icon">📦</span>
+    <span class="nav-label">Jobs</span>
+  </button>
+  <button class="nav-fab" onclick="alert('Swipe through jobs')">⚡</button>
+  <button class="nav-item" onclick="alert('Wallet')">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Wallet</span>
+  </button>
+  <button class="nav-item" onclick="alert('Profile')">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Profile</span>
+  </button>
+</nav>
+
+<script>
+let currentFilter = 'all';
+let currentSort = 'match';
+const sortOptions = ['Best Match', 'Price: High', 'Price: Low', 'Nearest', 'Newest'];
+let sortIndex = 0;
+
+function setFilter(el, filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.remove('active', 'active-amber', 'active-blue', 'active-red');
+  });
+  
+  if (filter === 'fixed') el.classList.add('active-amber');
+  else if (filter === 'quote') el.classList.add('active-blue');
+  else if (filter === 'urgent') el.classList.add('active-red');
+  else el.classList.add('active');
+  
+  filterJobs();
+}
+
+function filterJobs() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cards = document.querySelectorAll('.job-card');
+  let visible = 0;
+  
+  cards.forEach(card => {
+    const type = card.dataset.type;
+    const urgent = card.dataset.urgent === 'true';
+    const price = parseInt(card.dataset.price) || 0;
+    const from = card.dataset.from.toLowerCase();
+    const to = card.dataset.to.toLowerCase();
+    const text = from + ' ' + to;
+    
+    let show = true;
+    
+    if (currentFilter === 'fixed' && type !== 'fixed') show = false;
+    if (currentFilter === 'quote' && type !== 'quote') show = false;
+    if (currentFilter === 'urgent' && !urgent) show = false;
+    if (currentFilter === 'high_pay' && price < 100) show = false;
+    if (search && !text.includes(search)) show = false;
+    
+    card.style.display = show ? 'block' : 'none';
+    if (show) visible++;
+  });
+  
+  document.getElementById('showCount').textContent = visible;
+  document.getElementById('jobCount').textContent = visible + ' jobs';
+}
+
+function cycleSortBy() {
+  sortIndex = (sortIndex + 1) % sortOptions.length;
+  document.getElementById('sortLabel').textContent = sortOptions[sortIndex];
+}
+
+function toggleFilters() {
+  const panel = document.getElementById('filtersPanel');
+  const btn = document.getElementById('filterToggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+function acceptJob(route, price) {
+  if (confirm('Accept job?\n\n' + route + '\n£' + price + '\n\nEscrow protected — payment guaranteed on completion.')) {
+    alert('✅ Job Accepted!\n\nHead to pickup now.\nEscrow locked: £' + price);
+  }
+}
+
+function openCounter(route, price, miles) {
+  document.getElementById('counterModal').classList.add('open');
+  document.getElementById('modalRoute').textContent = route;
+  document.getElementById('modalRouteSub').textContent = miles + ' mi';
+  
+  if (price > 0) {
+    document.getElementById('modalTitle').textContent = 'Counter Offer';
+    document.getElementById('modalSub').textContent = 'Suggest a different price for this job';
+    document.getElementById('modalListedPrice').textContent = '£' + price;
+    document.getElementById('modalListedPrice').parentElement.style.display = 'block';
+    
+    const p = price;
+    const qp = document.getElementById('quickPrices');
+    qp.innerHTML = '';
+    [Math.round(p*0.9), Math.round(p*0.95), Math.round(p*1.05), Math.round(p*1.1)].forEach(v => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-price';
+      btn.textContent = '£' + v;
+      btn.onclick = () => setQuickPrice(v);
+      qp.appendChild(btn);
+    });
+  } else {
+    document.getElementById('modalTitle').textContent = 'Send Quote';
+    document.getElementById('modalSub').textContent = 'Set your price for this job';
+    document.getElementById('modalListedPrice').parentElement.style.display = 'none';
+    
+    const rpm = [0.80, 1.00, 1.20, 1.50];
+    const qp = document.getElementById('quickPrices');
+    qp.innerHTML = '';
+    rpm.forEach(r => {
+      const v = Math.round(miles * r);
+      const btn = document.createElement('button');
+      btn.className = 'quick-price';
+      btn.textContent = '£' + v + ' (£' + r.toFixed(2) + '/mi)';
+      btn.onclick = () => setQuickPrice(v);
+      qp.appendChild(btn);
+    });
+  }
+  
+  document.getElementById('counterPrice').value = '';
+  document.getElementById('counterPrice').focus();
+}
+
+function closeCounter() {
+  document.getElementById('counterModal').classList.remove('open');
+}
+
+function setQuickPrice(val) {
+  document.getElementById('counterPrice').value = val;
+}
+
+function sendOffer() {
+  const price = document.getElementById('counterPrice').value;
+  if (!price || price <= 0) {
+    document.getElementById('counterPrice').style.borderColor = 'var(--ll-red)';
+    setTimeout(() => document.getElementById('counterPrice').style.borderColor = '', 1000);
+    return;
+  }
+  
+  const route = document.getElementById('modalRoute').textContent;
+  closeCounter();
+  alert('✅ Offer Sent!\n\n' + route + '\nYour price: £' + price + '\n\nThe business will review your offer. You\'ll be notified when they respond.');
+}
+
+// Close modal on overlay click
+document.getElementById('counterModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCounter();
+});
+</script>
+
+</body>
+</html>

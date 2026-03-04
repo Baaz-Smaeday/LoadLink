@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Compliance</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;padding-bottom:40px}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:14px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--ll-white)}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+.content{padding:16px 20px}
+
+/* Trust Score */
+.trust-card{background:linear-gradient(135deg,#132a15 0%,#0a1f14 40%,#0f2420 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:24px;margin-bottom:16px;position:relative;overflow:hidden;text-align:center}
+.trust-card::before{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(34,197,94,0.08) 0%,transparent 70%);top:-60px;right:-60px;border-radius:50%}
+.trust-ring-wrap{width:120px;height:120px;margin:0 auto 16px;position:relative}
+.trust-ring-bg{width:120px;height:120px;border-radius:50%;border:8px solid var(--ll-border);position:absolute;top:0;left:0}
+.trust-ring-fill{width:120px;height:120px;border-radius:50%;border:8px solid transparent;position:absolute;top:0;left:0;border-top-color:var(--ll-green);border-right-color:var(--ll-green);border-bottom-color:var(--ll-green);transform:rotate(-10deg)}
+.trust-ring-inner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.trust-score-val{font-family:var(--font-display);font-size:36px;font-weight:900;color:var(--ll-white)}
+.trust-score-max{font-size:12px;color:var(--ll-muted);font-weight:600}
+.trust-tier{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-amber);margin-bottom:4px}
+.trust-tier-sub{font-size:12px;color:var(--ll-muted);line-height:1.5}
+.trust-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.trust-stat{background:rgba(255,255,255,0.05);border-radius:var(--radius-md);padding:10px 8px;text-align:center}
+.trust-stat-val{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--ll-white)}
+.trust-stat-val.green{color:var(--ll-green)}
+.trust-stat-val.amber{color:var(--ll-amber)}
+.trust-stat-label{font-size:9px;color:var(--ll-muted);margin-top:2px}
+
+/* Completion Banner */
+.completion-bar{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.completion-ring{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:900;flex-shrink:0}
+.completion-ring.complete{background:var(--ll-green-glow);color:var(--ll-green);border:3px solid var(--ll-green)}
+.completion-ring.partial{background:var(--ll-amber-soft);color:var(--ll-amber);border:3px solid var(--ll-amber)}
+.completion-info{flex:1}
+.completion-title{font-size:14px;font-weight:700;color:var(--ll-white)}
+.completion-sub{font-size:11px;color:var(--ll-muted);margin-top:2px}
+.completion-progress{height:6px;background:var(--ll-border);border-radius:3px;margin-top:8px;overflow:hidden}
+.completion-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--ll-green-dim),var(--ll-green));transition:width 1s ease}
+
+/* Section */
+.sec-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-count{font-size:11px;font-weight:600;color:var(--ll-muted);background:var(--ll-card);padding:2px 8px;border-radius:var(--radius-full);border:1px solid var(--ll-border)}
+
+/* Alert Card */
+.alert-card{padding:14px;border-radius:var(--radius-lg);margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.alert-card.warning{background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.2)}
+.alert-card.danger{background:var(--ll-red-soft);border:1px solid rgba(239,68,68,0.2)}
+.alert-icon{font-size:24px;flex-shrink:0}
+.alert-info{flex:1}
+.alert-title{font-size:13px;font-weight:700}
+.alert-card.warning .alert-title{color:var(--ll-amber)}
+.alert-card.danger .alert-title{color:var(--ll-red)}
+.alert-sub{font-size:11px;color:var(--ll-muted);margin-top:1px}
+.alert-action{padding:6px 14px;border-radius:var(--radius-sm);font-size:11px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);flex-shrink:0;transition:all 0.2s}
+.alert-card.warning .alert-action{background:var(--ll-amber);color:var(--ll-black)}
+.alert-card.danger .alert-action{background:var(--ll-red);color:#fff}
+
+/* Document Cards */
+.doc-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s}
+.doc-card:hover{border-color:rgba(34,197,94,0.3)}
+.doc-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.doc-icon.verified{background:var(--ll-green-soft)}
+.doc-icon.pending{background:var(--ll-amber-soft)}
+.doc-icon.expired{background:var(--ll-red-soft)}
+.doc-icon.missing{background:rgba(255,255,255,0.04)}
+.doc-info{flex:1;min-width:0}
+.doc-title{font-size:13px;font-weight:700;color:var(--ll-white)}
+.doc-meta{font-size:11px;color:var(--ll-muted);margin-top:2px;display:flex;align-items:center;gap:6px}
+.doc-badge{padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800}
+.doc-badge.verified{background:var(--ll-green-soft);color:var(--ll-green)}
+.doc-badge.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.doc-badge.expired{background:var(--ll-red-soft);color:var(--ll-red)}
+.doc-badge.missing{background:rgba(255,255,255,0.06);color:var(--ll-muted)}
+.doc-status{flex-shrink:0;font-size:16px}
+.doc-expiry{font-size:10px;color:var(--ll-muted);font-weight:600;text-align:right;flex-shrink:0}
+.doc-expiry.soon{color:var(--ll-amber)}
+.doc-expiry.expired{color:var(--ll-red)}
+
+/* Upload Area */
+.upload-area{border:2px dashed var(--ll-border);border-radius:var(--radius-lg);padding:24px;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:16px}
+.upload-area:hover{border-color:var(--ll-green);background:var(--ll-green-soft)}
+.upload-icon{font-size:32px;margin-bottom:8px}
+.upload-text{font-size:13px;color:var(--ll-muted);font-weight:600}
+.upload-hint{font-size:11px;color:var(--ll-muted);margin-top:4px}
+
+/* Trust Breakdown */
+.breakdown-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px}
+.breakdown-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:14px}
+.breakdown-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.breakdown-item:last-child{border-bottom:none}
+.breakdown-label{flex:1;font-size:12px;color:var(--ll-text)}
+.breakdown-bar{width:100px;height:6px;background:var(--ll-border);border-radius:3px;overflow:hidden;flex-shrink:0}
+.breakdown-bar-fill{height:100%;border-radius:3px}
+.breakdown-bar-fill.green{background:var(--ll-green)}
+.breakdown-bar-fill.amber{background:var(--ll-amber)}
+.breakdown-bar-fill.red{background:var(--ll-red)}
+.breakdown-val{font-size:12px;font-weight:700;width:32px;text-align:right;flex-shrink:0}
+.breakdown-val.green{color:var(--ll-green)}
+.breakdown-val.amber{color:var(--ll-amber)}
+.breakdown-val.red{color:var(--ll-red)}
+
+/* Tier Progress */
+.tier-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px}
+.tier-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:14px}
+.tier-row{display:flex;align-items:center;gap:0;margin-bottom:12px}
+.tier-node{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;position:relative;z-index:1}
+.tier-node.done{background:var(--ll-green);color:var(--ll-black)}
+.tier-node.current{background:var(--ll-amber);color:var(--ll-black);box-shadow:0 0 16px var(--ll-amber-soft)}
+.tier-node.locked{background:var(--ll-card-hover);color:var(--ll-muted);border:2px solid var(--ll-border)}
+.tier-connector{flex:1;height:3px;margin:0 -2px;z-index:0}
+.tier-connector.done{background:var(--ll-green)}
+.tier-connector.pending{background:var(--ll-border)}
+.tier-labels{display:flex;justify-content:space-between;padding:0 6px}
+.tier-label{font-size:9px;font-weight:700;text-align:center;width:40px}
+.tier-label.done{color:var(--ll-green)}
+.tier-label.current{color:var(--ll-amber)}
+.tier-label.locked{color:var(--ll-muted)}
+.tier-unlock{margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:var(--radius-md);font-size:11px;color:var(--ll-muted);line-height:1.6}
+.tier-unlock strong{color:var(--ll-amber)}
+
+/* Badges */
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.badge-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:16px 8px;text-align:center;transition:all 0.2s}
+.badge-card:hover{border-color:rgba(34,197,94,0.3)}
+.badge-card.earned{border-color:rgba(34,197,94,0.2)}
+.badge-card.locked{opacity:0.5}
+.badge-emoji{font-size:28px;margin-bottom:6px}
+.badge-name{font-size:10px;font-weight:700;color:var(--ll-white)}
+.badge-card.locked .badge-name{color:var(--ll-muted)}
+.badge-date{font-size:9px;color:var(--ll-muted);margin-top:2px}
+
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}.s4{animation-delay:.2s}.s5{animation-delay:.25s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="alert('Back to Dashboard')">← Back</button>
+    <h1 class="header-title">Compliance</h1>
+    <div class="h-btn" onclick="alert('Help & FAQ')">❓</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- TRUST SCORE -->
+  <div class="trust-card fade-in">
+    <div class="trust-ring-wrap">
+      <div class="trust-ring-bg"></div>
+      <div class="trust-ring-fill"></div>
+      <div class="trust-ring-inner">
+        <div class="trust-score-val">78</div>
+        <div class="trust-score-max">/ 100</div>
+      </div>
+    </div>
+    <div class="trust-tier">🥇 Gold — Reliable Driver</div>
+    <div class="trust-tier-sub">22 more points to reach Diamond Tier.<br>Complete your insurance upload to gain +15 points.</div>
+    <div class="trust-stats">
+      <div class="trust-stat">
+        <div class="trust-stat-val green">98%</div>
+        <div class="trust-stat-label">On-Time</div>
+      </div>
+      <div class="trust-stat">
+        <div class="trust-stat-val">4.9</div>
+        <div class="trust-stat-label">Rating</div>
+      </div>
+      <div class="trust-stat">
+        <div class="trust-stat-val amber">247</div>
+        <div class="trust-stat-label">Jobs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETION -->
+  <div class="completion-bar fade-in s1">
+    <div class="completion-ring partial">75%</div>
+    <div class="completion-info">
+      <div class="completion-title">Profile 75% Complete</div>
+      <div class="completion-sub">Upload insurance to reach 100% and unlock premium jobs</div>
+      <div class="completion-progress"><div class="completion-fill" style="width:75%"></div></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="fade-in s2">
+    <div class="alert-card danger">
+      <div class="alert-icon">🔴</div>
+      <div class="alert-info">
+        <div class="alert-title">Insurance Expired</div>
+        <div class="alert-sub">Your goods-in-transit insurance expired 3 days ago</div>
+      </div>
+      <button class="alert-action" onclick="alert('Upload new insurance document')">Upload</button>
+    </div>
+
+    <div class="alert-card warning">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-info">
+        <div class="alert-title">MOT Expires in 14 Days</div>
+        <div class="alert-sub">Vehicle MOT due: 18 March 2026</div>
+      </div>
+      <button class="alert-action" onclick="alert('Update MOT certificate')">Update</button>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div class="fade-in s3">
+    <div class="sec-title">📁 Documents <span class="sec-count">6 of 8</span></div>
+
+    <div class="doc-card" onclick="alert('Driving Licence — Verified\nUploaded 12 Jan 2026\nExpiry: 15 Aug 2033')">
+      <div class="doc-icon verified">🪪</div>
+      <div class="doc-info">
+        <div class="doc-title">Driving Licence</div>
+        <div class="doc-meta">Uploaded 12 Jan <span class="doc-badge verified">VERIFIED</span></div>
+      </div>
+      <div class="doc-expiry">Exp: Aug 2033</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('Vehicle Insurance — Verified\nUploaded 5 Jan 2026\nExpiry: 5 Jan 2027')">
+      <div class="doc-icon verified">📋</div>
+      <div class="doc-info">
+        <div class="doc-title">Vehicle Insurance</div>
+        <div class="doc-meta">Uploaded 5 Jan <span class="doc-badge verified">VERIFIED</span></div>
+      </div>
+      <div class="doc-expiry">Exp: Jan 2027</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('Goods in Transit Insurance — EXPIRED!\nUpload a new certificate.')">
+      <div class="doc-icon expired">🛡️</div>
+      <div class="doc-info">
+        <div class="doc-title">Goods-in-Transit Insurance</div>
+        <div class="doc-meta">Expired 1 Mar <span class="doc-badge expired">EXPIRED</span></div>
+      </div>
+      <div class="doc-expiry expired">EXPIRED</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('MOT Certificate — Expiring Soon\nExpires: 18 March 2026')">
+      <div class="doc-icon pending">🔧</div>
+      <div class="doc-info">
+        <div class="doc-title">MOT Certificate</div>
+        <div class="doc-meta">Uploaded 18 Mar 2025 <span class="doc-badge pending">EXPIRING</span></div>
+      </div>
+      <div class="doc-expiry soon">14 days</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('V5C Logbook — Verified')">
+      <div class="doc-icon verified">🚐</div>
+      <div class="doc-info">
+        <div class="doc-title">V5C Logbook</div>
+        <div class="doc-meta">Uploaded 12 Jan <span class="doc-badge verified">VERIFIED</span></div>
+      </div>
+      <div class="doc-status">✅</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('Public Liability — Verified')">
+      <div class="doc-icon verified">📄</div>
+      <div class="doc-info">
+        <div class="doc-title">Public Liability Insurance</div>
+        <div class="doc-meta">Uploaded 15 Jan <span class="doc-badge verified">VERIFIED</span></div>
+      </div>
+      <div class="doc-expiry">Exp: Jan 2027</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('DBS Certificate — Not uploaded')">
+      <div class="doc-icon missing">🔒</div>
+      <div class="doc-info">
+        <div class="doc-title">DBS Certificate</div>
+        <div class="doc-meta">Optional <span class="doc-badge missing">NOT UPLOADED</span></div>
+      </div>
+      <div class="doc-status" style="color:var(--ll-muted)">—</div>
+    </div>
+
+    <div class="doc-card" onclick="alert('CPC Certificate — Not uploaded')">
+      <div class="doc-icon missing">📜</div>
+      <div class="doc-info">
+        <div class="doc-title">Driver CPC</div>
+        <div class="doc-meta">Required for 7.5t+ <span class="doc-badge missing">NOT UPLOADED</span></div>
+      </div>
+      <div class="doc-status" style="color:var(--ll-muted)">—</div>
+    </div>
+
+    <!-- Upload -->
+    <div class="upload-area" onclick="alert('Upload Document\n\nAccepted: PDF, JPG, PNG\nMax size: 10MB')">
+      <div class="upload-icon">📤</div>
+      <div class="upload-text">Upload a Document</div>
+      <div class="upload-hint">PDF, JPG, PNG • Max 10MB</div>
+    </div>
+  </div>
+
+  <!-- TRUST BREAKDOWN -->
+  <div class="breakdown-card fade-in s4">
+    <div class="breakdown-title">📊 Trust Score Breakdown</div>
+
+    <div class="breakdown-item">
+      <span class="breakdown-label">On-Time Delivery</span>
+      <div class="breakdown-bar"><div class="breakdown-bar-fill green" style="width:98%"></div></div>
+      <span class="breakdown-val green">20</span>
+    </div>
+    <div class="breakdown-item">
+      <span class="breakdown-label">Customer Ratings</span>
+      <div class="breakdown-bar"><div class="breakdown-bar-fill green" style="width:98%"></div></div>
+      <span class="breakdown-val green">20</span>
+    </div>
+    <div class="breakdown-item">
+      <span class="breakdown-label">Jobs Completed</span>
+      <div class="breakdown-bar"><div class="breakdown-bar-fill green" style="width:85%"></div></div>
+      <span class="breakdown-val green">17</span>
+    </div>
+    <div class="breakdown-item">
+      <span class="breakdown-label">Document Compliance</span>
+      <div class="breakdown-bar"><div class="breakdown-bar-fill amber" style="width:60%"></div></div>
+      <span class="breakdown-val amber">12</span>
+    </div>
+    <div class="breakdown-item">
+      <span class="breakdown-label">Dispute History</span>
+      <div class="breakdown-bar"><div class="breakdown-bar-fill green" style="width:90%"></div></div>
+      <span class="breakdown-val green">9</span>
+    </div>
+  </div>
+
+  <!-- TIER PROGRESSION -->
+  <div class="tier-card fade-in s4">
+    <div class="tier-title">🏆 Tier Progression</div>
+    <div class="tier-row">
+      <div class="tier-node done">✓</div>
+      <div class="tier-connector done"></div>
+      <div class="tier-node done">✓</div>
+      <div class="tier-connector done"></div>
+      <div class="tier-node current">🥇</div>
+      <div class="tier-connector pending"></div>
+      <div class="tier-node locked">💎</div>
+    </div>
+    <div class="tier-labels">
+      <div class="tier-label done">New</div>
+      <div class="tier-label done">Verified</div>
+      <div class="tier-label current">Reliable</div>
+      <div class="tier-label locked">Elite</div>
+    </div>
+    <div class="tier-unlock">
+      <strong>To reach Elite:</strong> Score 85+, complete 300 jobs, 0 open disputes, and keep all documents verified.
+      <br><br>Elite benefits: Reduced 3% commission, priority job matching, premium badge visible to businesses.
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="fade-in s5">
+    <div class="sec-title">🏅 Earned Badges</div>
+    <div class="badges-grid">
+      <div class="badge-card earned">
+        <div class="badge-emoji">⚡</div>
+        <div class="badge-name">Speed Demon</div>
+        <div class="badge-date">50 instant accepts</div>
+      </div>
+      <div class="badge-card earned">
+        <div class="badge-emoji">🎯</div>
+        <div class="badge-name">Sharpshooter</div>
+        <div class="badge-date">98% on-time</div>
+      </div>
+      <div class="badge-card earned">
+        <div class="badge-emoji">⭐</div>
+        <div class="badge-name">Top Rated</div>
+        <div class="badge-date">4.8+ avg rating</div>
+      </div>
+      <div class="badge-card earned">
+        <div class="badge-emoji">🛡️</div>
+        <div class="badge-name">Trusted</div>
+        <div class="badge-date">100% escrow clean</div>
+      </div>
+      <div class="badge-card earned">
+        <div class="badge-emoji">📦</div>
+        <div class="badge-name">Century Club</div>
+        <div class="badge-date">100+ deliveries</div>
+      </div>
+      <div class="badge-card locked">
+        <div class="badge-emoji">🔒</div>
+        <div class="badge-name">Road Warrior</div>
+        <div class="badge-date">500 deliveries</div>
+      </div>
+      <div class="badge-card locked">
+        <div class="badge-emoji">🔒</div>
+        <div class="badge-name">Night Owl</div>
+        <div class="badge-date">50 overnight jobs</div>
+      </div>
+      <div class="badge-card locked">
+        <div class="badge-emoji">🔒</div>
+        <div class="badge-name">UK Mapper</div>
+        <div class="badge-date">All regions covered</div>
+      </div>
+      <div class="badge-card locked">
+        <div class="badge-emoji">🔒</div>
+        <div class="badge-name">Zero Disputes</div>
+        <div class="badge-date">500 jobs, 0 disputes</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadLink — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;0,9..40,900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black: #0a0f1a;
+  --ll-dark: #111827;
+  --ll-card: #1a2234;
+  --ll-card-hover: #1f2a3f;
+  --ll-border: #2a3650;
+  --ll-muted: #64748b;
+  --ll-text: #e2e8f0;
+  --ll-white: #f8fafc;
+  --ll-green: #22c55e;
+  --ll-green-dim: #16a34a;
+  --ll-green-glow: rgba(34, 197, 94, 0.15);
+  --ll-green-soft: rgba(34, 197, 94, 0.08);
+  --ll-amber: #f59e0b;
+  --ll-red: #ef4444;
+  --ll-blue: #3b82f6;
+  --ll-purple: #8b5cf6;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 100px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--ll-black);
+  color: var(--ll-text);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* Noise overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================
+   LEFT PANEL — BRANDING (desktop only)
+   ============================================ */
+.brand-panel {
+  flex: 1;
+  background: linear-gradient(160deg, #0d1520 0%, #0a1628 40%, #0f1f12 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-panel::before {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+  top: 10%;
+  left: -10%;
+  border-radius: 50%;
+  animation: floatSlow 12s ease-in-out infinite;
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+  bottom: 10%;
+  right: -5%;
+  border-radius: 50%;
+  animation: floatSlow 15s ease-in-out infinite reverse;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -15px) scale(1.03); }
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-logo-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--ll-green);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ll-black);
+  font-family: var(--font-display);
+}
+
+.brand-logo-text {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ll-white);
+}
+
+.brand-headline {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  color: var(--ll-white);
+  margin-bottom: 20px;
+  max-width: 440px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-headline .green { color: var(--ll-green); }
+
+.brand-sub {
+  font-size: 16px;
+  color: var(--ll-muted);
+  line-height: 1.7;
+  max-width: 400px;
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Trust badges */
+.trust-badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--ll-text);
+  font-weight: 500;
+}
+
+.trust-badge .icon {
+  font-size: 16px;
+}
+
+/* ============================================
+   RIGHT PANEL — AUTH FORM
+   ============================================ */
+.auth-panel {
+  width: 520px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
+  background: var(--ll-dark);
+  border-left: 1px solid var(--ll-border);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 380px;
+  animation: fadeIn 0.6s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile logo (hidden on desktop) */
+.auth-mobile-logo {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ll-white);
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.auth-sub {
+  font-size: 14px;
+  color: var(--ll-muted);
+  margin-bottom: 32px;
+}
+
+/* Tab Switcher */
+.auth-tabs {
+  display: flex;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: 28px;
+  border: 1px solid var(--ll-border);
+}
+
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ll-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+}
+
+.auth-tab.active {
+  background: var(--ll-green);
+  color: var(--ll-black);
+  font-weight: 700;
+}
+
+.auth-tab:not(.active):hover {
+  color: var(--ll-text);
+}
+
+/* Role Selector */
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.role-card {
+  padding: 20px 16px;
+  background: var(--ll-card);
+  border: 2px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.role-card:hover {
+  border-color: var(--ll-muted);
+  background: var(--ll-card-hover);
+}
+
+.role-card.selected {
+  border-color: var(--ll-green);
+  background: var(--ll-green-soft);
+}
+
+.role-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.role-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ll-white);
+  margin-bottom: 4px;
+}
+
+.role-desc {
+  font-size: 11px;
+  color: var(--ll-muted);
+  line-height: 1.4;
+}
+
+/* Form Fields */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ll-text);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  color: var(--ll-white);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  border-color: var(--ll-green);
+  box-shadow: 0 0 0 3px var(--ll-green-glow);
+}
+
+.form-input::placeholder {
+  color: #4a5568;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Password strength */
+.pw-strength {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.pw-bar {
+  flex: 1;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--ll-border);
+  transition: background 0.3s;
+}
+
+.pw-bar.weak { background: var(--ll-red); }
+.pw-bar.medium { background: var(--ll-amber); }
+.pw-bar.strong { background: var(--ll-green); }
+
+.pw-label {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 4px;
+}
+
+/* Forgot password */
+.form-forgot {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  color: var(--ll-green);
+  text-decoration: none;
+  margin-top: -8px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.form-forgot:hover { color: #4ade80; }
+
+/* Submit button */
+.form-submit {
+  width: 100%;
+  padding: 16px;
+  background: var(--ll-green);
+  color: var(--ll-black);
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-submit:hover {
+  background: #4ade80;
+  box-shadow: 0 8px 30px rgba(34, 197, 94, 0.3);
+  transform: translateY(-1px);
+}
+
+.form-submit:active {
+  transform: translateY(0);
+}
+
+.form-submit.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.form-submit.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid var(--ll-black);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ll-border);
+}
+
+.auth-divider span {
+  font-size: 12px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+/* Social buttons */
+.social-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-md);
+  color: var(--ll-text);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.social-btn:hover {
+  border-color: var(--ll-muted);
+  background: rgba(255,255,255,0.03);
+}
+
+.social-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Terms */
+.auth-terms {
+  font-size: 12px;
+  color: var(--ll-muted);
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.auth-terms a {
+  color: var(--ll-green);
+  text-decoration: none;
+}
+
+.auth-terms a:hover {
+  text-decoration: underline;
+}
+
+/* Switch link */
+.auth-switch {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--ll-muted);
+}
+
+.auth-switch a {
+  color: var(--ll-green);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* Checkbox */
+.form-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.form-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin-top: 2px;
+  accent-color: var(--ll-green);
+  cursor: pointer;
+}
+
+.form-check label {
+  font-size: 13px;
+  color: var(--ll-muted);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.form-check label a {
+  color: var(--ll-green);
+  text-decoration: none;
+}
+
+/* Success state */
+.success-container {
+  text-align: center;
+  padding: 40px 0;
+  animation: fadeIn 0.6s ease both;
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--ll-green-glow);
+  border: 2px solid var(--ll-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin: 0 auto 20px;
+  animation: scaleIn 0.4s ease 0.2s both;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+.success-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ll-white);
+  margin-bottom: 8px;
+}
+
+.success-text {
+  font-size: 14px;
+  color: var(--ll-muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 960px) {
+  body { flex-direction: column; }
+  .brand-panel { display: none; }
+  .auth-panel {
+    width: 100%;
+    min-height: 100vh;
+    border-left: none;
+  }
+  .auth-mobile-logo {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-panel { padding: 24px 20px; }
+  .auth-container { max-width: 100%; }
+  .form-row { grid-template-columns: 1fr; }
+  .role-selector { grid-template-columns: 1fr; }
+}
+
+/* Hidden class */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- LEFT: Brand Panel -->
+<div class="brand-panel">
+  <div class="brand-logo">
+    <div class="brand-logo-icon">L</div>
+    <span class="brand-logo-text">LoadLink</span>
+  </div>
+  <h1 class="brand-headline">
+    The courier platform<br>
+    built on <span class="green">trust</span>
+  </h1>
+  <p class="brand-sub">
+    Escrow-protected payments. AI job matching. Fair commission with caps. 
+    Join thousands of drivers and businesses who are done with broken promises.
+  </p>
+  <div class="trust-badges">
+    <div class="trust-badge"><span class="icon">🛡️</span> Escrow Protected</div>
+    <div class="trust-badge"><span class="icon">⚡</span> Instant Pay</div>
+    <div class="trust-badge"><span class="icon">🔓</span> No Lock-ins</div>
+  </div>
+</div>
+
+<!-- RIGHT: Auth Panel -->
+<div class="auth-panel">
+  <div class="auth-container" id="auth-container">
+
+    <!-- Mobile Logo -->
+    <div class="auth-mobile-logo">
+      <div class="brand-logo-icon" style="width:36px;height:36px;font-size:18px;border-radius:10px;">L</div>
+      <span class="brand-logo-text" style="font-size:20px;">LoadLink</span>
+    </div>
+
+    <!-- Title (changes with mode) -->
+    <h2 class="auth-title" id="auth-title">Welcome back</h2>
+    <p class="auth-sub" id="auth-sub">Sign in to your LoadLink account</p>
+
+    <!-- Tab Switcher -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchMode('signin')">Sign In</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchMode('signup')">Create Account</button>
+    </div>
+
+    <!-- SIGN IN FORM -->
+    <div id="form-signin">
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-input" placeholder="name@company.com" id="signin-email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" placeholder="Enter your password" id="signin-password">
+      </div>
+      <a href="#" class="form-forgot" onclick="showForgot()">Forgot password?</a>
+      <button class="form-submit" id="signin-btn" onclick="handleSignin()">Sign In →</button>
+
+      <div class="auth-divider"><span>or continue with</span></div>
+
+      <button class="social-btn" onclick="socialLogin('google')">
+        <svg class="social-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <button class="social-btn" onclick="socialLogin('apple')">
+        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Continue with Apple
+      </button>
+
+      <p class="auth-switch">Don't have an account? <a onclick="switchMode('signup')">Create one</a></p>
+    </div>
+
+    <!-- SIGN UP FORM -->
+    <div id="form-signup" class="hidden">
+      
+      <!-- Role Selection -->
+      <div class="role-selector">
+        <div class="role-card selected" id="role-driver" onclick="selectRole('driver')">
+          <div class="role-icon">🚐</div>
+          <div class="role-title">Driver</div>
+          <div class="role-desc">Find loads, get paid safely, build your reputation</div>
+        </div>
+        <div class="role-card" id="role-business" onclick="selectRole('business')">
+          <div class="role-icon">🏢</div>
+          <div class="role-title">Business</div>
+          <div class="role-desc">Post jobs, track deliveries, manage payments</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First name</label>
+          <input type="text" class="form-input" placeholder="John" id="signup-first">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last name</label>
+          <input type="text" class="form-input" placeholder="Smith" id="signup-last">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-input" placeholder="name@company.com" id="signup-email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone number</label>
+        <input type="tel" class="form-input" placeholder="+44 7XXX XXXXXX" id="signup-phone">
+      </div>
+
+      <!-- Business-only fields -->
+      <div id="business-fields" class="hidden">
+        <div class="form-group">
+          <label class="form-label">Company name</label>
+          <input type="text" class="form-input" placeholder="Your company name" id="signup-company">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Company registration number (optional)</label>
+          <input type="text" class="form-input" placeholder="e.g. 12345678" id="signup-crn">
+        </div>
+      </div>
+
+      <!-- Driver-only fields -->
+      <div id="driver-fields">
+        <div class="form-group">
+          <label class="form-label">Vehicle type</label>
+          <select class="form-input" id="signup-vehicle" style="cursor:pointer;">
+            <option value="">Select your vehicle</option>
+            <option value="car">Car</option>
+            <option value="swb">SWB Van</option>
+            <option value="lwb">LWB Van</option>
+            <option value="xlwb">XLWB Van</option>
+            <option value="luton">Luton Van</option>
+            <option value="luton_tail">Luton + Tail Lift</option>
+            <option value="7_5t">7.5t Truck</option>
+            <option value="18t">18t Truck</option>
+            <option value="artic">Artic</option>
+            <option value="flatbed">Flatbed</option>
+            <option value="curtain">Curtainside</option>
+            <option value="fridge">Fridge Van</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" placeholder="Min 8 characters" id="signup-password" oninput="checkStrength(this.value)">
+        <div class="pw-strength">
+          <div class="pw-bar" id="pw1"></div>
+          <div class="pw-bar" id="pw2"></div>
+          <div class="pw-bar" id="pw3"></div>
+          <div class="pw-bar" id="pw4"></div>
+        </div>
+        <div class="pw-label" id="pw-label"></div>
+      </div>
+
+      <div class="form-check">
+        <input type="checkbox" id="signup-terms">
+        <label for="signup-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I understand LoadLink charges 4% commission per job with a monthly cap.</label>
+      </div>
+
+      <button class="form-submit" id="signup-btn" onclick="handleSignup()">Create Account →</button>
+
+      <div class="auth-divider"><span>or continue with</span></div>
+
+      <button class="social-btn" onclick="socialLogin('google')">
+        <svg class="social-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+
+      <p class="auth-switch">Already have an account? <a onclick="switchMode('signin')">Sign in</a></p>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div id="form-forgot" class="hidden">
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input type="email" class="form-input" placeholder="Enter your registered email" id="forgot-email">
+      </div>
+      <p style="font-size:13px;color:var(--ll-muted);margin-bottom:20px;line-height:1.6;">We'll send a secure reset link to your email. Check your spam folder if you don't see it within 2 minutes.</p>
+      <button class="form-submit" onclick="handleForgot()">Send Reset Link →</button>
+      <p class="auth-switch" style="margin-top:16px;"><a onclick="switchMode('signin')">← Back to Sign In</a></p>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div id="form-success" class="hidden">
+      <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h3 class="success-title" id="success-title">Account Created!</h3>
+        <p class="success-text" id="success-text">Welcome to LoadLink. Check your email to verify your account, then you're ready to start.</p>
+        <button class="form-submit" onclick="window.location.reload()">Go to Dashboard →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentMode = 'signin';
+let selectedRole = 'driver';
+
+function switchMode(mode) {
+  currentMode = mode;
+  
+  // Hide all forms
+  document.getElementById('form-signin').classList.add('hidden');
+  document.getElementById('form-signup').classList.add('hidden');
+  document.getElementById('form-forgot').classList.add('hidden');
+  document.getElementById('form-success').classList.add('hidden');
+  
+  // Update tabs
+  document.getElementById('tab-signin').classList.toggle('active', mode === 'signin');
+  document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+  
+  // Show correct form
+  if (mode === 'signin') {
+    document.getElementById('form-signin').classList.remove('hidden');
+    document.getElementById('auth-title').textContent = 'Welcome back';
+    document.getElementById('auth-sub').textContent = 'Sign in to your LoadLink account';
+  } else if (mode === 'signup') {
+    document.getElementById('form-signup').classList.remove('hidden');
+    document.getElementById('auth-title').textContent = 'Create your account';
+    document.getElementById('auth-sub').textContent = 'Join LoadLink as a driver or business';
+  } else if (mode === 'forgot') {
+    document.getElementById('form-forgot').classList.remove('hidden');
+    document.getElementById('auth-title').textContent = 'Reset password';
+    document.getElementById('auth-sub').textContent = 'Enter your email to receive a reset link';
+  }
+  
+  // Re-trigger animation
+  const container = document.getElementById('auth-container');
+  container.style.animation = 'none';
+  container.offsetHeight; // reflow
+  container.style.animation = 'fadeIn 0.4s ease both';
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('role-driver').classList.toggle('selected', role === 'driver');
+  document.getElementById('role-business').classList.toggle('selected', role === 'business');
+  document.getElementById('driver-fields').classList.toggle('hidden', role !== 'driver');
+  document.getElementById('business-fields').classList.toggle('hidden', role !== 'business');
+}
+
+function showForgot() {
+  switchMode('forgot');
+}
+
+function checkStrength(pw) {
+  let strength = 0;
+  if (pw.length >= 8) strength++;
+  if (/[A-Z]/.test(pw)) strength++;
+  if (/[0-9]/.test(pw)) strength++;
+  if (/[^A-Za-z0-9]/.test(pw)) strength++;
+  
+  const bars = ['pw1','pw2','pw3','pw4'];
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const classes = ['', 'weak', 'medium', 'medium', 'strong'];
+  
+  bars.forEach((id, i) => {
+    const bar = document.getElementById(id);
+    bar.className = 'pw-bar';
+    if (i < strength) bar.classList.add(classes[strength]);
+  });
+  
+  document.getElementById('pw-label').textContent = pw.length > 0 ? labels[strength] : '';
+  document.getElementById('pw-label').style.color = 
+    strength <= 1 ? 'var(--ll-red)' : strength <= 2 ? 'var(--ll-amber)' : 'var(--ll-green)';
+}
+
+function handleSignin() {
+  const email = document.getElementById('signin-email').value;
+  const pw = document.getElementById('signin-password').value;
+  
+  if (!email || !pw) {
+    shakeButton('signin-btn');
+    return;
+  }
+  
+  const btn = document.getElementById('signin-btn');
+  btn.classList.add('loading');
+  btn.textContent = '';
+  
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    document.getElementById('form-signin').classList.add('hidden');
+    document.getElementById('form-success').classList.remove('hidden');
+    document.getElementById('success-title').textContent = 'Welcome back!';
+    document.getElementById('success-text').textContent = 'Redirecting you to your dashboard...';
+    document.querySelector('.auth-tabs').classList.add('hidden');
+    document.getElementById('auth-title').textContent = '';
+    document.getElementById('auth-sub').textContent = '';
+  }, 1500);
+}
+
+function handleSignup() {
+  const first = document.getElementById('signup-first').value;
+  const email = document.getElementById('signup-email').value;
+  const pw = document.getElementById('signup-password').value;
+  const terms = document.getElementById('signup-terms').checked;
+  
+  if (!first || !email || !pw) {
+    shakeButton('signup-btn');
+    return;
+  }
+  if (!terms) {
+    document.getElementById('signup-terms').focus();
+    return;
+  }
+  
+  const btn = document.getElementById('signup-btn');
+  btn.classList.add('loading');
+  btn.textContent = '';
+  
+  setTimeout(() => {
+    btn.classList.remove('loading');
+    document.getElementById('form-signup').classList.add('hidden');
+    document.getElementById('form-success').classList.remove('hidden');
+    document.getElementById('success-title').textContent = 'Account Created!';
+    document.getElementById('success-text').textContent = 
+      selectedRole === 'driver' 
+        ? 'Welcome to LoadLink, ' + first + '! Check your email to verify, then start browsing jobs.'
+        : 'Welcome to LoadLink, ' + first + '! Check your email to verify, then post your first job.';
+    document.querySelector('.auth-tabs').classList.add('hidden');
+    document.getElementById('auth-title').textContent = '';
+    document.getElementById('auth-sub').textContent = '';
+  }, 1500);
+}
+
+function handleForgot() {
+  const email = document.getElementById('forgot-email').value;
+  if (!email) return;
+  
+  document.getElementById('form-forgot').classList.add('hidden');
+  document.getElementById('form-success').classList.remove('hidden');
+  document.getElementById('success-title').textContent = 'Check your email';
+  document.getElementById('success-text').textContent = 'If an account exists for ' + email + ', you\'ll receive a password reset link shortly.';
+  document.querySelector('.auth-tabs').classList.add('hidden');
+  document.getElementById('auth-title').textContent = '';
+  document.getElementById('auth-sub').textContent = '';
+}
+
+function socialLogin(provider) {
+  alert('Connecting to ' + provider.charAt(0).toUpperCase() + provider.slice(1) + '...\n\nSocial login will be available at launch.');
+}
+
+function shakeButton(id) {
+  const btn = document.getElementById(id);
+  btn.style.animation = 'shake 0.4s ease';
+  setTimeout(() => btn.style.animation = '', 400);
+}
+
+// Shake animation
+const style = document.createElement('style');
+style.textContent = `@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>

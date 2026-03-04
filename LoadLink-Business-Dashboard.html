@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Business Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black: #0a0f1a;
+  --ll-dark: #111827;
+  --ll-card: #1a2234;
+  --ll-card-hover: #1f2a3f;
+  --ll-border: #2a3650;
+  --ll-muted: #64748b;
+  --ll-text: #e2e8f0;
+  --ll-white: #f8fafc;
+  --ll-green: #22c55e;
+  --ll-green-dim: #16a34a;
+  --ll-green-glow: rgba(34,197,94,0.15);
+  --ll-green-soft: rgba(34,197,94,0.06);
+  --ll-amber: #f59e0b;
+  --ll-amber-soft: rgba(245,158,11,0.1);
+  --ll-red: #ef4444;
+  --ll-red-soft: rgba(239,68,68,0.1);
+  --ll-blue: #3b82f6;
+  --ll-blue-soft: rgba(59,130,246,0.1);
+  --ll-purple: #8b5cf6;
+  --ll-purple-soft: rgba(139,92,246,0.1);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 100px;
+  --bottom-nav-h: 72px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-body);
+  background: var(--ll-black);
+  color: var(--ll-text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  padding-bottom: var(--bottom-nav-h);
+}
+body::before {
+  content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header {
+  padding: 16px 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, var(--ll-black) 80%, transparent);
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-avatar {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--ll-blue), var(--ll-purple));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: #fff;
+  font-family: var(--font-display);
+}
+.header-info h1 {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 800; color: var(--ll-white);
+  letter-spacing: -0.3px;
+}
+.header-info p {
+  font-size: 12px; color: var(--ll-muted); font-weight: 500;
+}
+.header-right {
+  display: flex; align-items: center; gap: 8px;
+}
+.h-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  border: 1px solid var(--ll-border); background: var(--ll-card);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; position: relative;
+  transition: all 0.2s;
+}
+.h-icon:hover { background: var(--ll-card-hover); border-color: var(--ll-muted); }
+.h-dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 8px; height: 8px; background: var(--ll-red);
+  border-radius: 50%; border: 2px solid var(--ll-card);
+}
+
+/* ============================================
+   POST JOB CTA
+   ============================================ */
+.post-job-cta {
+  margin: 16px 20px 0;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #132a15 0%, #0a2010 100%);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.post-job-cta::before {
+  content:''; position:absolute; width:200px; height:200px;
+  background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%);
+  top:-60px; right:-60px; border-radius:50%;
+}
+.post-job-cta:hover {
+  border-color: var(--ll-green);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(34,197,94,0.15);
+}
+.post-cta-left {
+  display: flex; align-items: center; gap: 14px;
+}
+.post-cta-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--ll-green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--ll-black);
+}
+.post-cta-text h3 {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; color: var(--ll-white);
+}
+.post-cta-text p {
+  font-size: 12px; color: var(--ll-muted); margin-top: 2px;
+}
+.post-cta-arrow {
+  font-size: 20px; color: var(--ll-green); font-weight: 800;
+}
+
+/* ============================================
+   STATS ROW
+   ============================================ */
+.stats-section { padding: 16px 20px 0; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.stat-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 12px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.stat-card:hover {
+  border-color: var(--ll-green);
+  transform: translateY(-1px);
+}
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 900; color: var(--ll-white);
+  letter-spacing: -0.5px;
+}
+.stat-value.green { color: var(--ll-green); }
+.stat-value.amber { color: var(--ll-amber); }
+.stat-value.blue { color: var(--ll-blue); }
+.stat-label {
+  font-size: 10px; color: var(--ll-muted);
+  font-weight: 500; margin-top: 2px;
+}
+
+/* ============================================
+   SPENDING CARD
+   ============================================ */
+.spend-section { padding: 16px 20px 0; }
+.spend-card {
+  background: linear-gradient(135deg, #0f1a2e 0%, #0a1628 50%, #121a30 100%);
+  border: 1px solid rgba(59,130,246,0.15);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  position: relative; overflow: hidden;
+}
+.spend-card::before {
+  content:''; position:absolute; width:200px; height:200px;
+  background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+  top:-50px; right:-50px; border-radius:50%;
+}
+.spend-top {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 16px;
+}
+.spend-period {
+  font-size: 12px; color: var(--ll-muted);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+}
+.spend-badge {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; background: var(--ll-blue-soft);
+  border-radius: var(--radius-full);
+  font-size: 11px; font-weight: 700; color: var(--ll-blue);
+}
+.spend-amount {
+  font-family: var(--font-display);
+  font-size: 40px; font-weight: 900; color: var(--ll-white);
+  letter-spacing: -2px; line-height: 1; margin-bottom: 4px;
+}
+.spend-sub {
+  font-size: 13px; color: var(--ll-muted); margin-bottom: 16px;
+}
+.spend-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.spend-stat {
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-md);
+  padding: 10px 8px; text-align: center;
+}
+.spend-stat-val {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; color: var(--ll-white);
+}
+.spend-stat-lbl {
+  font-size: 9px; color: var(--ll-muted); margin-top: 2px; font-weight: 500;
+}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.sec-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sec-title {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 700; color: var(--ll-white);
+}
+.sec-link {
+  font-size: 12px; color: var(--ll-green);
+  font-weight: 600; cursor: pointer;
+}
+
+/* ============================================
+   ACTIVE DELIVERIES
+   ============================================ */
+.active-section { padding: 16px 20px 0; }
+
+.delivery-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.delivery-card:hover {
+  border-color: rgba(34,197,94,0.3);
+  transform: translateY(-1px);
+}
+.delivery-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 10px;
+}
+.delivery-status {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--radius-full);
+  font-size: 11px; font-weight: 700;
+}
+.delivery-status.transit {
+  background: var(--ll-blue-soft); color: var(--ll-blue);
+}
+.delivery-status.collecting {
+  background: var(--ll-amber-soft); color: var(--ll-amber);
+}
+.delivery-status.delivered {
+  background: var(--ll-green-glow); color: var(--ll-green);
+}
+.status-pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:0.5; transform:scale(0.8); }
+}
+.delivery-eta {
+  font-size: 11px; color: var(--ll-muted); font-weight: 600;
+}
+
+.delivery-route {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.d-route-dots {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0; padding: 2px 0;
+}
+.d-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.d-dot.from { background: var(--ll-green); }
+.d-dot.to { background: var(--ll-red); }
+.d-line { width: 2px; flex: 1; min-height: 16px; background: var(--ll-border); margin: 2px 0; }
+.d-route-info { flex: 1; }
+.d-city { font-size: 14px; font-weight: 700; color: var(--ll-white); }
+.d-city-sub { font-size: 10px; color: var(--ll-muted); }
+
+.delivery-bottom {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--ll-border);
+}
+.delivery-driver {
+  display: flex; align-items: center; gap: 8px;
+}
+.driver-av {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 800; color: #fff;
+}
+.driver-name { font-size: 12px; font-weight: 600; color: var(--ll-text); }
+.driver-rating { font-size: 10px; color: var(--ll-amber); }
+.delivery-price {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 800; color: var(--ll-green);
+}
+
+/* ============================================
+   PENDING OFFERS
+   ============================================ */
+.offers-section { padding: 16px 20px 0; }
+
+.offer-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-left: 3px solid var(--ll-amber);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+.offer-card:hover {
+  border-color: var(--ll-amber);
+}
+.offer-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 8px;
+}
+.offer-route {
+  font-size: 13px; font-weight: 700; color: var(--ll-white);
+}
+.offer-time {
+  font-size: 10px; color: var(--ll-muted);
+}
+.offer-detail {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.offer-driver-info {
+  display: flex; align-items: center; gap: 8px; flex: 1;
+}
+.offer-av {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: #fff;
+}
+.offer-driver-text h4 {
+  font-size: 12px; font-weight: 700; color: var(--ll-text);
+}
+.offer-driver-text p {
+  font-size: 10px; color: var(--ll-muted);
+}
+.offer-prices {
+  text-align: right;
+}
+.offer-your-price {
+  font-size: 10px; color: var(--ll-muted);
+  text-decoration: line-through;
+}
+.offer-their-price {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 800; color: var(--ll-amber);
+}
+.offer-actions {
+  display: flex; gap: 6px;
+}
+.offer-btn {
+  flex: 1; padding: 10px; border-radius: var(--radius-md);
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer; border: none;
+  transition: all 0.25s; text-align: center;
+}
+.offer-btn.accept {
+  background: var(--ll-green); color: var(--ll-black);
+}
+.offer-btn.accept:hover { background: #4ade80; }
+.offer-btn.counter {
+  background: var(--ll-amber-soft); color: var(--ll-amber);
+  border: 1px solid rgba(245,158,11,0.2);
+}
+.offer-btn.counter:hover { border-color: var(--ll-amber); }
+.offer-btn.decline {
+  background: transparent; color: var(--ll-muted);
+  border: 1px solid var(--ll-border);
+}
+.offer-btn.decline:hover { border-color: var(--ll-red); color: var(--ll-red); }
+
+/* ============================================
+   QUICK ACTIONS
+   ============================================ */
+.actions-section { padding: 16px 20px 0; }
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.action-btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 18px 8px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer; transition: all 0.25s;
+  text-decoration: none;
+}
+.action-btn:hover {
+  border-color: var(--ll-green);
+  background: var(--ll-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.action-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 8px;
+}
+.action-icon.green { background: var(--ll-green-soft); }
+.action-icon.amber { background: var(--ll-amber-soft); }
+.action-icon.blue { background: var(--ll-blue-soft); }
+.action-icon.purple { background: var(--ll-purple-soft); }
+.action-icon.red { background: var(--ll-red-soft); }
+.action-label {
+  font-size: 11px; font-weight: 600; color: var(--ll-text);
+  text-align: center;
+}
+
+/* More Tools */
+.more-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px; margin-top: 10px;
+  background: transparent; border: 1px dashed var(--ll-border);
+  border-radius: var(--radius-lg); color: var(--ll-muted);
+  font-size: 13px; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; transition: all 0.3s;
+}
+.more-btn:hover { border-color: var(--ll-muted); color: var(--ll-text); }
+.more-panel { display: none; margin-top: 10px; }
+.more-panel.open { display: block; }
+.tools-cat-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--ll-muted);
+  margin-bottom: 8px; margin-top: 12px; padding-left: 4px;
+}
+
+/* ============================================
+   RECENT INVOICES
+   ============================================ */
+.invoices-section { padding: 16px 20px 0; }
+
+.invoice-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 6px; cursor: pointer;
+  transition: all 0.2s;
+}
+.invoice-row:hover { border-color: var(--ll-green); }
+.invoice-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.invoice-icon.paid { background: var(--ll-green-soft); }
+.invoice-icon.pending { background: var(--ll-amber-soft); }
+.invoice-icon.overdue { background: var(--ll-red-soft); }
+.invoice-info { flex: 1; min-width: 0; }
+.invoice-title {
+  font-size: 13px; font-weight: 700; color: var(--ll-white);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.invoice-meta { font-size: 11px; color: var(--ll-muted); margin-top: 1px; }
+.invoice-amount {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 800; flex-shrink: 0;
+}
+.invoice-amount.paid { color: var(--ll-green); }
+.invoice-amount.pending { color: var(--ll-amber); }
+.invoice-amount.overdue { color: var(--ll-red); }
+
+/* ============================================
+   COMMISSION TRACKER
+   ============================================ */
+.commission-section { padding: 16px 20px 20px; }
+.commission-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+}
+.comm-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 12px;
+}
+.comm-title {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 700; color: var(--ll-white);
+}
+.comm-badge {
+  font-size: 11px; font-weight: 700;
+  color: var(--ll-green); background: var(--ll-green-soft);
+  padding: 3px 10px; border-radius: var(--radius-full);
+}
+.comm-bar-wrap {
+  height: 8px; background: var(--ll-border);
+  border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+}
+.comm-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--ll-blue), var(--ll-green));
+  transition: width 1s ease;
+}
+.comm-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+}
+.comm-label { font-size: 12px; color: var(--ll-muted); }
+.comm-value { font-size: 13px; font-weight: 700; color: var(--ll-green); }
+
+/* ============================================
+   BOTTOM NAV
+   ============================================ */
+.bottom-nav {
+  position: fixed; bottom: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  height: var(--bottom-nav-h);
+  background: rgba(17,24,39,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--ll-border);
+  display: flex; align-items: center; justify-content: space-around;
+  padding: 0 8px; padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 12px; cursor: pointer; border-radius: var(--radius-md);
+  min-width: 56px; position: relative;
+  background: none; border: none; font-family: var(--font-body);
+}
+.nav-item.active .n-icon { color: var(--ll-green); }
+.nav-item.active .n-label { color: var(--ll-green); }
+.nav-item.active::after {
+  content:''; position:absolute; top:0;
+  left:50%; transform:translateX(-50%);
+  width:24px; height:2px; background:var(--ll-green); border-radius:2px;
+}
+.n-icon { font-size: 22px; color: var(--ll-muted); }
+.n-label { font-size: 10px; font-weight: 600; color: var(--ll-muted); }
+.nav-fab {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--ll-green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--ll-black);
+  cursor: pointer; border: none;
+  box-shadow: 0 4px 20px rgba(34,197,94,0.35);
+  margin-top: -20px; transition: all 0.3s;
+}
+.nav-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(34,197,94,0.45); }
+
+/* Animations */
+.fade-in { animation: fadeIn 0.5s ease both; }
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.s1{animation-delay:.05s} .s2{animation-delay:.1s}
+.s3{animation-delay:.15s} .s4{animation-delay:.2s}
+.s5{animation-delay:.25s} .s6{animation-delay:.3s}
+.s7{animation-delay:.35s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header fade-in">
+  <div class="header-row">
+    <div class="header-left">
+      <div class="header-avatar">YP</div>
+      <div class="header-info">
+        <h1>Yorkshire Print 👋</h1>
+        <p>Business Account • Leeds</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="h-icon" onclick="alert('Messages — 3 unread')">💬<span class="h-dot"></span></div>
+      <div class="h-icon" onclick="alert('Notifications')">🔔<span class="h-dot"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- POST JOB CTA -->
+<div class="post-job-cta fade-in s1" onclick="alert('Post a New Job\n\nOpening job creation flow...')">
+  <div class="post-cta-left">
+    <div class="post-cta-icon">+</div>
+    <div class="post-cta-text">
+      <h3>Post a New Job</h3>
+      <p>Get quotes or set a fixed price</p>
+    </div>
+  </div>
+  <div class="post-cta-arrow">→</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section fade-in s2">
+  <div class="stats-grid">
+    <div class="stat-card" onclick="alert('3 Active Deliveries')">
+      <div class="stat-value blue">3</div>
+      <div class="stat-label">Active Now</div>
+    </div>
+    <div class="stat-card" onclick="alert('2 Pending Offers')">
+      <div class="stat-value amber">2</div>
+      <div class="stat-label">Pending Offers</div>
+    </div>
+    <div class="stat-card" onclick="alert('142 Total Jobs Completed')">
+      <div class="stat-value green">142</div>
+      <div class="stat-label">Completed</div>
+    </div>
+  </div>
+</div>
+
+<!-- SPENDING OVERVIEW -->
+<div class="spend-section fade-in s3">
+  <div class="spend-card">
+    <div class="spend-top">
+      <div class="spend-period">This Month</div>
+      <div class="spend-badge">↓ 8% vs last month</div>
+    </div>
+    <div class="spend-amount">£2,847</div>
+    <div class="spend-sub">36 deliveries booked • Avg £79 per job</div>
+    <div class="spend-grid">
+      <div class="spend-stat">
+        <div class="spend-stat-val">£1,420</div>
+        <div class="spend-stat-lbl">In Escrow</div>
+      </div>
+      <div class="spend-stat">
+        <div class="spend-stat-val">£385</div>
+        <div class="spend-stat-lbl">Pending Invoices</div>
+      </div>
+      <div class="spend-stat">
+        <div class="spend-stat-val">4.8 ⭐</div>
+        <div class="spend-stat-lbl">Avg Driver Rating</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE DELIVERIES -->
+<div class="active-section fade-in s4">
+  <div class="sec-header">
+    <div class="sec-title">Active Deliveries</div>
+    <div class="sec-link" onclick="alert('View all active jobs')">Track All →</div>
+  </div>
+
+  <div class="delivery-card" onclick="alert('Track Leeds → London delivery')">
+    <div class="delivery-top">
+      <div class="delivery-status transit"><span class="status-pulse"></span>In Transit</div>
+      <div class="delivery-eta">⏱ ETA 14:32</div>
+    </div>
+    <div class="delivery-route">
+      <div class="d-route-dots">
+        <div class="d-dot from"></div>
+        <div class="d-line"></div>
+        <div class="d-dot to"></div>
+      </div>
+      <div class="d-route-info">
+        <div class="d-city">Leeds LS1 → London EC1</div>
+        <div class="d-city-sub">3 pallets • LWB Van • 195 mi</div>
+      </div>
+    </div>
+    <div class="delivery-bottom">
+      <div class="delivery-driver">
+        <div class="driver-av" style="background:linear-gradient(135deg,#16a34a,#059669)">JM</div>
+        <div>
+          <div class="driver-name">James M.</div>
+          <div class="driver-rating">⭐ 4.9 • 98% on-time</div>
+        </div>
+      </div>
+      <div class="delivery-price">£185</div>
+    </div>
+  </div>
+
+  <div class="delivery-card" onclick="alert('Track Manchester → Liverpool delivery')">
+    <div class="delivery-top">
+      <div class="delivery-status collecting"><span class="status-pulse"></span>Collecting</div>
+      <div class="delivery-eta">⏱ At pickup</div>
+    </div>
+    <div class="delivery-route">
+      <div class="d-route-dots">
+        <div class="d-dot from"></div>
+        <div class="d-line"></div>
+        <div class="d-dot to"></div>
+      </div>
+      <div class="d-route-info">
+        <div class="d-city">Manchester M1 → Liverpool L1</div>
+        <div class="d-city-sub">Office furniture • Luton • 35 mi</div>
+      </div>
+    </div>
+    <div class="delivery-bottom">
+      <div class="delivery-driver">
+        <div class="driver-av" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">SK</div>
+        <div>
+          <div class="driver-name">Sarah K.</div>
+          <div class="driver-rating">⭐ 4.8 • 96% on-time</div>
+        </div>
+      </div>
+      <div class="delivery-price">£68</div>
+    </div>
+  </div>
+
+  <div class="delivery-card" onclick="alert('Track Leeds → Sheffield delivery')">
+    <div class="delivery-top">
+      <div class="delivery-status delivered"><span class="status-pulse"></span>Delivered</div>
+      <div class="delivery-eta">✅ Awaiting invoice</div>
+    </div>
+    <div class="delivery-route">
+      <div class="d-route-dots">
+        <div class="d-dot from"></div>
+        <div class="d-line"></div>
+        <div class="d-dot to"></div>
+      </div>
+      <div class="d-route-info">
+        <div class="d-city">Leeds LS1 → Sheffield S1</div>
+        <div class="d-city-sub">Legal docs • Small Van • 35 mi</div>
+      </div>
+    </div>
+    <div class="delivery-bottom">
+      <div class="delivery-driver">
+        <div class="driver-av" style="background:linear-gradient(135deg,#f59e0b,#d97706)">DP</div>
+        <div>
+          <div class="driver-name">Dave P.</div>
+          <div class="driver-rating">⭐ 4.7 • 94% on-time</div>
+        </div>
+      </div>
+      <div class="delivery-price">£52</div>
+    </div>
+  </div>
+</div>
+
+<!-- PENDING OFFERS -->
+<div class="offers-section fade-in s5">
+  <div class="sec-header">
+    <div class="sec-title">Pending Offers</div>
+    <div class="sec-link">2 waiting</div>
+  </div>
+
+  <div class="offer-card">
+    <div class="offer-top">
+      <div class="offer-route">Leeds → Birmingham • 118 mi</div>
+      <div class="offer-time">Round 1 of 3 • 8m ago</div>
+    </div>
+    <div class="offer-detail">
+      <div class="offer-driver-info">
+        <div class="offer-av" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">TW</div>
+        <div class="offer-driver-text">
+          <h4>Tom Wilson</h4>
+          <p>⭐ 4.6 • LWB Van • Reliable tier</p>
+        </div>
+      </div>
+      <div class="offer-prices">
+        <div class="offer-your-price">Your price: £95</div>
+        <div class="offer-their-price">£110</div>
+      </div>
+    </div>
+    <div class="offer-actions">
+      <button class="offer-btn accept" onclick="alert('✅ Offer accepted at £110\n\nDriver Tom Wilson assigned.\nEscrow locked: £110')">Accept</button>
+      <button class="offer-btn counter" onclick="alert('Counter back\n\nRound 2 of 3\nSuggest £100?')">Counter</button>
+      <button class="offer-btn decline" onclick="alert('Offer declined')">Decline</button>
+    </div>
+  </div>
+
+  <div class="offer-card">
+    <div class="offer-top">
+      <div class="offer-route">Leeds → Hull • 58 mi</div>
+      <div class="offer-time">Round 1 of 3 • 22m ago</div>
+    </div>
+    <div class="offer-detail">
+      <div class="offer-driver-info">
+        <div class="offer-av" style="background:linear-gradient(135deg,#22c55e,#16a34a)">RP</div>
+        <div class="offer-driver-text">
+          <h4>Rachel Perry</h4>
+          <p>⭐ 4.9 • SWB Van • Expert tier</p>
+        </div>
+      </div>
+      <div class="offer-prices">
+        <div class="offer-your-price">Your price: £48</div>
+        <div class="offer-their-price">£55</div>
+      </div>
+    </div>
+    <div class="offer-actions">
+      <button class="offer-btn accept" onclick="alert('✅ Offer accepted at £55')">Accept</button>
+      <button class="offer-btn counter" onclick="alert('Counter back\nRound 2 of 3')">Counter</button>
+      <button class="offer-btn decline" onclick="alert('Offer declined')">Decline</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="actions-section fade-in s6">
+  <div class="sec-header">
+    <div class="sec-title">Quick Actions</div>
+  </div>
+  <div class="actions-grid">
+    <div class="action-btn" onclick="alert('Post Job')">
+      <div class="action-icon green">➕</div>
+      <div class="action-label">Post Job</div>
+    </div>
+    <div class="action-btn" onclick="alert('Track Deliveries')">
+      <div class="action-icon blue">📍</div>
+      <div class="action-label">Track</div>
+    </div>
+    <div class="action-btn" onclick="alert('Payments & Wallet')">
+      <div class="action-icon purple">💳</div>
+      <div class="action-label">Payments</div>
+    </div>
+    <div class="action-btn" onclick="alert('All Jobs')">
+      <div class="action-icon green">📋</div>
+      <div class="action-label">All Jobs</div>
+    </div>
+    <div class="action-btn" onclick="alert('Fleet Management')">
+      <div class="action-icon blue">🚛</div>
+      <div class="action-label">Fleet</div>
+    </div>
+    <div class="action-btn" onclick="alert('Business Analytics')">
+      <div class="action-icon amber">📊</div>
+      <div class="action-label">Analytics</div>
+    </div>
+    <div class="action-btn" onclick="alert('Job Templates')">
+      <div class="action-icon amber">📋</div>
+      <div class="action-label">Templates</div>
+    </div>
+    <div class="action-btn" onclick="alert('Multi-Stop Builder')">
+      <div class="action-icon blue">📍</div>
+      <div class="action-label">Multi-Stop</div>
+    </div>
+    <div class="action-btn" onclick="alert('Bulk Book CSV')">
+      <div class="action-icon green">📤</div>
+      <div class="action-label">Bulk Book</div>
+    </div>
+  </div>
+
+  <button class="more-btn" id="moreBtn" onclick="toggleMore()">
+    <span id="moreIcon">▼</span> More Tools <span style="opacity:0.5">(12)</span>
+  </button>
+  <div class="more-panel" id="morePanel">
+    <div class="tools-cat-label">Manage</div>
+    <div class="actions-grid">
+      <div class="action-btn" onclick="alert('Recurring Jobs')"><div class="action-icon blue">🔁</div><div class="action-label">Recurring</div></div>
+      <div class="action-btn" onclick="alert('Rate Calculator')"><div class="action-icon amber">🧮</div><div class="action-label">Quote</div></div>
+      <div class="action-btn" onclick="alert('Disputes')"><div class="action-icon red">⚖️</div><div class="action-label">Disputes</div></div>
+    </div>
+    <div class="tools-cat-label">Advanced</div>
+    <div class="actions-grid">
+      <div class="action-btn" onclick="alert('Admin Dashboard')"><div class="action-icon purple">🏛️</div><div class="action-label">Admin</div></div>
+      <div class="action-btn" onclick="alert('White-Label Portal')"><div class="action-icon amber">🏷</div><div class="action-label">White-Label</div></div>
+      <div class="action-btn" onclick="alert('Live Map')"><div class="action-icon blue">📍</div><div class="action-label">Live Map</div></div>
+    </div>
+    <div class="tools-cat-label">More</div>
+    <div class="actions-grid">
+      <div class="action-btn" onclick="alert('Refer — £25')"><div class="action-icon green">🎁</div><div class="action-label">Refer</div></div>
+      <div class="action-btn" onclick="alert('Compliance')"><div class="action-icon green">🏅</div><div class="action-label">Compliance</div></div>
+      <div class="action-btn" onclick="alert('Settings')"><div class="action-icon purple">⚙️</div><div class="action-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT INVOICES -->
+<div class="invoices-section fade-in s7">
+  <div class="sec-header">
+    <div class="sec-title">Recent Invoices</div>
+    <div class="sec-link" onclick="alert('View all invoices')">See All →</div>
+  </div>
+
+  <div class="invoice-row" onclick="alert('Invoice #1087 — Paid')">
+    <div class="invoice-icon paid">✅</div>
+    <div class="invoice-info">
+      <div class="invoice-title">INV-1087 • Leeds → London</div>
+      <div class="invoice-meta">James M. • Paid 28 Feb • Instant</div>
+    </div>
+    <div class="invoice-amount paid">£185</div>
+  </div>
+
+  <div class="invoice-row" onclick="alert('Invoice #1086 — Pending')">
+    <div class="invoice-icon pending">⏳</div>
+    <div class="invoice-info">
+      <div class="invoice-title">INV-1086 • Manchester → Liverpool</div>
+      <div class="invoice-meta">Sarah K. • Due 7 Mar • 7-day terms</div>
+    </div>
+    <div class="invoice-amount pending">£68</div>
+  </div>
+
+  <div class="invoice-row" onclick="alert('Invoice #1082 — Paid')">
+    <div class="invoice-icon paid">✅</div>
+    <div class="invoice-info">
+      <div class="invoice-title">INV-1082 • Leeds → Sheffield</div>
+      <div class="invoice-meta">Dave P. • Paid 25 Feb • Instant</div>
+    </div>
+    <div class="invoice-amount paid">£52</div>
+  </div>
+
+  <div class="invoice-row" onclick="alert('Invoice #1079 — Overdue!')">
+    <div class="invoice-icon overdue">⚠️</div>
+    <div class="invoice-info">
+      <div class="invoice-title">INV-1079 • Leeds → Birmingham</div>
+      <div class="invoice-meta">Tom W. • Due 20 Feb • OVERDUE</div>
+    </div>
+    <div class="invoice-amount overdue">£95</div>
+  </div>
+</div>
+
+<!-- COMMISSION TRACKER -->
+<div class="commission-section fade-in s7">
+  <div class="commission-card">
+    <div class="comm-header">
+      <div class="comm-title">📊 Commission This Month</div>
+      <div class="comm-badge">4% rate</div>
+    </div>
+    <div class="comm-bar-wrap">
+      <div class="comm-bar-fill" style="width:38%"></div>
+    </div>
+    <div class="comm-row">
+      <div class="comm-label">£114 paid of £300 cap</div>
+      <div class="comm-value">£186 left</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active">
+    <span class="n-icon">🏠</span>
+    <span class="n-label">Home</span>
+  </button>
+  <button class="nav-item" onclick="alert('All Jobs')">
+    <span class="n-icon">📋</span>
+    <span class="n-label">Jobs</span>
+  </button>
+  <button class="nav-fab" onclick="alert('Post a New Job')">+</button>
+  <button class="nav-item" onclick="alert('Payments')">
+    <span class="n-icon">💳</span>
+    <span class="n-label">Payments</span>
+  </button>
+  <button class="nav-item" onclick="alert('Settings')">
+    <span class="n-icon">⚙️</span>
+    <span class="n-label">Settings</span>
+  </button>
+</nav>
+
+<script>
+function toggleMore() {
+  const p = document.getElementById('morePanel');
+  const i = document.getElementById('moreIcon');
+  const open = p.classList.contains('open');
+  p.classList.toggle('open');
+  i.textContent = open ? '▼' : '▲';
+}
+</script>
+
+</body>
+</html>

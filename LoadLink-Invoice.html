@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px}
+*{margin:0;padding:0;box-sizing:border-box}html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+.header{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:14px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--ll-white)}
+.h-actions{display:flex;gap:6px}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+/* View Toggle */
+.view-toggle{display:flex;gap:4px;margin:16px 20px 0;background:var(--ll-card);border-radius:var(--radius-md);padding:3px;border:1px solid var(--ll-border)}
+.view-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--ll-muted);border-radius:var(--radius-sm);cursor:pointer;background:none;border:none;font-family:var(--font-body);transition:all 0.2s}
+.view-tab.active{background:var(--ll-green);color:var(--ll-black);font-weight:700}
+
+/* Panels */
+.panel{display:none;padding:16px 20px 40px}
+.panel.active{display:block}
+
+/* Invoice Document */
+.invoice-doc{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);overflow:hidden;margin-bottom:16px}
+.inv-header-bar{padding:20px;background:linear-gradient(135deg,#132a15 0%,#0f2318 100%);border-bottom:1px solid rgba(34,197,94,0.15)}
+.inv-header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.inv-logo{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--ll-green)}
+.inv-number{text-align:right}
+.inv-num-label{font-size:10px;color:var(--ll-muted);text-transform:uppercase;letter-spacing:1px}
+.inv-num-val{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.inv-status-badge{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:700;margin-top:4px}
+.inv-status-badge.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.inv-status-badge.approved{background:var(--ll-green-glow);color:var(--ll-green)}
+.inv-status-badge.disputed{background:var(--ll-red-soft);color:var(--ll-red)}
+.inv-status-badge.paid{background:var(--ll-green-glow);color:var(--ll-green)}
+
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.inv-party-label{font-size:9px;color:var(--ll-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.inv-party-name{font-size:13px;font-weight:700;color:var(--ll-white)}
+.inv-party-detail{font-size:11px;color:var(--ll-muted);line-height:1.6}
+
+/* Invoice Body */
+.inv-body{padding:20px}
+.inv-section{margin-bottom:18px}
+.inv-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ll-muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--ll-border)}
+
+/* Route Summary */
+.inv-route{display:flex;gap:12px;align-items:stretch}
+.inv-route-dots{display:flex;flex-direction:column;align-items:center;padding:3px 0}
+.inv-r-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.inv-r-dot.from{background:var(--ll-green)}.inv-r-dot.to{background:var(--ll-red)}
+.inv-r-line{width:2px;flex:1;min-height:20px;background:var(--ll-border);margin:2px 0}
+.inv-route-info{flex:1}
+.inv-route-city{font-size:14px;font-weight:700;color:var(--ll-white)}
+.inv-route-addr{font-size:11px;color:var(--ll-muted)}
+.inv-route-time{font-size:10px;color:var(--ll-green);font-weight:600;margin-top:1px}
+
+/* Line Items */
+.inv-table{width:100%;border-collapse:collapse}
+.inv-table th{text-align:left;font-size:10px;font-weight:700;color:var(--ll-muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 0;border-bottom:1px solid var(--ll-border)}
+.inv-table th:last-child{text-align:right}
+.inv-table td{padding:10px 0;font-size:13px;color:var(--ll-text);border-bottom:1px solid rgba(255,255,255,0.03)}
+.inv-table td:last-child{text-align:right;font-weight:700;font-family:var(--font-display)}
+.inv-table tr.total td{border-top:2px solid var(--ll-border);border-bottom:none;font-weight:800;color:var(--ll-white);padding-top:14px}
+.inv-table tr.total td:last-child{font-size:20px;color:var(--ll-green)}
+
+/* POD Evidence */
+.inv-pod{display:flex;gap:8px;flex-wrap:wrap}
+.inv-pod-item{width:60px;height:60px;border-radius:var(--radius-sm);background:var(--ll-card-hover);border:1px solid var(--ll-border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.2s}
+.inv-pod-item:hover{border-color:var(--ll-green);transform:scale(1.05)}
+.inv-pod-sig{padding:8px 14px;background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-md);font-size:12px;color:var(--ll-green);font-weight:600;display:flex;align-items:center;gap:6px}
+
+/* Escrow */
+.inv-escrow{background:linear-gradient(135deg,#132a15,#0a1f14);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-lg);padding:16px}
+.inv-escrow-title{font-size:13px;font-weight:700;color:var(--ll-white);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.inv-escrow-row{display:flex;justify-content:space-between;padding:5px 0}
+.inv-escrow-label{font-size:12px;color:var(--ll-muted)}
+.inv-escrow-val{font-size:12px;font-weight:700;color:var(--ll-text)}
+.inv-escrow-val.green{color:var(--ll-green)}
+.inv-escrow-val.total{font-family:var(--font-display);font-size:18px;font-weight:900;color:var(--ll-green)}
+
+/* Actions */
+.inv-actions{display:flex;gap:8px;margin-top:4px}
+.inv-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s;text-align:center}
+.inv-btn.green{background:var(--ll-green);color:var(--ll-black)}
+.inv-btn.green:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3);transform:translateY(-1px)}
+.inv-btn.red{background:var(--ll-red-soft);color:var(--ll-red);border:1px solid rgba(239,68,68,0.2)}
+.inv-btn.red:hover{border-color:var(--ll-red)}
+.inv-btn.outline{background:var(--ll-card);color:var(--ll-text);border:1px solid var(--ll-border)}
+.inv-btn.outline:hover{border-color:var(--ll-muted)}
+.inv-btn.blue{background:var(--ll-blue);color:#fff}
+
+/* Invoice List */
+.inv-list-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);margin-bottom:8px;cursor:pointer;transition:all 0.2s}
+.inv-list-item:hover{border-color:rgba(34,197,94,0.3)}
+.inv-list-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.inv-list-icon.paid{background:var(--ll-green-soft)}
+.inv-list-icon.pending{background:var(--ll-amber-soft)}
+.inv-list-icon.disputed{background:var(--ll-red-soft)}
+.inv-list-info{flex:1;min-width:0}
+.inv-list-title{font-size:13px;font-weight:700;color:var(--ll-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-list-meta{font-size:11px;color:var(--ll-muted);margin-top:2px;display:flex;align-items:center;gap:6px}
+.inv-list-badge{padding:2px 8px;border-radius:4px;font-size:9px;font-weight:800}
+.inv-list-badge.paid{background:var(--ll-green-soft);color:var(--ll-green)}
+.inv-list-badge.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.inv-list-badge.disputed{background:var(--ll-red-soft);color:var(--ll-red)}
+.inv-list-amount{font-family:var(--font-display);font-size:18px;font-weight:800;flex-shrink:0}
+.inv-list-amount.green{color:var(--ll-green)}
+.inv-list-amount.amber{color:var(--ll-amber)}
+.inv-list-amount.red{color:var(--ll-red)}
+
+/* Dispute Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{width:100%;max-width:480px;background:var(--ll-dark);border-top:1px solid var(--ll-border);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:24px;animation:slideUp 0.3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--ll-border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--ll-white);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--ll-muted);margin-bottom:16px}
+.dispute-option{padding:14px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px}
+.dispute-option:hover{border-color:var(--ll-amber)}
+.dispute-option.selected{border-color:var(--ll-amber);background:var(--ll-amber-soft)}
+.dispute-icon{font-size:20px}
+.dispute-text h4{font-size:13px;font-weight:700;color:var(--ll-white)}
+.dispute-text p{font-size:11px;color:var(--ll-muted);margin-top:1px}
+.dispute-msg{width:100%;padding:12px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:13px;font-family:var(--font-body);outline:none;resize:none;height:80px;margin-top:12px;transition:border-color 0.3s}
+.dispute-msg:focus{border-color:var(--ll-amber)}
+.dispute-msg::placeholder{color:#4a5568}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-btn{flex:1;padding:14px;border-radius:var(--radius-md);font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s}
+.modal-btn.amber{background:var(--ll-amber);color:var(--ll-black)}
+.modal-btn.cancel{background:var(--ll-card);color:var(--ll-muted);border:1px solid var(--ll-border)}
+
+/* Success overlay */
+.success-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,15,26,0.95);z-index:300;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:40px}
+.success-overlay.show{display:flex}
+.success-ring{width:80px;height:80px;border-radius:50%;background:var(--ll-green-glow);border:3px solid var(--ll-green);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;animation:scaleIn 0.4s ease both}
+@keyframes scaleIn{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--ll-white);margin-bottom:6px}
+.success-text{font-size:14px;color:var(--ll-muted);line-height:1.7;max-width:300px;margin-bottom:24px}
+.success-btn{padding:14px 32px;border-radius:var(--radius-md);font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;background:var(--ll-green);color:var(--ll-black)}
+
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="alert('Back')">← Back</button>
+    <h1 class="header-title">Invoice</h1>
+    <div class="h-actions">
+      <div class="h-btn" onclick="alert('Download PDF')">📄</div>
+      <div class="h-btn" onclick="alert('Share invoice')">🔗</div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW TOGGLE -->
+<div class="view-toggle fade-in">
+  <button class="view-tab active" onclick="switchView(this,'current')">Current Invoice</button>
+  <button class="view-tab" onclick="switchView(this,'history')">Invoice History</button>
+</div>
+
+<!-- ============================================
+     CURRENT INVOICE VIEW
+     ============================================ -->
+<div class="panel active" id="currentPanel">
+  <div class="invoice-doc fade-in s1">
+    <!-- Invoice Header -->
+    <div class="inv-header-bar">
+      <div class="inv-header-top">
+        <div>
+          <div class="inv-logo">LoadLink</div>
+          <div style="font-size:11px;color:var(--ll-muted);margin-top:2px">Escrow-Protected Invoice</div>
+        </div>
+        <div class="inv-number">
+          <div class="inv-num-label">Invoice</div>
+          <div class="inv-num-val">INV-1087</div>
+          <div class="inv-status-badge pending" id="invStatusBadge">⏳ Pending Approval</div>
+        </div>
+      </div>
+      <div class="inv-parties">
+        <div>
+          <div class="inv-party-label">From (Driver)</div>
+          <div class="inv-party-name">James Mitchell</div>
+          <div class="inv-party-detail">Self-employed courier<br>UTR: 12345 67890<br>Leeds, LS1</div>
+        </div>
+        <div>
+          <div class="inv-party-label">To (Business)</div>
+          <div class="inv-party-name">Yorkshire Print Ltd</div>
+          <div class="inv-party-detail">Company #12345678<br>Unit 4 Riverside<br>Leeds LS1 4AP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Body -->
+    <div class="inv-body">
+      <!-- Route -->
+      <div class="inv-section">
+        <div class="inv-section-title">Route</div>
+        <div class="inv-route">
+          <div class="inv-route-dots">
+            <div class="inv-r-dot from"></div>
+            <div class="inv-r-line"></div>
+            <div class="inv-r-dot to"></div>
+          </div>
+          <div class="inv-route-info">
+            <div style="margin-bottom:10px">
+              <div class="inv-route-city">Leeds LS1 4AP</div>
+              <div class="inv-route-addr">Yorkshire Print, Unit 4 Riverside</div>
+              <div class="inv-route-time">Collected: 4 Mar, 08:45</div>
+            </div>
+            <div>
+              <div class="inv-route-city">London EC1 2AD</div>
+              <div class="inv-route-addr">TechHub, 42 Old Street</div>
+              <div class="inv-route-time">Delivered: 4 Mar, 14:28</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="inv-section">
+        <div class="inv-section-title">Charges</div>
+        <table class="inv-table">
+          <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+          <tbody>
+            <tr><td>Delivery: Leeds → London (195 mi)</td><td>£170.00</td></tr>
+            <tr><td>Vehicle: LWB Van</td><td>included</td></tr>
+            <tr><td>Waiting time (8 min)</td><td>£0.00</td></tr>
+            <tr><td>POD Surcharge</td><td>£5.00</td></tr>
+            <tr><td>Cargo: 3 pallets (100-500kg)</td><td>£10.00</td></tr>
+            <tr class="total"><td>Total Due</td><td>£185.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- POD Evidence -->
+      <div class="inv-section">
+        <div class="inv-section-title">Proof of Delivery</div>
+        <div class="inv-pod">
+          <div class="inv-pod-item" onclick="alert('Collection photo 1')">📷</div>
+          <div class="inv-pod-item" onclick="alert('Collection photo 2')">📷</div>
+          <div class="inv-pod-item" onclick="alert('Delivery photo 1')">📷</div>
+          <div class="inv-pod-item" onclick="alert('Delivery photo 2')">📷</div>
+          <div class="inv-pod-sig">✍️ Signed: Sarah Chen</div>
+        </div>
+      </div>
+
+      <!-- Dates -->
+      <div class="inv-section">
+        <div class="inv-section-title">Dates</div>
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <div><span style="color:var(--ll-muted)">Issued:</span> <span style="color:var(--ll-text);font-weight:600">4 Mar 2026</span></div>
+          <div><span style="color:var(--ll-muted)">Terms:</span> <span style="color:var(--ll-green);font-weight:700">⚡ Instant</span></div>
+        </div>
+      </div>
+
+      <!-- Escrow Status -->
+      <div class="inv-escrow">
+        <div class="inv-escrow-title">🛡️ Escrow Status</div>
+        <div class="inv-escrow-row">
+          <span class="inv-escrow-label">Job Price</span>
+          <span class="inv-escrow-val">£185.00</span>
+        </div>
+        <div class="inv-escrow-row">
+          <span class="inv-escrow-label">Commission (4%)</span>
+          <span class="inv-escrow-val">-£7.40</span>
+        </div>
+        <div class="inv-escrow-row">
+          <span class="inv-escrow-label">Driver Receives</span>
+          <span class="inv-escrow-val total">£177.60</span>
+        </div>
+        <div class="inv-escrow-row">
+          <span class="inv-escrow-label">Escrow Held</span>
+          <span class="inv-escrow-val green">£192.40 locked</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUSINESS ACTIONS (approve/dispute) -->
+  <div id="businessActions" class="fade-in s2">
+    <div style="font-size:12px;color:var(--ll-muted);text-align:center;margin-bottom:10px">You're viewing as: <strong style="color:var(--ll-white)">Yorkshire Print (Business)</strong></div>
+    <div class="inv-actions">
+      <button class="inv-btn green" onclick="approveInvoice()">✅ Approve & Pay</button>
+      <button class="inv-btn red" onclick="openDispute()">⚠️ Dispute</button>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--ll-muted)">Approving releases £177.60 to the driver instantly</div>
+  </div>
+
+  <!-- DRIVER VIEW (would show "Awaiting approval") -->
+  <div id="driverWaiting" style="display:none" class="fade-in">
+    <div style="padding:18px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">⏳</div>
+      <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white);margin-bottom:4px">Awaiting Business Approval</div>
+      <div style="font-size:12px;color:var(--ll-muted);line-height:1.6">Yorkshire Print will review your invoice. Payment terms: Instant — you'll be paid as soon as they approve.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     INVOICE HISTORY
+     ============================================ -->
+<div class="panel" id="historyPanel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ll-white)">All Invoices</div>
+    <div style="font-size:12px;color:var(--ll-green);font-weight:600;cursor:pointer" onclick="alert('Export all invoices as CSV')">Export ↗</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1087 — Pending approval')">
+    <div class="inv-list-icon pending">⏳</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1087 • Leeds → London</div>
+      <div class="inv-list-meta">4 Mar • Yorkshire Print <span class="inv-list-badge pending">PENDING</span></div>
+    </div>
+    <div class="inv-list-amount amber">£185</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1085 — Paid')">
+    <div class="inv-list-icon paid">✅</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1085 • Leeds → Sheffield</div>
+      <div class="inv-list-meta">3 Mar • FastShip Ltd <span class="inv-list-badge paid">PAID</span></div>
+    </div>
+    <div class="inv-list-amount green">£52</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1082 — Paid')">
+    <div class="inv-list-icon paid">✅</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1082 • Leeds → Birmingham</div>
+      <div class="inv-list-meta">1 Mar • BuildRight <span class="inv-list-badge paid">PAID</span></div>
+    </div>
+    <div class="inv-list-amount green">£287</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1078 — Paid')">
+    <div class="inv-list-icon paid">✅</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1078 • London → Bristol</div>
+      <div class="inv-list-meta">27 Feb • TechFlow <span class="inv-list-badge paid">PAID</span></div>
+    </div>
+    <div class="inv-list-amount green">£155</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1072 — Disputed')">
+    <div class="inv-list-icon disputed">⚠️</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1072 • Leeds → Newcastle</div>
+      <div class="inv-list-meta">22 Feb • QuickParts <span class="inv-list-badge disputed">DISPUTED</span></div>
+    </div>
+    <div class="inv-list-amount red">£94</div>
+  </div>
+
+  <div class="inv-list-item" onclick="alert('INV-1068 — Paid')">
+    <div class="inv-list-icon paid">✅</div>
+    <div class="inv-list-info">
+      <div class="inv-list-title">INV-1068 • Manchester → Liverpool</div>
+      <div class="inv-list-meta">19 Feb • MoveIt <span class="inv-list-badge paid">PAID</span></div>
+    </div>
+    <div class="inv-list-amount green">£68</div>
+  </div>
+
+  <div style="padding:20px;text-align:center">
+    <div style="font-size:12px;color:var(--ll-muted)">Total earned this month: <strong style="color:var(--ll-green);font-family:var(--font-display)">£847</strong></div>
+  </div>
+</div>
+
+<!-- DISPUTE MODAL -->
+<div class="modal-overlay" id="disputeModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Raise a Dispute</div>
+    <div class="modal-sub">Select the reason for disputing INV-1087</div>
+
+    <div class="dispute-option" onclick="selectDispute(this)">
+      <div class="dispute-icon">📦</div>
+      <div class="dispute-text"><h4>Goods Damaged</h4><p>Items arrived damaged or broken</p></div>
+    </div>
+    <div class="dispute-option" onclick="selectDispute(this)">
+      <div class="dispute-icon">📍</div>
+      <div class="dispute-text"><h4>Wrong Delivery</h4><p>Delivered to incorrect location</p></div>
+    </div>
+    <div class="dispute-option" onclick="selectDispute(this)">
+      <div class="dispute-icon">📦</div>
+      <div class="dispute-text"><h4>Missing Items</h4><p>Not all items were delivered</p></div>
+    </div>
+    <div class="dispute-option" onclick="selectDispute(this)">
+      <div class="dispute-icon">⏰</div>
+      <div class="dispute-text"><h4>Late Delivery</h4><p>Delivered outside agreed timeframe</p></div>
+    </div>
+    <div class="dispute-option" onclick="selectDispute(this)">
+      <div class="dispute-icon">💰</div>
+      <div class="dispute-text"><h4>Incorrect Amount</h4><p>Invoice amount doesn't match agreement</p></div>
+    </div>
+
+    <textarea class="dispute-msg" placeholder="Add details about the dispute..."></textarea>
+
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeDispute()">Cancel</button>
+      <button class="modal-btn amber" onclick="submitDispute()">Submit Dispute</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-ring">✓</div>
+  <div class="success-title" id="successTitle">Invoice Approved!</div>
+  <div class="success-text" id="successText">£177.60 has been released from escrow and sent to James Mitchell's wallet instantly.</div>
+  <button class="success-btn" onclick="document.getElementById('successOverlay').classList.remove('show')">Done</button>
+</div>
+
+<script>
+function switchView(el, view) {
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(view === 'current' ? 'currentPanel' : 'historyPanel').classList.add('active');
+}
+
+function approveInvoice() {
+  if (!confirm('Approve INV-1087?\n\n£177.60 will be released to the driver.\n£7.40 commission to LoadLink.\n\nThis action cannot be undone.')) return;
+  document.getElementById('successTitle').textContent = 'Invoice Approved!';
+  document.getElementById('successText').textContent = '£177.60 has been released from escrow and sent to James Mitchell\'s wallet instantly.';
+  document.getElementById('successOverlay').classList.add('show');
+  document.getElementById('invStatusBadge').className = 'inv-status-badge approved';
+  document.getElementById('invStatusBadge').innerHTML = '✅ Approved & Paid';
+  document.getElementById('businessActions').style.display = 'none';
+}
+
+function openDispute() {
+  document.getElementById('disputeModal').classList.add('open');
+}
+
+function closeDispute() {
+  document.getElementById('disputeModal').classList.remove('open');
+}
+
+function selectDispute(el) {
+  document.querySelectorAll('.dispute-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function submitDispute() {
+  closeDispute();
+  document.getElementById('successTitle').textContent = 'Dispute Submitted';
+  document.getElementById('successText').textContent = 'Your dispute has been logged. Escrow funds are frozen until resolution. LoadLink will review within 48 hours.';
+  document.getElementById('successOverlay').classList.add('show');
+  document.getElementById('invStatusBadge').className = 'inv-status-badge disputed';
+  document.getElementById('invStatusBadge').innerHTML = '⚠️ Disputed';
+  document.getElementById('businessActions').style.display = 'none';
+}
+
+document.getElementById('disputeModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDispute();
+});
+</script>
+
+</body>
+</html>

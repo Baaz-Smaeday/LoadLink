@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Wallet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root{--ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;--ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;--ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);--ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);--ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;--ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);--font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px;--bottom-nav-h:72px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden;padding-bottom:var(--bottom-nav-h)}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+
+/* Balance Card */
+.balance-card{margin:16px 20px 0;background:linear-gradient(135deg,#0d2818 0%,#0a1f14 40%,#0f2420 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:28px 24px;position:relative;overflow:hidden}
+.balance-card::before{content:'';position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(34,197,94,0.08) 0%,transparent 70%);top:-80px;right:-80px;border-radius:50%}
+.balance-card::after{content:'';position:absolute;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 70%);bottom:-60px;left:-40px;border-radius:50%}
+.balance-label{font-size:12px;color:var(--ll-muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;position:relative;z-index:1}
+.balance-amount{font-family:var(--font-display);font-size:52px;font-weight:900;color:var(--ll-white);letter-spacing:-3px;line-height:1;margin:8px 0;position:relative;z-index:1}
+.balance-change{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--ll-green-glow);border-radius:var(--radius-full);font-size:11px;font-weight:700;color:var(--ll-green);margin-bottom:20px;position:relative;z-index:1}
+.balance-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:1}
+.balance-stat{background:rgba(255,255,255,0.05);border-radius:var(--radius-md);padding:12px 10px;text-align:center;backdrop-filter:blur(4px)}
+.balance-stat-val{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white)}
+.balance-stat-val.amber{color:var(--ll-amber)}
+.balance-stat-val.blue{color:var(--ll-blue)}
+.balance-stat-label{font-size:9px;color:var(--ll-muted);margin-top:2px;font-weight:500}
+
+/* Action Buttons */
+.wallet-actions{display:flex;gap:8px;margin:16px 20px 0}
+.wallet-btn{flex:1;padding:14px;border-radius:var(--radius-lg);font-size:14px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.wallet-btn.withdraw{background:var(--ll-green);color:var(--ll-black)}
+.wallet-btn.withdraw:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3);transform:translateY(-1px)}
+.wallet-btn.topup{background:var(--ll-card);color:var(--ll-text);border:1px solid var(--ll-border)}
+.wallet-btn.topup:hover{border-color:var(--ll-muted)}
+
+/* Period Tabs */
+.period-tabs{display:flex;gap:4px;margin:20px 20px 0;background:var(--ll-card);border-radius:var(--radius-md);padding:3px;border:1px solid var(--ll-border)}
+.period-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:600;color:var(--ll-muted);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;background:none;border:none;font-family:var(--font-body)}
+.period-tab.active{background:var(--ll-green);color:var(--ll-black);font-weight:700}
+.period-tab:not(.active):hover{color:var(--ll-text)}
+
+/* Earnings Chart */
+.chart-section{padding:16px 20px 0}
+.chart-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white);margin-bottom:12px}
+.chart-container{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:12px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+.chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;transition:height 0.6s ease;position:relative;min-height:4px}
+.chart-bar.green{background:linear-gradient(180deg,var(--ll-green),var(--ll-green-dim))}
+.chart-bar.muted{background:var(--ll-border)}
+.chart-bar.current{background:linear-gradient(180deg,#4ade80,var(--ll-green));box-shadow:0 0 12px var(--ll-green-glow)}
+.chart-bar-label{font-size:9px;color:var(--ll-muted);font-weight:600}
+.chart-bar-val{font-size:9px;color:var(--ll-text);font-weight:700;position:absolute;top:-16px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.chart-summary{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--ll-border)}
+.chart-stat{text-align:center}
+.chart-stat-val{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--ll-white)}
+.chart-stat-label{font-size:10px;color:var(--ll-muted);margin-top:1px}
+
+/* Escrow Overview */
+.escrow-section{padding:0 20px}
+.escrow-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:12px}
+.escrow-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.escrow-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white);display:flex;align-items:center;gap:8px}
+.escrow-total{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--ll-green)}
+.escrow-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.escrow-item:last-child{border-bottom:none}
+.escrow-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.escrow-dot.locked{background:var(--ll-green);box-shadow:0 0 8px var(--ll-green-glow)}
+.escrow-dot.pending{background:var(--ll-amber);box-shadow:0 0 8px var(--ll-amber-soft)}
+.escrow-dot.releasing{background:var(--ll-blue);box-shadow:0 0 8px var(--ll-blue-soft)}
+.escrow-info{flex:1;min-width:0}
+.escrow-job{font-size:13px;font-weight:600;color:var(--ll-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.escrow-meta{font-size:10px;color:var(--ll-muted);margin-top:1px}
+.escrow-amount{font-family:var(--font-display);font-size:16px;font-weight:800;flex-shrink:0}
+.escrow-amount.green{color:var(--ll-green)}
+.escrow-amount.amber{color:var(--ll-amber)}
+.escrow-amount.blue{color:var(--ll-blue)}
+
+/* Commission Tracker */
+.commission-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin:0 20px 12px}
+.comm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.comm-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white)}
+.comm-badge{font-size:10px;font-weight:700;color:var(--ll-green);background:var(--ll-green-soft);padding:3px 10px;border-radius:var(--radius-full)}
+.comm-bar-wrap{height:10px;background:var(--ll-border);border-radius:5px;overflow:hidden;margin-bottom:8px;position:relative}
+.comm-bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--ll-green-dim),var(--ll-green));transition:width 1s ease}
+.comm-bar-cap{position:absolute;right:0;top:0;height:100%;width:2px;background:var(--ll-white)}
+.comm-details{display:flex;justify-content:space-between}
+.comm-label{font-size:12px;color:var(--ll-muted)}
+.comm-val{font-size:13px;font-weight:700;color:var(--ll-green)}
+.comm-explainer{font-size:11px;color:var(--ll-muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--ll-border);line-height:1.6}
+
+/* Transactions */
+.tx-section{padding:0 20px}
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sec-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white)}
+.sec-link{font-size:12px;color:var(--ll-green);font-weight:600;cursor:pointer}
+.tx-filters{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px}
+.tx-filters::-webkit-scrollbar{display:none}
+.tx-filter{padding:6px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;border:1px solid var(--ll-border);background:var(--ll-card);color:var(--ll-muted);cursor:pointer;font-family:var(--font-body);white-space:nowrap;transition:all 0.2s}
+.tx-filter.active{background:var(--ll-green);border-color:var(--ll-green);color:var(--ll-black);font-weight:700}
+
+/* Transaction Items */
+.tx-list{margin-bottom:20px}
+.tx-day{font-size:11px;font-weight:700;color:var(--ll-muted);text-transform:uppercase;letter-spacing:1px;padding:8px 0 6px}
+.tx-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);margin-bottom:6px;cursor:pointer;transition:all 0.2s}
+.tx-item:hover{border-color:rgba(34,197,94,0.3)}
+.tx-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tx-icon.income{background:var(--ll-green-soft)}
+.tx-icon.escrow{background:var(--ll-blue-soft)}
+.tx-icon.withdraw{background:var(--ll-purple-soft)}
+.tx-icon.commission{background:var(--ll-amber-soft)}
+.tx-icon.refund{background:var(--ll-red-soft)}
+.tx-info{flex:1;min-width:0}
+.tx-title{font-size:13px;font-weight:600;color:var(--ll-white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:10px;color:var(--ll-muted);margin-top:1px;display:flex;align-items:center;gap:6px}
+.tx-badge{padding:1px 6px;border-radius:4px;font-size:8px;font-weight:800}
+.tx-badge.instant{background:var(--ll-green-soft);color:var(--ll-green)}
+.tx-badge.terms{background:var(--ll-blue-soft);color:var(--ll-blue)}
+.tx-badge.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.tx-amount{text-align:right;flex-shrink:0}
+.tx-amount-val{font-family:var(--font-display);font-size:16px;font-weight:800}
+.tx-amount-val.plus{color:var(--ll-green)}
+.tx-amount-val.minus{color:var(--ll-red)}
+.tx-amount-val.neutral{color:var(--ll-blue)}
+.tx-amount-val.pending{color:var(--ll-amber)}
+.tx-amount-status{font-size:9px;color:var(--ll-muted);margin-top:1px}
+
+/* Withdraw Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{width:100%;max-width:480px;background:var(--ll-dark);border-top:1px solid var(--ll-border);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:24px;animation:slideUp 0.3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--ll-border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--ll-white);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--ll-muted);margin-bottom:20px}
+.modal-balance{text-align:center;padding:20px;background:var(--ll-card);border-radius:var(--radius-lg);margin-bottom:20px;border:1px solid var(--ll-border)}
+.modal-balance-label{font-size:11px;color:var(--ll-muted);font-weight:600}
+.modal-balance-val{font-family:var(--font-display);font-size:36px;font-weight:900;color:var(--ll-green);margin:4px 0}
+.modal-balance-sub{font-size:11px;color:var(--ll-muted)}
+.modal-input-group{margin-bottom:16px}
+.modal-input-label{display:block;font-size:13px;font-weight:600;color:var(--ll-text);margin-bottom:6px}
+.modal-input{width:100%;padding:16px;background:var(--ll-card);border:2px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:28px;font-weight:800;font-family:var(--font-display);text-align:center;outline:none;transition:border-color 0.3s;letter-spacing:-1px}
+.modal-input:focus{border-color:var(--ll-green)}
+.quick-amounts{display:flex;gap:6px;margin-top:8px}
+.quick-amt{flex:1;padding:8px;border-radius:var(--radius-sm);background:var(--ll-card);border:1px solid var(--ll-border);color:var(--ll-muted);font-size:12px;font-weight:700;text-align:center;cursor:pointer;font-family:var(--font-body);transition:all 0.2s}
+.quick-amt:hover{border-color:var(--ll-green);color:var(--ll-green);background:var(--ll-green-soft)}
+.modal-bank{display:flex;align-items:center;gap:12px;padding:14px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);margin-bottom:20px}
+.bank-icon{width:40px;height:40px;border-radius:10px;background:var(--ll-blue-soft);display:flex;align-items:center;justify-content:center;font-size:20px}
+.bank-info{flex:1}
+.bank-name{font-size:13px;font-weight:700;color:var(--ll-white)}
+.bank-details{font-size:11px;color:var(--ll-muted)}
+.bank-change{font-size:11px;color:var(--ll-green);font-weight:600;cursor:pointer}
+.modal-actions{display:flex;gap:8px}
+.modal-btn{flex:1;padding:16px;border-radius:var(--radius-md);font-size:15px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s;text-align:center}
+.modal-btn.primary{background:var(--ll-green);color:var(--ll-black)}
+.modal-btn.primary:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3)}
+.modal-btn.secondary{background:var(--ll-card);color:var(--ll-muted);border:1px solid var(--ll-border)}
+.modal-fee{text-align:center;font-size:11px;color:var(--ll-muted);margin-top:10px}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:var(--bottom-nav-h);background:rgba(17,24,39,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--ll-border);display:flex;align-items:center;justify-content:space-around;padding:0 8px;padding-bottom:env(safe-area-inset-bottom,0);z-index:100}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;cursor:pointer;border-radius:var(--radius-md);min-width:56px;position:relative;background:none;border:none;font-family:var(--font-body)}
+.nav-item.active .n-icon{color:var(--ll-green)}.nav-item.active .n-label{color:var(--ll-green)}
+.nav-item.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:2px;background:var(--ll-green);border-radius:2px}
+.n-icon{font-size:22px;color:var(--ll-muted)}.n-label{font-size:10px;font-weight:600;color:var(--ll-muted)}
+.nav-fab{width:52px;height:52px;border-radius:50%;background:var(--ll-green);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ll-black);cursor:pointer;border:none;box-shadow:0 4px 20px rgba(34,197,94,0.35);margin-top:-20px;transition:all 0.3s}
+
+/* Animations */
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}.s4{animation-delay:.2s}.s5{animation-delay:.25s}.s6{animation-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="alert('Back to Dashboard')">← Back</button>
+    <h1 class="header-title">Wallet</h1>
+    <div class="h-btn" onclick="alert('Transaction settings')">⚙️</div>
+  </div>
+</div>
+
+<!-- BALANCE CARD -->
+<div class="balance-card fade-in">
+  <div class="balance-label">Available Balance</div>
+  <div class="balance-amount">£2,847</div>
+  <div class="balance-change">↑ £312 this week</div>
+  <div class="balance-grid">
+    <div class="balance-stat">
+      <div class="balance-stat-val amber">£592</div>
+      <div class="balance-stat-label">In Escrow</div>
+    </div>
+    <div class="balance-stat">
+      <div class="balance-stat-val blue">£142</div>
+      <div class="balance-stat-label">Pending</div>
+    </div>
+    <div class="balance-stat">
+      <div class="balance-stat-val">£3,581</div>
+      <div class="balance-stat-label">Total Value</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="wallet-actions fade-in s1">
+  <button class="wallet-btn withdraw" onclick="openWithdraw()">💷 Withdraw</button>
+  <button class="wallet-btn topup" onclick="alert('Top up wallet\n\nCard ending 4829\nEnter amount to add')">➕ Top Up</button>
+</div>
+
+<!-- PERIOD TABS -->
+<div class="period-tabs fade-in s2">
+  <button class="period-tab active" onclick="setPeriod(this)">Week</button>
+  <button class="period-tab" onclick="setPeriod(this)">Month</button>
+  <button class="period-tab" onclick="setPeriod(this)">Year</button>
+  <button class="period-tab" onclick="setPeriod(this)">All</button>
+</div>
+
+<!-- EARNINGS CHART -->
+<div class="chart-section fade-in s2">
+  <div class="chart-title">Earnings This Week</div>
+  <div class="chart-container">
+    <div class="chart-bars">
+      <div class="chart-bar-col">
+        <div class="chart-bar green" style="height:60%"><span class="chart-bar-val">£105</span></div>
+        <span class="chart-bar-label">Mon</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar green" style="height:85%"><span class="chart-bar-val">£148</span></div>
+        <span class="chart-bar-label">Tue</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar green" style="height:50%"><span class="chart-bar-val">£87</span></div>
+        <span class="chart-bar-label">Wed</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar green" style="height:95%"><span class="chart-bar-val">£165</span></div>
+        <span class="chart-bar-label">Thu</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar current" style="height:75%"><span class="chart-bar-val">£130</span></div>
+        <span class="chart-bar-label">Fri</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar muted" style="height:40%"><span class="chart-bar-val">£72</span></div>
+        <span class="chart-bar-label">Sat</span>
+      </div>
+      <div class="chart-bar-col">
+        <div class="chart-bar muted" style="height:20%"><span class="chart-bar-val">£40</span></div>
+        <span class="chart-bar-label">Sun</span>
+      </div>
+    </div>
+    <div class="chart-summary">
+      <div class="chart-stat">
+        <div class="chart-stat-val">£847</div>
+        <div class="chart-stat-label">Total Earned</div>
+      </div>
+      <div class="chart-stat">
+        <div class="chart-stat-val">12</div>
+        <div class="chart-stat-label">Jobs Done</div>
+      </div>
+      <div class="chart-stat">
+        <div class="chart-stat-val">£1.74</div>
+        <div class="chart-stat-label">Per Mile</div>
+      </div>
+      <div class="chart-stat">
+        <div class="chart-stat-val">486</div>
+        <div class="chart-stat-label">Miles</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ESCROW OVERVIEW -->
+<div class="escrow-section fade-in s3">
+  <div class="escrow-card">
+    <div class="escrow-header">
+      <div class="escrow-title">🛡️ Escrow Holdings</div>
+      <div class="escrow-total">£592</div>
+    </div>
+
+    <div class="escrow-item">
+      <div class="escrow-dot locked"></div>
+      <div class="escrow-info">
+        <div class="escrow-job">Leeds → London • LL-1087</div>
+        <div class="escrow-meta">In transit • ETA 14:32 • Instant pay</div>
+      </div>
+      <div class="escrow-amount green">£185</div>
+    </div>
+
+    <div class="escrow-item">
+      <div class="escrow-dot locked"></div>
+      <div class="escrow-info">
+        <div class="escrow-job">Manchester → Liverpool • LL-1089</div>
+        <div class="escrow-meta">Collecting • Locked today • 7-day terms</div>
+      </div>
+      <div class="escrow-amount green">£68</div>
+    </div>
+
+    <div class="escrow-item">
+      <div class="escrow-dot releasing"></div>
+      <div class="escrow-info">
+        <div class="escrow-job">Leeds → Sheffield • LL-1085</div>
+        <div class="escrow-meta">Delivered • Invoice pending approval</div>
+      </div>
+      <div class="escrow-amount blue">£52</div>
+    </div>
+
+    <div class="escrow-item">
+      <div class="escrow-dot pending"></div>
+      <div class="escrow-info">
+        <div class="escrow-job">Leeds → Birmingham • LL-1082</div>
+        <div class="escrow-meta">Completed • 7-day terms • Due 7 Mar</div>
+      </div>
+      <div class="escrow-amount amber">£287</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMISSION TRACKER -->
+<div class="commission-card fade-in s4">
+  <div class="comm-header">
+    <div class="comm-title">📊 Commission Cap</div>
+    <div class="comm-badge">4% per job</div>
+  </div>
+  <div class="comm-bar-wrap">
+    <div class="comm-bar-fill" style="width:43%"></div>
+    <div class="comm-bar-cap"></div>
+  </div>
+  <div class="comm-details">
+    <div class="comm-label">£86 paid this month</div>
+    <div class="comm-val">£114 until FREE</div>
+  </div>
+  <div class="comm-explainer">
+    Your commission is capped at <strong style="color:var(--ll-white)">£200/month</strong>. Once you hit the cap, every job for the rest of the month is <strong style="color:var(--ll-green)">commission-free</strong>. You're 43% there.
+  </div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="tx-section fade-in s5">
+  <div class="sec-header">
+    <div class="sec-title">Transactions</div>
+    <div class="sec-link" onclick="alert('Export CSV / PDF')">Export ↗</div>
+  </div>
+
+  <div class="tx-filters">
+    <button class="tx-filter active" onclick="setTxFilter(this)">All</button>
+    <button class="tx-filter" onclick="setTxFilter(this)">💰 Income</button>
+    <button class="tx-filter" onclick="setTxFilter(this)">🛡️ Escrow</button>
+    <button class="tx-filter" onclick="setTxFilter(this)">💷 Withdrawals</button>
+    <button class="tx-filter" onclick="setTxFilter(this)">📊 Commission</button>
+  </div>
+
+  <div class="tx-list">
+    <div class="tx-day">Today — 4 March</div>
+
+    <div class="tx-item" onclick="alert('Job LL-1087\nLeeds → London\n£185 — In transit\nEscrow locked, instant pay on completion')">
+      <div class="tx-icon escrow">🛡️</div>
+      <div class="tx-info">
+        <div class="tx-title">Escrow Locked — Leeds → London</div>
+        <div class="tx-meta">LL-1087 • In transit <span class="tx-badge instant">INSTANT</span></div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val neutral">£185</div>
+        <div class="tx-amount-status">Locked</div>
+      </div>
+    </div>
+
+    <div class="tx-item" onclick="alert('Commission charge\n4% of £185 = £7.40')">
+      <div class="tx-icon commission">📊</div>
+      <div class="tx-info">
+        <div class="tx-title">Commission — LL-1087</div>
+        <div class="tx-meta">4% of £185</div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val minus">-£7.40</div>
+        <div class="tx-amount-status">Charged</div>
+      </div>
+    </div>
+
+    <div class="tx-day">Yesterday — 3 March</div>
+
+    <div class="tx-item" onclick="alert('Payment received\nLeeds → Sheffield\n£52 — Instant pay')">
+      <div class="tx-icon income">💰</div>
+      <div class="tx-info">
+        <div class="tx-title">Payment — Leeds → Sheffield</div>
+        <div class="tx-meta">LL-1085 • Completed <span class="tx-badge instant">INSTANT</span></div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val plus">+£52</div>
+        <div class="tx-amount-status">Received</div>
+      </div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon commission">📊</div>
+      <div class="tx-info">
+        <div class="tx-title">Commission — LL-1085</div>
+        <div class="tx-meta">4% of £52</div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val minus">-£2.08</div>
+        <div class="tx-amount-status">Charged</div>
+      </div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon withdraw">💷</div>
+      <div class="tx-info">
+        <div class="tx-title">Withdrawal to Bank</div>
+        <div class="tx-meta">Monzo ••4829 • Processed</div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val minus">-£500</div>
+        <div class="tx-amount-status">Sent</div>
+      </div>
+    </div>
+
+    <div class="tx-day">1 March</div>
+
+    <div class="tx-item">
+      <div class="tx-icon income">💰</div>
+      <div class="tx-info">
+        <div class="tx-title">Payment — Leeds → Birmingham</div>
+        <div class="tx-meta">LL-1082 <span class="tx-badge terms">7-DAY</span></div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val pending">£287</div>
+        <div class="tx-amount-status">Due 7 Mar</div>
+      </div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon income">💰</div>
+      <div class="tx-info">
+        <div class="tx-title">Payment — London → Bristol</div>
+        <div class="tx-meta">LL-1078 • Completed <span class="tx-badge instant">INSTANT</span></div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val plus">+£155</div>
+        <div class="tx-amount-status">Received</div>
+      </div>
+    </div>
+
+    <div class="tx-item">
+      <div class="tx-icon refund">↩️</div>
+      <div class="tx-info">
+        <div class="tx-title">Cancellation Refund — LL-1076</div>
+        <div class="tx-meta">Business cancelled • 40% compensation</div>
+      </div>
+      <div class="tx-amount">
+        <div class="tx-amount-val plus">+£38</div>
+        <div class="tx-amount-status">Refunded</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WITHDRAW MODAL -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Withdraw Funds</div>
+    <div class="modal-sub">Transfer to your bank account</div>
+
+    <div class="modal-balance">
+      <div class="modal-balance-label">Available to Withdraw</div>
+      <div class="modal-balance-val">£2,847</div>
+      <div class="modal-balance-sub">Escrow funds (£592) not available until released</div>
+    </div>
+
+    <div class="modal-input-group">
+      <label class="modal-input-label">Amount (£)</label>
+      <input type="number" class="modal-input" placeholder="0" id="withdrawAmount">
+      <div class="quick-amounts">
+        <button class="quick-amt" onclick="document.getElementById('withdrawAmount').value='100'">£100</button>
+        <button class="quick-amt" onclick="document.getElementById('withdrawAmount').value='500'">£500</button>
+        <button class="quick-amt" onclick="document.getElementById('withdrawAmount').value='1000'">£1,000</button>
+        <button class="quick-amt" onclick="document.getElementById('withdrawAmount').value='2847'">All</button>
+      </div>
+    </div>
+
+    <div class="modal-bank">
+      <div class="bank-icon">🏦</div>
+      <div class="bank-info">
+        <div class="bank-name">Monzo Current Account</div>
+        <div class="bank-details">Sort: 04-00-04 • Acc: ••••4829</div>
+      </div>
+      <div class="bank-change" onclick="alert('Change bank account')">Change</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeWithdraw()">Cancel</button>
+      <button class="modal-btn primary" onclick="confirmWithdraw()">Withdraw →</button>
+    </div>
+    <div class="modal-fee">Free instant transfers • Arrives within 2 hours</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item" onclick="alert('Home')"><span class="n-icon">🏠</span><span class="n-label">Home</span></button>
+  <button class="nav-item" onclick="alert('Jobs')"><span class="n-icon">📦</span><span class="n-label">Jobs</span></button>
+  <button class="nav-fab" onclick="alert('Swipe Jobs')">⚡</button>
+  <button class="nav-item active"><span class="n-icon">💰</span><span class="n-label">Wallet</span></button>
+  <button class="nav-item" onclick="alert('Profile')"><span class="n-icon">👤</span><span class="n-label">Profile</span></button>
+</nav>
+
+<script>
+function setPeriod(el) {
+  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function setTxFilter(el) {
+  document.querySelectorAll('.tx-filter').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openWithdraw() {
+  document.getElementById('withdrawModal').classList.add('open');
+}
+
+function closeWithdraw() {
+  document.getElementById('withdrawModal').classList.remove('open');
+}
+
+function confirmWithdraw() {
+  const amt = document.getElementById('withdrawAmount').value;
+  if (!amt || amt <= 0) return;
+  if (amt > 2847) { alert('Insufficient balance'); return; }
+  closeWithdraw();
+  alert('✅ Withdrawal Initiated\n\n£' + amt + ' → Monzo ••4829\n\nExpected arrival: Within 2 hours\nNo fees charged.');
+}
+
+document.getElementById('withdrawModal').addEventListener('click', function(e) {
+  if (e.target === this) closeWithdraw();
+});
+</script>
+
+</body>
+</html>

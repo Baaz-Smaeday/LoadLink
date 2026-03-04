@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Post a Job</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;
+  --ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;
+  --ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);
+  --ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);
+  --ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;
+  --ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:16px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-white);letter-spacing:-0.3px}
+.header-step{font-size:12px;color:var(--ll-muted);font-weight:600}
+
+/* Progress Bar */
+.progress-bar{display:flex;gap:4px;padding:12px 20px 0}
+.prog-seg{flex:1;height:4px;border-radius:2px;background:var(--ll-border);transition:background 0.4s}
+.prog-seg.done{background:var(--ll-green)}
+.prog-seg.current{background:linear-gradient(90deg,var(--ll-green),var(--ll-blue))}
+
+/* Steps Container */
+.step{display:none;padding:20px;animation:fadeIn 0.4s ease both}
+.step.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* Section Label */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--ll-green);margin-bottom:6px}
+.sec-title{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--ll-white);letter-spacing:-0.5px;margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--ll-muted);margin-bottom:24px;line-height:1.6}
+
+/* Form */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--ll-text);margin-bottom:6px}
+.form-label .opt{font-weight:400;color:var(--ll-muted);font-size:11px}
+.form-input{width:100%;padding:14px 16px;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:15px;font-family:var(--font-body);outline:none;transition:all 0.3s}
+.form-input:focus{border-color:var(--ll-green);box-shadow:0 0 0 3px var(--ll-green-glow)}
+.form-input::placeholder{color:#4a5568}
+select.form-input{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea.form-input{resize:none;height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-hint{font-size:11px;color:var(--ll-muted);margin-top:4px}
+
+/* Location Cards */
+.loc-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;position:relative}
+.loc-card.from{border-left:3px solid var(--ll-green)}
+.loc-card.to{border-left:3px solid var(--ll-red)}
+.loc-dot{font-size:10px;position:absolute;top:16px;left:-8px}
+.loc-title{font-size:12px;font-weight:700;color:var(--ll-green);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.loc-card.to .loc-title{color:var(--ll-red)}
+
+/* Vehicle Selector Grid */
+.vehicle-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.vehicle-card{padding:14px 8px;background:var(--ll-card);border:2px solid var(--ll-border);border-radius:var(--radius-lg);cursor:pointer;transition:all 0.25s;text-align:center}
+.vehicle-card:hover{border-color:var(--ll-muted);background:var(--ll-card-hover)}
+.vehicle-card.selected{border-color:var(--ll-green);background:var(--ll-green-soft)}
+.vehicle-icon{font-size:28px;margin-bottom:6px}
+.vehicle-name{font-size:11px;font-weight:700;color:var(--ll-white)}
+.vehicle-cap{font-size:9px;color:var(--ll-muted);margin-top:2px}
+
+/* Pricing Type */
+.pricing-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.pricing-card{padding:20px 14px;background:var(--ll-card);border:2px solid var(--ll-border);border-radius:var(--radius-xl);cursor:pointer;transition:all 0.3s;text-align:center;position:relative}
+.pricing-card:hover{border-color:var(--ll-muted)}
+.pricing-card.selected{border-color:var(--ll-green);background:var(--ll-green-soft)}
+.pricing-card.selected.quote{border-color:var(--ll-blue);background:var(--ll-blue-soft)}
+.pricing-emoji{font-size:36px;margin-bottom:10px}
+.pricing-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--ll-white);margin-bottom:4px}
+.pricing-desc{font-size:11px;color:var(--ll-muted);line-height:1.5}
+.pricing-card .check-mark{display:none;position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:var(--ll-green);color:var(--ll-black);font-size:12px;font-weight:800;align-items:center;justify-content:center}
+.pricing-card.selected .check-mark{display:flex}
+.pricing-card.selected.quote .check-mark{background:var(--ll-blue)}
+
+/* Suggested Price */
+.suggested-price{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.suggested-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.suggested-label{font-size:12px;font-weight:600;color:var(--ll-muted)}
+.suggested-badge{font-size:10px;font-weight:700;color:var(--ll-green);background:var(--ll-green-soft);padding:3px 10px;border-radius:var(--radius-full)}
+.suggested-value{font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--ll-green);letter-spacing:-1px}
+.suggested-breakdown{font-size:11px;color:var(--ll-muted);margin-top:4px}
+.use-suggested{display:block;width:100%;padding:10px;margin-top:10px;background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-md);color:var(--ll-green);font-size:13px;font-weight:700;font-family:var(--font-body);cursor:pointer;transition:all 0.2s;text-align:center}
+.use-suggested:hover{background:var(--ll-green-glow);border-color:var(--ll-green)}
+
+/* Requirements Chips */
+.req-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.req-chip{padding:8px 14px;border-radius:var(--radius-full);font-size:12px;font-weight:600;border:1px solid var(--ll-border);background:var(--ll-card);color:var(--ll-muted);cursor:pointer;transition:all 0.2s;font-family:var(--font-body);display:flex;align-items:center;gap:4px}
+.req-chip:hover{border-color:var(--ll-muted);color:var(--ll-text)}
+.req-chip.on{border-color:var(--ll-green);background:var(--ll-green-soft);color:var(--ll-green)}
+
+/* Date/Time */
+.datetime-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input[type="date"].form-input,input[type="time"].form-input{color-scheme:dark}
+
+/* Escrow Summary */
+.escrow-summary{background:linear-gradient(135deg,#132a15 0%,#0f2318 100%);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:20px;margin-bottom:16px}
+.escrow-title{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--ll-white);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.escrow-sub{font-size:12px;color:var(--ll-muted);margin-bottom:16px;line-height:1.6}
+.escrow-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+.escrow-row:last-child{border-bottom:none;padding-top:12px}
+.escrow-label{font-size:13px;color:var(--ll-muted)}
+.escrow-val{font-size:13px;font-weight:700;color:var(--ll-text)}
+.escrow-val.total{font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--ll-green)}
+.escrow-val.green{color:var(--ll-green)}
+
+/* Review Card */
+.review-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:12px}
+.review-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.review-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.review-icon.green{background:var(--ll-green-soft)}
+.review-icon.blue{background:var(--ll-blue-soft)}
+.review-icon.amber{background:var(--ll-amber-soft)}
+.review-icon.purple{background:var(--ll-purple-soft)}
+.review-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white)}
+.review-row{display:flex;justify-content:space-between;padding:6px 0}
+.review-label{font-size:12px;color:var(--ll-muted)}
+.review-val{font-size:12px;font-weight:600;color:var(--ll-text)}
+
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-top:20px;padding-bottom:40px}
+.btn{flex:1;padding:16px;border-radius:var(--radius-md);font-size:15px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s;text-align:center}
+.btn-primary{background:var(--ll-green);color:var(--ll-black)}
+.btn-primary:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3);transform:translateY(-1px)}
+.btn-secondary{background:var(--ll-card);color:var(--ll-muted);border:1px solid var(--ll-border)}
+.btn-secondary:hover{border-color:var(--ll-muted);color:var(--ll-text)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* Success */
+.success-screen{display:none;text-align:center;padding:60px 20px;animation:fadeIn 0.6s ease both}
+.success-ring{width:80px;height:80px;border-radius:50%;background:var(--ll-green-glow);border:3px solid var(--ll-green);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 20px;animation:scaleIn 0.4s ease 0.2s both}
+@keyframes scaleIn{from{transform:scale(0)}to{transform:scale(1)}}
+.success-title{font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--ll-white);margin-bottom:8px}
+.success-text{font-size:14px;color:var(--ll-muted);line-height:1.7;margin-bottom:28px;max-width:320px;margin-left:auto;margin-right:auto}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="goBack()">← Back</button>
+    <h1 class="header-title">Post a Job</h1>
+    <span class="header-step" id="stepLabel">Step 1 of 4</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-bar">
+  <div class="prog-seg done" id="prog1"></div>
+  <div class="prog-seg" id="prog2"></div>
+  <div class="prog-seg" id="prog3"></div>
+  <div class="prog-seg" id="prog4"></div>
+</div>
+
+<!-- ============================================
+     STEP 1: ROUTE
+     ============================================ -->
+<div class="step active" id="step1">
+  <div class="sec-label">Step 1</div>
+  <div class="sec-title">Where's it going?</div>
+  <div class="sec-sub">Set your pickup and delivery locations</div>
+
+  <div class="loc-card from">
+    <div class="loc-title">📍 Pickup Location</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <input type="text" class="form-input" placeholder="Business name or address" id="pickupAddr" value="Yorkshire Print, Unit 4 Riverside, Leeds">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0">
+        <input type="text" class="form-input" placeholder="Postcode" id="pickupPost" value="LS1 4AP">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <input type="text" class="form-input" placeholder="Contact name" id="pickupContact" value="Mike Thomas">
+      </div>
+    </div>
+  </div>
+
+  <div class="loc-card to">
+    <div class="loc-title">🏁 Delivery Location</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <input type="text" class="form-input" placeholder="Delivery address" id="deliveryAddr">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0">
+        <input type="text" class="form-input" placeholder="Postcode" id="deliveryPost">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <input type="text" class="form-input" placeholder="Contact name" id="deliveryContact">
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Collection Date & Time</label>
+    <div class="datetime-row">
+      <input type="date" class="form-input" id="pickupDate">
+      <input type="time" class="form-input" id="pickupTime" value="09:00">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Delivery Deadline <span class="opt">(optional)</span></label>
+    <div class="datetime-row">
+      <input type="date" class="form-input" id="delivDate">
+      <input type="time" class="form-input" id="delivTime" value="17:00">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goStep(2)">Next: Cargo Details →</button>
+  </div>
+</div>
+
+<!-- ============================================
+     STEP 2: CARGO & VEHICLE
+     ============================================ -->
+<div class="step" id="step2">
+  <div class="sec-label">Step 2</div>
+  <div class="sec-title">What's being moved?</div>
+  <div class="sec-sub">Tell drivers what to expect</div>
+
+  <div class="form-group">
+    <label class="form-label">Vehicle Required</label>
+  </div>
+  <div class="vehicle-grid">
+    <div class="vehicle-card" onclick="selectVehicle(this,'car')">
+      <div class="vehicle-icon">🚗</div>
+      <div class="vehicle-name">Car</div>
+      <div class="vehicle-cap">Small items</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'swb')">
+      <div class="vehicle-icon">🚐</div>
+      <div class="vehicle-name">SWB Van</div>
+      <div class="vehicle-cap">1-2 pallets</div>
+    </div>
+    <div class="vehicle-card selected" onclick="selectVehicle(this,'lwb')">
+      <div class="vehicle-icon">🚐</div>
+      <div class="vehicle-name">LWB Van</div>
+      <div class="vehicle-cap">3-4 pallets</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'xlwb')">
+      <div class="vehicle-icon">🚐</div>
+      <div class="vehicle-name">XLWB Van</div>
+      <div class="vehicle-cap">5-6 pallets</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'luton')">
+      <div class="vehicle-icon">🚛</div>
+      <div class="vehicle-name">Luton</div>
+      <div class="vehicle-cap">6-8 pallets</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'luton_tail')">
+      <div class="vehicle-icon">🚛</div>
+      <div class="vehicle-name">Luton + Tail</div>
+      <div class="vehicle-cap">Heavy loads</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'7_5t')">
+      <div class="vehicle-icon">🚚</div>
+      <div class="vehicle-name">7.5t</div>
+      <div class="vehicle-cap">10+ pallets</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'flatbed')">
+      <div class="vehicle-icon">🚚</div>
+      <div class="vehicle-name">Flatbed</div>
+      <div class="vehicle-cap">Oversized</div>
+    </div>
+    <div class="vehicle-card" onclick="selectVehicle(this,'fridge')">
+      <div class="vehicle-icon">🧊</div>
+      <div class="vehicle-name">Fridge</div>
+      <div class="vehicle-cap">Temp control</div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Cargo Description</label>
+    <textarea class="form-input" placeholder="e.g. 3 pallets of printed brochures, shrink-wrapped" id="cargoDesc">3 pallets of printed brochures, shrink-wrapped</textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Weight (approx)</label>
+      <select class="form-input" id="cargoWeight">
+        <option>Under 100kg</option>
+        <option selected>100-500kg</option>
+        <option>500kg-1 tonne</option>
+        <option>1-5 tonnes</option>
+        <option>5+ tonnes</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Quantity</label>
+      <input type="number" class="form-input" placeholder="e.g. 3" value="3" id="cargoQty">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Packaging Type</label>
+    <select class="form-input" id="packType">
+      <option>Pallets</option>
+      <option>Boxes</option>
+      <option>Crates</option>
+      <option>Bags</option>
+      <option>Loose items</option>
+      <option>Documents</option>
+      <option>Rolls</option>
+      <option>Drums</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Special Requirements</label>
+  </div>
+  <div class="req-grid">
+    <button class="req-chip" onclick="this.classList.toggle('on')">🧤 Fragile</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">📦 Tail Lift</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">🔒 High Value</button>
+    <button class="req-chip on" onclick="this.classList.toggle('on')">📄 POD Required</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">🧊 Temp Control</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">⚠️ Hazardous</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">👥 2-Man</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">📸 Photo Proof</button>
+    <button class="req-chip" onclick="this.classList.toggle('on')">🔐 DBS Check</button>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Additional Notes <span class="opt">(optional)</span></label>
+    <textarea class="form-input" placeholder="e.g. Loading bay access from rear, buzzer code #4521" id="notes"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+    <button class="btn btn-primary" onclick="goStep(3)">Next: Pricing →</button>
+  </div>
+</div>
+
+<!-- ============================================
+     STEP 3: PRICING
+     ============================================ -->
+<div class="step" id="step3">
+  <div class="sec-label">Step 3</div>
+  <div class="sec-title">Set your price</div>
+  <div class="sec-sub">Choose how you want to pay for this delivery</div>
+
+  <div class="pricing-options">
+    <div class="pricing-card selected" id="pricingFixed" onclick="selectPricing('fixed')">
+      <div class="check-mark">✓</div>
+      <div class="pricing-emoji">⚡</div>
+      <div class="pricing-title">Fixed Price</div>
+      <div class="pricing-desc">Set your price. Drivers accept or counter-offer.</div>
+    </div>
+    <div class="pricing-card" id="pricingQuote" onclick="selectPricing('quote')">
+      <div class="check-mark">✓</div>
+      <div class="pricing-emoji">💬</div>
+      <div class="pricing-title">Get Quotes</div>
+      <div class="pricing-desc">Drivers send their price. You choose the best.</div>
+    </div>
+  </div>
+
+  <!-- Suggested Price -->
+  <div class="suggested-price" id="suggestedBox">
+    <div class="suggested-top">
+      <div class="suggested-label">🤖 AI Suggested Price</div>
+      <div class="suggested-badge">Based on 847 similar jobs</div>
+    </div>
+    <div class="suggested-value">£142</div>
+    <div class="suggested-breakdown">195 miles × £0.73/mi base + vehicle + weight + urgency</div>
+    <button class="use-suggested" onclick="document.getElementById('priceInput').value='142'">Use Suggested Price</button>
+  </div>
+
+  <!-- Fixed Price Input -->
+  <div id="fixedPriceSection">
+    <div class="form-group">
+      <label class="form-label">Your Price (£)</label>
+      <input type="number" class="form-input" placeholder="Enter amount" id="priceInput" style="font-size:24px;font-weight:800;font-family:var(--font-display);text-align:center;letter-spacing:-1px">
+      <div class="form-hint">Drivers can accept instantly or send a counter-offer (up to 3 rounds)</div>
+    </div>
+  </div>
+
+  <!-- Quote Section (hidden by default) -->
+  <div id="quotePriceSection" style="display:none">
+    <div class="form-group">
+      <label class="form-label">Budget Range <span class="opt">(optional — helps drivers price fairly)</span></label>
+      <div class="form-row">
+        <input type="number" class="form-input" placeholder="£ Min" id="budgetMin">
+        <input type="number" class="form-input" placeholder="£ Max" id="budgetMax">
+      </div>
+      <div class="form-hint">Leave blank to receive open quotes from all interested drivers</div>
+    </div>
+  </div>
+
+  <!-- Payment Terms -->
+  <div class="form-group">
+    <label class="form-label">Payment Terms</label>
+  </div>
+  <div class="req-grid">
+    <button class="req-chip on" onclick="selectTerm(this)" data-term="instant">⚡ Instant</button>
+    <button class="req-chip" onclick="selectTerm(this)" data-term="7">📅 7 Days</button>
+    <button class="req-chip" onclick="selectTerm(this)" data-term="15">📅 15 Days</button>
+    <button class="req-chip" onclick="selectTerm(this)" data-term="30">📅 30 Days</button>
+  </div>
+  <div class="form-hint" style="margin-top:-8px;margin-bottom:16px">Instant pay attracts 23% more drivers and faster acceptance</div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+    <button class="btn btn-primary" onclick="goStep(4)">Next: Review →</button>
+  </div>
+</div>
+
+<!-- ============================================
+     STEP 4: REVIEW & POST
+     ============================================ -->
+<div class="step" id="step4">
+  <div class="sec-label">Step 4</div>
+  <div class="sec-title">Review & Post</div>
+  <div class="sec-sub">Check everything looks right before going live</div>
+
+  <!-- Route Review -->
+  <div class="review-card">
+    <div class="review-header">
+      <div class="review-icon green">📍</div>
+      <div class="review-title">Route</div>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Pickup</span>
+      <span class="review-val" id="revPickup">Yorkshire Print, Leeds LS1 4AP</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Delivery</span>
+      <span class="review-val" id="revDelivery">—</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Distance</span>
+      <span class="review-val" id="revDistance">~195 miles</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Collection</span>
+      <span class="review-val" id="revDate">Today, 09:00</span>
+    </div>
+  </div>
+
+  <!-- Cargo Review -->
+  <div class="review-card">
+    <div class="review-header">
+      <div class="review-icon blue">📦</div>
+      <div class="review-title">Cargo</div>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Vehicle</span>
+      <span class="review-val" id="revVehicle">LWB Van</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Description</span>
+      <span class="review-val" id="revCargo">3 pallets, brochures</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Weight</span>
+      <span class="review-val" id="revWeight">100-500kg</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Requirements</span>
+      <span class="review-val" id="revReqs">POD Required</span>
+    </div>
+  </div>
+
+  <!-- Pricing Review -->
+  <div class="review-card">
+    <div class="review-header">
+      <div class="review-icon amber">💰</div>
+      <div class="review-title">Pricing</div>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Type</span>
+      <span class="review-val" id="revType">Fixed Price</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Price</span>
+      <span class="review-val" id="revPrice" style="color:var(--ll-green);font-family:var(--font-display);font-size:16px">—</span>
+    </div>
+    <div class="review-row">
+      <span class="review-label">Payment Terms</span>
+      <span class="review-val" id="revTerms">Instant</span>
+    </div>
+  </div>
+
+  <!-- Escrow Summary -->
+  <div class="escrow-summary">
+    <div class="escrow-title">🛡️ Escrow Protection</div>
+    <div class="escrow-sub">Your payment is held securely in escrow until the job is completed and you approve the invoice.</div>
+    <div class="escrow-row">
+      <span class="escrow-label">Job Price</span>
+      <span class="escrow-val" id="escPrice">—</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Commission (4%)</span>
+      <span class="escrow-val" id="escComm">—</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Total to Escrow</span>
+      <span class="escrow-val total" id="escTotal">—</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Wallet Balance</span>
+      <span class="escrow-val green">£3,420</span>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+    <button class="btn btn-primary" onclick="postJob()" id="postBtn">🚀 Post Job — Go Live</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success-screen" id="successScreen">
+  <div class="success-ring">✓</div>
+  <div class="success-title">Job Posted!</div>
+  <div class="success-text">Your job is now live on the Load Board. Drivers in the area are being notified. You'll receive offers shortly.</div>
+  <div style="display:flex;gap:10px;max-width:320px;margin:0 auto">
+    <button class="btn btn-secondary" onclick="alert('Back to Dashboard')" style="flex:1">Dashboard</button>
+    <button class="btn btn-primary" onclick="alert('Track this job')" style="flex:1">Track Job →</button>
+  </div>
+  <div style="margin-top:20px;padding:16px;background:var(--ll-card);border-radius:var(--radius-lg);border:1px solid var(--ll-border);max-width:320px;margin-left:auto;margin-right:auto">
+    <div style="font-size:12px;color:var(--ll-muted);margin-bottom:4px">What happens next?</div>
+    <div style="font-size:13px;color:var(--ll-text);line-height:1.7">
+      ⚡ Drivers see your job instantly<br>
+      📩 You'll get notifications for offers<br>
+      🛡️ Escrow locks when a driver accepts<br>
+      📍 Track the delivery in real-time
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedVehicle = 'lwb';
+let selectedPricing = 'fixed';
+let selectedTerm = 'instant';
+
+function goStep(n) {
+  if (n === currentStep) return;
+  document.getElementById('step'+currentStep).classList.remove('active');
+  document.getElementById('step'+n).classList.add('active');
+  currentStep = n;
+  
+  document.getElementById('stepLabel').textContent = 'Step ' + n + ' of 4';
+  
+  for (let i = 1; i <= 4; i++) {
+    const seg = document.getElementById('prog'+i);
+    seg.className = 'prog-seg';
+    if (i < n) seg.classList.add('done');
+    if (i === n) seg.classList.add('current');
+  }
+  
+  if (n === 4) buildReview();
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (currentStep > 1) goStep(currentStep - 1);
+  else alert('Back to Dashboard');
+}
+
+function selectVehicle(el, type) {
+  document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedVehicle = type;
+}
+
+function selectPricing(type) {
+  selectedPricing = type;
+  document.getElementById('pricingFixed').classList.toggle('selected', type === 'fixed');
+  document.getElementById('pricingQuote').classList.toggle('selected', type === 'quote');
+  document.getElementById('pricingQuote').classList.toggle('quote', type === 'quote');
+  document.getElementById('fixedPriceSection').style.display = type === 'fixed' ? 'block' : 'none';
+  document.getElementById('quotePriceSection').style.display = type === 'quote' ? 'block' : 'none';
+  document.getElementById('suggestedBox').style.display = type === 'fixed' ? 'block' : 'none';
+}
+
+function selectTerm(el) {
+  document.querySelectorAll('.req-chip[data-term]').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  selectedTerm = el.dataset.term;
+}
+
+function buildReview() {
+  const addr = document.getElementById('deliveryAddr').value || 'Not set';
+  const post = document.getElementById('deliveryPost').value || '';
+  document.getElementById('revDelivery').textContent = addr + (post ? ', ' + post : '');
+  document.getElementById('revPickup').textContent = document.getElementById('pickupAddr').value + ', ' + document.getElementById('pickupPost').value;
+  
+  const vnames = {car:'Car',swb:'SWB Van',lwb:'LWB Van',xlwb:'XLWB Van',luton:'Luton',luton_tail:'Luton + Tail',['7_5t']:'7.5t Truck',flatbed:'Flatbed',fridge:'Fridge Van'};
+  document.getElementById('revVehicle').textContent = vnames[selectedVehicle] || selectedVehicle;
+  document.getElementById('revCargo').textContent = document.getElementById('cargoDesc').value || '—';
+  document.getElementById('revWeight').textContent = document.getElementById('cargoWeight').value;
+  
+  const reqs = [];
+  document.querySelectorAll('.req-chip.on:not([data-term])').forEach(c => reqs.push(c.textContent.trim()));
+  document.getElementById('revReqs').textContent = reqs.join(', ') || 'None';
+  
+  document.getElementById('revType').textContent = selectedPricing === 'fixed' ? 'Fixed Price' : 'Open for Quotes';
+  const terms = {instant:'Instant','7':'7 Days','15':'15 Days','30':'30 Days'};
+  document.getElementById('revTerms').textContent = terms[selectedTerm] || 'Instant';
+  
+  const price = parseFloat(document.getElementById('priceInput').value) || 0;
+  if (selectedPricing === 'fixed' && price > 0) {
+    document.getElementById('revPrice').textContent = '£' + price;
+    const comm = Math.round(price * 0.04 * 100) / 100;
+    const total = price + comm;
+    document.getElementById('escPrice').textContent = '£' + price.toFixed(2);
+    document.getElementById('escComm').textContent = '£' + comm.toFixed(2);
+    document.getElementById('escTotal').textContent = '£' + total.toFixed(2);
+  } else {
+    document.getElementById('revPrice').textContent = 'Awaiting quotes';
+    document.getElementById('escPrice').textContent = 'TBD';
+    document.getElementById('escComm').textContent = 'TBD';
+    document.getElementById('escTotal').textContent = 'Locked on acceptance';
+  }
+}
+
+function postJob() {
+  const btn = document.getElementById('postBtn');
+  btn.textContent = 'Posting...';
+  btn.disabled = true;
+  
+  setTimeout(() => {
+    document.getElementById('step4').classList.remove('active');
+    document.getElementById('successScreen').style.display = 'block';
+    document.getElementById('stepLabel').textContent = 'Complete';
+    for (let i = 1; i <= 4; i++) document.getElementById('prog'+i).className = 'prog-seg done';
+  }, 1500);
+}
+
+// Set today's date
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('pickupDate').value = today;
+document.getElementById('delivDate').value = today;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Driver Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black: #0a0f1a;
+  --ll-dark: #111827;
+  --ll-card: #1a2234;
+  --ll-card-hover: #1f2a3f;
+  --ll-border: #2a3650;
+  --ll-muted: #64748b;
+  --ll-text: #e2e8f0;
+  --ll-white: #f8fafc;
+  --ll-green: #22c55e;
+  --ll-green-dim: #16a34a;
+  --ll-green-glow: rgba(34, 197, 94, 0.15);
+  --ll-green-soft: rgba(34, 197, 94, 0.06);
+  --ll-amber: #f59e0b;
+  --ll-amber-soft: rgba(245, 158, 11, 0.1);
+  --ll-red: #ef4444;
+  --ll-red-soft: rgba(239, 68, 68, 0.1);
+  --ll-blue: #3b82f6;
+  --ll-blue-soft: rgba(59, 130, 246, 0.1);
+  --ll-purple: #8b5cf6;
+  --ll-purple-soft: rgba(139, 92, 246, 0.1);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 100px;
+  --bottom-nav-h: 72px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--ll-black);
+  color: var(--ll-text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: var(--bottom-nav-h);
+}
+
+/* Noise */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ============================================
+   TOP HEADER
+   ============================================ */
+.header {
+  padding: 16px 20px 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: linear-gradient(180deg, var(--ll-black) 80%, transparent);
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--ll-green), var(--ll-green-dim));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ll-black);
+  font-family: var(--font-display);
+}
+
+.header-info h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ll-white);
+  letter-spacing: -0.3px;
+}
+
+.header-info p {
+  font-size: 12px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--ll-border);
+  background: var(--ll-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.header-icon-btn:hover {
+  background: var(--ll-card-hover);
+  border-color: var(--ll-muted);
+}
+
+.notif-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--ll-red);
+  border-radius: 50%;
+  border: 2px solid var(--ll-card);
+}
+
+/* ============================================
+   GO LIVE TOGGLE
+   ============================================ */
+.go-live-bar {
+  margin: 16px 20px 0;
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.4s;
+  border: 1px solid;
+}
+
+.go-live-bar.offline {
+  background: var(--ll-card);
+  border-color: var(--ll-border);
+}
+
+.go-live-bar.online {
+  background: var(--ll-green-soft);
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+.go-live-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.live-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.offline .live-dot {
+  background: var(--ll-muted);
+}
+
+.online .live-dot {
+  background: var(--ll-green);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+}
+
+.live-label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.offline .live-label { color: var(--ll-muted); }
+.online .live-label { color: var(--ll-green); }
+
+.live-sub {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 1px;
+}
+
+/* Toggle switch */
+.toggle-track {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.offline .toggle-track { background: #374151; }
+.online .toggle-track { background: var(--ll-green); }
+
+.toggle-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 3px;
+  transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.offline .toggle-thumb { left: 3px; }
+.online .toggle-thumb { left: 23px; }
+
+/* ============================================
+   EARNINGS SUMMARY
+   ============================================ */
+.earnings-section {
+  padding: 20px 20px 0;
+}
+
+.earnings-card {
+  background: linear-gradient(135deg, #132a15 0%, #0f2318 50%, #0a1f2e 100%);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.earnings-card::before {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.08) 0%, transparent 70%);
+  top: -50px;
+  right: -50px;
+  border-radius: 50%;
+}
+
+.earnings-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.earnings-period {
+  font-size: 12px;
+  color: var(--ll-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.earnings-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--ll-green-glow);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ll-green);
+}
+
+.earnings-amount {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--ll-white);
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.earnings-sub {
+  font-size: 13px;
+  color: var(--ll-muted);
+  margin-bottom: 20px;
+}
+
+.earnings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.earnings-stat {
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-md);
+  padding: 12px 10px;
+  text-align: center;
+}
+
+.earnings-stat-value {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ll-white);
+}
+
+.earnings-stat-label {
+  font-size: 10px;
+  color: var(--ll-muted);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ============================================
+   ACTIVE JOB CARD
+   ============================================ */
+.active-job-section {
+  padding: 20px 20px 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ll-white);
+}
+
+.section-link {
+  font-size: 12px;
+  color: var(--ll-green);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.section-link:hover { opacity: 0.8; }
+
+.active-job-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.active-job-card:hover {
+  border-color: var(--ll-green);
+  transform: translateY(-1px);
+}
+
+.active-job-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ll-green), var(--ll-blue));
+}
+
+.job-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.job-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.job-status-badge.active {
+  background: var(--ll-green-glow);
+  color: var(--ll-green);
+}
+
+.job-status-badge .pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: livePulse 2s infinite;
+}
+
+.job-eta {
+  font-size: 12px;
+  color: var(--ll-amber);
+  font-weight: 700;
+}
+
+.job-route {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.job-route-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 2px 0;
+}
+
+.route-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+.route-dot.pickup { border-color: var(--ll-green); background: var(--ll-green-glow); }
+.route-dot.delivery { border-color: var(--ll-red); background: var(--ll-red-soft); }
+
+.route-line {
+  width: 2px;
+  flex: 1;
+  min-height: 24px;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--ll-border) 0px,
+    var(--ll-border) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+.job-route-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.route-point {
+  margin-bottom: 4px;
+}
+
+.route-city {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ll-white);
+}
+
+.route-address {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 1px;
+}
+
+.route-spacer {
+  flex: 1;
+  min-height: 8px;
+}
+
+.job-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.job-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 500;
+}
+
+.job-price {
+  margin-left: auto;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ll-green);
+}
+
+/* ============================================
+   PROGRESS TRACKER
+   ============================================ */
+.progress-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ll-border);
+}
+
+.progress-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.progress-step::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background: var(--ll-border);
+}
+
+.progress-step:last-child::before { display: none; }
+
+.progress-step.done::before { background: var(--ll-green); }
+.progress-step.current::before { 
+  background: linear-gradient(90deg, var(--ll-green) 50%, var(--ll-border) 50%);
+}
+
+.progress-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  margin: 0 auto 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-step.done .progress-dot {
+  background: var(--ll-green);
+  color: var(--ll-black);
+}
+
+.progress-step.current .progress-dot {
+  background: var(--ll-green-glow);
+  border: 2px solid var(--ll-green);
+  color: var(--ll-green);
+  animation: livePulse 2s infinite;
+}
+
+.progress-step.upcoming .progress-dot {
+  background: var(--ll-card);
+  border: 2px solid var(--ll-border);
+  color: var(--ll-muted);
+}
+
+.progress-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ll-muted);
+}
+
+.progress-step.done .progress-label { color: var(--ll-green); }
+.progress-step.current .progress-label { color: var(--ll-green); font-weight: 700; }
+
+/* ============================================
+   QUICK ACTIONS GRID
+   ============================================ */
+.quick-actions {
+  padding: 20px 20px 0;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 8px;
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  border-color: var(--ll-green);
+  background: var(--ll-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.action-icon.green { background: var(--ll-green-soft); }
+.action-icon.amber { background: var(--ll-amber-soft); }
+.action-icon.blue { background: var(--ll-blue-soft); }
+.action-icon.purple { background: var(--ll-purple-soft); }
+.action-icon.red { background: var(--ll-red-soft); }
+
+.action-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ll-text);
+  text-align: center;
+}
+
+/* More Tools */
+.more-tools-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed var(--ll-border);
+  border-radius: var(--radius-lg);
+  color: var(--ll-muted);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.more-tools-btn:hover {
+  border-color: var(--ll-muted);
+  color: var(--ll-text);
+  background: rgba(255,255,255,0.02);
+}
+
+/* More tools panel */
+.more-tools-panel {
+  display: none;
+  margin-top: 10px;
+}
+
+.more-tools-panel.open { display: block; }
+
+.tools-category {
+  margin-bottom: 14px;
+}
+
+.tools-category-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--ll-muted);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+/* ============================================
+   NEARBY JOBS PREVIEW
+   ============================================ */
+.nearby-section {
+  padding: 20px 20px 0;
+}
+
+.job-preview-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.job-preview-card:hover {
+  border-color: var(--ll-green);
+  transform: translateX(2px);
+}
+
+.job-preview-match {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.job-preview-match::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid;
+  border-color: inherit;
+}
+
+.match-high { color: var(--ll-green); border-color: var(--ll-green); background: var(--ll-green-soft); }
+.match-med { color: var(--ll-amber); border-color: var(--ll-amber); background: var(--ll-amber-soft); }
+
+.job-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.job-preview-route {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ll-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.job-preview-meta {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.job-preview-type {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.type-fixed { background: var(--ll-amber-soft); color: var(--ll-amber); }
+.type-quote { background: var(--ll-blue-soft); color: var(--ll-blue); }
+
+.job-preview-price {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ll-green);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TRUST & COMMISSION
+   ============================================ */
+.trust-section {
+  padding: 20px 20px;
+}
+
+.trust-card {
+  background: var(--ll-card);
+  border: 1px solid var(--ll-border);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+}
+
+.trust-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.trust-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--ll-amber);
+  border: 3px solid var(--ll-amber);
+  background: var(--ll-amber-soft);
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+
+.trust-info h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ll-white);
+}
+
+.trust-info p {
+  font-size: 11px;
+  color: var(--ll-muted);
+  margin-top: 2px;
+}
+
+.trust-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.trust-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--ll-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.trust-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--ll-amber), var(--ll-green));
+  transition: width 1s ease;
+}
+
+.trust-progress-label {
+  font-size: 11px;
+  color: var(--ll-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Commission cap */
+.commission-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-md);
+  margin-top: 12px;
+}
+
+.commission-label {
+  font-size: 11px;
+  color: var(--ll-muted);
+}
+
+.commission-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ll-green);
+}
+
+/* ============================================
+   BOTTOM NAVIGATION
+   ============================================ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  height: var(--bottom-nav-h);
+  background: rgba(17, 24, 39, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--ll-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: var(--radius-md);
+  min-width: 56px;
+  position: relative;
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.04); }
+
+.nav-item.active .nav-icon { color: var(--ll-green); }
+.nav-item.active .nav-label { color: var(--ll-green); }
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: var(--ll-green);
+  border-radius: 2px;
+}
+
+.nav-icon {
+  font-size: 22px;
+  color: var(--ll-muted);
+  transition: color 0.2s;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ll-muted);
+  transition: color 0.2s;
+}
+
+/* Center FAB */
+.nav-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ll-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--ll-black);
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+  margin-top: -20px;
+}
+
+.nav-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 28px rgba(34, 197, 94, 0.45);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+.fade-in {
+  animation: fadeIn 0.5s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header fade-in">
+  <div class="header-row">
+    <div class="header-left">
+      <div class="header-avatar">JM</div>
+      <div class="header-info">
+        <h1>Hey, James 👋</h1>
+        <p>LWB Sprinter • Leeds LS1</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-icon-btn" onclick="alert('Messages — 2 unread')">
+        💬
+        <span class="notif-dot"></span>
+      </div>
+      <div class="header-icon-btn" onclick="alert('Notifications')">
+        🔔
+        <span class="notif-dot"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GO LIVE TOGGLE -->
+<div class="go-live-bar online fade-in stagger-1" id="goLiveBar" onclick="toggleLive()">
+  <div class="go-live-left">
+    <div class="live-dot"></div>
+    <div>
+      <div class="live-label" id="liveLabel">You're Live</div>
+      <div class="live-sub" id="liveSub">Receiving jobs from nearby businesses</div>
+    </div>
+  </div>
+  <div class="toggle-track">
+    <div class="toggle-thumb"></div>
+  </div>
+</div>
+
+<!-- EARNINGS SUMMARY -->
+<div class="earnings-section fade-in stagger-2">
+  <div class="earnings-card">
+    <div class="earnings-top">
+      <div class="earnings-period">This Week</div>
+      <div class="earnings-badge">↑ 18% vs last week</div>
+    </div>
+    <div class="earnings-amount">£847</div>
+    <div class="earnings-sub">12 jobs completed • 486 miles driven</div>
+    <div class="earnings-grid">
+      <div class="earnings-stat">
+        <div class="earnings-stat-value">£1.74</div>
+        <div class="earnings-stat-label">Avg per mile</div>
+      </div>
+      <div class="earnings-stat">
+        <div class="earnings-stat-value">£70</div>
+        <div class="earnings-stat-label">Avg per job</div>
+      </div>
+      <div class="earnings-stat">
+        <div class="earnings-stat-value">£142</div>
+        <div class="earnings-stat-label">Pending</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE JOB -->
+<div class="active-job-section fade-in stagger-3">
+  <div class="section-header">
+    <div class="section-title">Active Job</div>
+    <div class="section-link" onclick="alert('Navigate to active job tracking')">View Details →</div>
+  </div>
+  <div class="active-job-card" onclick="alert('Opening job tracking...')">
+    <div class="job-status-row">
+      <div class="job-status-badge active">
+        <span class="pulse-dot"></span>
+        In Transit
+      </div>
+      <div class="job-eta">⏱ ETA 14:32</div>
+    </div>
+    <div class="job-route">
+      <div class="job-route-line">
+        <div class="route-dot pickup"></div>
+        <div class="route-line"></div>
+        <div class="route-dot delivery"></div>
+      </div>
+      <div class="job-route-details">
+        <div class="route-point">
+          <div class="route-city">Leeds LS1</div>
+          <div class="route-address">Yorkshire Print, Unit 4 Riverside</div>
+        </div>
+        <div class="route-spacer"></div>
+        <div class="route-point">
+          <div class="route-city">London EC1</div>
+          <div class="route-address">TechHub, 42 Old Street</div>
+        </div>
+      </div>
+    </div>
+    <div class="job-meta">
+      <span class="job-tag">🚐 LWB Van</span>
+      <span class="job-tag">📦 3 pallets</span>
+      <span class="job-tag">195 mi</span>
+      <span class="job-price">£185</span>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="progress-track">
+      <div class="progress-step done">
+        <div class="progress-dot">✓</div>
+        <div class="progress-label">Accepted</div>
+      </div>
+      <div class="progress-step done">
+        <div class="progress-dot">✓</div>
+        <div class="progress-label">Collected</div>
+      </div>
+      <div class="progress-step current">
+        <div class="progress-dot">3</div>
+        <div class="progress-label">In Transit</div>
+      </div>
+      <div class="progress-step upcoming">
+        <div class="progress-dot">4</div>
+        <div class="progress-label">Delivered</div>
+      </div>
+      <div class="progress-step upcoming">
+        <div class="progress-dot">5</div>
+        <div class="progress-label">Invoiced</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions fade-in stagger-4">
+  <div class="section-header">
+    <div class="section-title">Quick Actions</div>
+  </div>
+  <div class="actions-grid">
+    <div class="action-btn" onclick="alert('Load Board')">
+      <div class="action-icon green">📦</div>
+      <div class="action-label">Load Board</div>
+    </div>
+    <div class="action-btn" onclick="alert('My Jobs')">
+      <div class="action-icon blue">📋</div>
+      <div class="action-label">My Jobs</div>
+    </div>
+    <div class="action-btn" onclick="alert('Wallet')">
+      <div class="action-icon purple">💰</div>
+      <div class="action-label">Wallet</div>
+    </div>
+    <div class="action-btn" onclick="alert('Swipe Jobs')">
+      <div class="action-icon amber">👆</div>
+      <div class="action-label">Swipe</div>
+    </div>
+    <div class="action-btn" onclick="alert('Backload Matcher')">
+      <div class="action-icon purple">♻️</div>
+      <div class="action-label">Backloads</div>
+    </div>
+    <div class="action-btn" onclick="alert('Route Match')">
+      <div class="action-icon blue">🗺️</div>
+      <div class="action-label">Route Match</div>
+    </div>
+    <div class="action-btn" onclick="alert('Compliance & Documents')">
+      <div class="action-icon green">🛡️</div>
+      <div class="action-label">Compliance</div>
+    </div>
+    <div class="action-btn" onclick="alert('Calendar & Rate Card')">
+      <div class="action-icon amber">📅</div>
+      <div class="action-label">Calendar</div>
+    </div>
+    <div class="action-btn" onclick="alert('Earnings Breakdown')">
+      <div class="action-icon green">📊</div>
+      <div class="action-label">Earnings</div>
+    </div>
+  </div>
+
+  <!-- More Tools -->
+  <button class="more-tools-btn" id="moreBtn" onclick="toggleMore()">
+    <span id="moreIcon">▼</span> More Tools <span style="opacity:0.5">(24)</span>
+  </button>
+  <div class="more-tools-panel" id="morePanel">
+    <div class="tools-category">
+      <div class="tools-category-label">Money & Tax</div>
+      <div class="actions-grid">
+        <div class="action-btn" onclick="alert('HMRC Mileage')"><div class="action-icon green">🧾</div><div class="action-label">HMRC Miles</div></div>
+        <div class="action-btn" onclick="alert('Fuel Tracker')"><div class="action-icon amber">⛽</div><div class="action-label">Fuel</div></div>
+        <div class="action-btn" onclick="alert('Tax Summary')"><div class="action-icon blue">💷</div><div class="action-label">Tax</div></div>
+      </div>
+    </div>
+    <div class="tools-category">
+      <div class="tools-category-label">Vehicle & Compliance</div>
+      <div class="actions-grid">
+        <div class="action-btn" onclick="alert('Driver Hours')"><div class="action-icon blue">⏱</div><div class="action-label">Hours</div></div>
+        <div class="action-btn" onclick="alert('Maintenance Log')"><div class="action-icon red">🔧</div><div class="action-label">Maint.</div></div>
+        <div class="action-btn" onclick="alert('Insurance')"><div class="action-icon green">🛡</div><div class="action-label">Insurance</div></div>
+      </div>
+    </div>
+    <div class="tools-category">
+      <div class="tools-category-label">Job Tools</div>
+      <div class="actions-grid">
+        <div class="action-btn" onclick="alert('Live Auction')"><div class="action-icon amber">🔨</div><div class="action-label">Auction</div></div>
+        <div class="action-btn" onclick="alert('Rate Calculator')"><div class="action-icon blue">🧮</div><div class="action-label">Quote</div></div>
+        <div class="action-btn" onclick="alert('QR Code POD')"><div class="action-icon green">📱</div><div class="action-label">QR POD</div></div>
+      </div>
+    </div>
+    <div class="tools-category">
+      <div class="tools-category-label">Rewards & More</div>
+      <div class="actions-grid">
+        <div class="action-btn" onclick="alert('Leaderboard')"><div class="action-icon amber">🏆</div><div class="action-label">Leaderboard</div></div>
+        <div class="action-btn" onclick="alert('Rewards Store')"><div class="action-icon purple">🎁</div><div class="action-label">Rewards</div></div>
+        <div class="action-btn" onclick="alert('Refer a Friend — £25')"><div class="action-icon green">🎁</div><div class="action-label">Refer</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEARBY JOBS -->
+<div class="nearby-section fade-in stagger-5">
+  <div class="section-header">
+    <div class="section-title">Jobs Near You</div>
+    <div class="section-link" onclick="alert('Open Load Board')">See All →</div>
+  </div>
+
+  <div class="job-preview-card" onclick="alert('Leeds → Sheffield • Legal docs urgent')">
+    <div class="job-preview-match match-high">94</div>
+    <div class="job-preview-info">
+      <div class="job-preview-route">Leeds LS1 → Sheffield S1</div>
+      <div class="job-preview-meta">
+        <span class="job-preview-type type-fixed">⚡ FIXED</span>
+        35mi • SWB Van • Legal docs
+      </div>
+    </div>
+    <div class="job-preview-price">£52</div>
+  </div>
+
+  <div class="job-preview-card" onclick="alert('Leeds → Manchester • Auto parts')">
+    <div class="job-preview-match match-high">91</div>
+    <div class="job-preview-info">
+      <div class="job-preview-route">Leeds LS1 → Manchester M1</div>
+      <div class="job-preview-meta">
+        <span class="job-preview-type type-fixed">⚡ FIXED</span>
+        43mi • LWB Van • Auto parts
+      </div>
+    </div>
+    <div class="job-preview-price">£68</div>
+  </div>
+
+  <div class="job-preview-card" onclick="alert('Birmingham → Manchester • Office equip')">
+    <div class="job-preview-match match-med">78</div>
+    <div class="job-preview-info">
+      <div class="job-preview-route">Birmingham B1 → Manchester M1</div>
+      <div class="job-preview-meta">
+        <span class="job-preview-type type-quote">💬 QUOTE</span>
+        86mi • Small Van • Car parts
+      </div>
+    </div>
+    <div class="job-preview-price">—</div>
+  </div>
+</div>
+
+<!-- TRUST & COMMISSION -->
+<div class="trust-section fade-in stagger-6">
+  <div class="trust-card">
+    <div class="trust-row">
+      <div class="trust-ring">78</div>
+      <div class="trust-info">
+        <h3>🥇 Gold Tier — Reliable Driver</h3>
+        <p>22 more trust points to reach Diamond Tier</p>
+      </div>
+    </div>
+    <div class="trust-progress-row">
+      <div class="trust-progress-bar">
+        <div class="trust-progress-fill" style="width: 78%"></div>
+      </div>
+      <div class="trust-progress-label">78 / 100</div>
+    </div>
+    <div class="commission-bar">
+      <div class="commission-label">Commission this month: <strong style="color:var(--ll-text)">£86 / £200 cap</strong></div>
+      <div class="commission-value">£114 left</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAVIGATION -->
+<nav class="bottom-nav">
+  <button class="nav-item active">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-item" onclick="alert('Load Board')">
+    <span class="nav-icon">📦</span>
+    <span class="nav-label">Jobs</span>
+  </button>
+  <button class="nav-fab" onclick="alert('Quick accept — Swipe through nearby jobs')">
+    ⚡
+  </button>
+  <button class="nav-item" onclick="alert('Wallet & Earnings')">
+    <span class="nav-icon">💰</span>
+    <span class="nav-label">Wallet</span>
+  </button>
+  <button class="nav-item" onclick="alert('Profile & Settings')">
+    <span class="nav-icon">👤</span>
+    <span class="nav-label">Profile</span>
+  </button>
+</nav>
+
+<script>
+let isLive = true;
+
+function toggleLive() {
+  isLive = !isLive;
+  const bar = document.getElementById('goLiveBar');
+  const label = document.getElementById('liveLabel');
+  const sub = document.getElementById('liveSub');
+  
+  if (isLive) {
+    bar.className = 'go-live-bar online fade-in';
+    label.textContent = "You're Live";
+    sub.textContent = 'Receiving jobs from nearby businesses';
+  } else {
+    bar.className = 'go-live-bar offline fade-in';
+    label.textContent = "You're Offline";
+    sub.textContent = 'Go live to start receiving jobs';
+  }
+}
+
+function toggleMore() {
+  const panel = document.getElementById('morePanel');
+  const icon = document.getElementById('moreIcon');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  icon.textContent = isOpen ? '▼' : '▲';
+}
+</script>
+
+</body>
+</html>

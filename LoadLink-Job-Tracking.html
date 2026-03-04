@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>LoadLink — Job Tracking</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800;9..40,900&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ll-black:#0a0f1a;--ll-dark:#111827;--ll-card:#1a2234;--ll-card-hover:#1f2a3f;
+  --ll-border:#2a3650;--ll-muted:#64748b;--ll-text:#e2e8f0;--ll-white:#f8fafc;
+  --ll-green:#22c55e;--ll-green-dim:#16a34a;--ll-green-glow:rgba(34,197,94,0.15);
+  --ll-green-soft:rgba(34,197,94,0.06);--ll-amber:#f59e0b;--ll-amber-soft:rgba(245,158,11,0.1);
+  --ll-red:#ef4444;--ll-red-soft:rgba(239,68,68,0.1);--ll-blue:#3b82f6;
+  --ll-blue-soft:rgba(59,130,246,0.1);--ll-purple:#8b5cf6;--ll-purple-soft:rgba(139,92,246,0.1);
+  --font-display:'Fraunces',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-full:100px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);background:var(--ll-black);color:var(--ll-text);min-height:100vh;max-width:480px;margin:0 auto;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+
+/* Header */
+.header{position:sticky;top:0;z-index:50;background:rgba(10,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--ll-border);padding:14px 20px}
+.header-row{display:flex;align-items:center;justify-content:space-between}
+.header-back{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--ll-green);cursor:pointer;background:none;border:none;font-family:var(--font-body)}
+.header-title{font-family:var(--font-display);font-size:17px;font-weight:800;color:var(--ll-white)}
+.header-actions{display:flex;gap:6px}
+.h-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:all 0.2s}
+.h-btn:hover{background:var(--ll-card-hover);border-color:var(--ll-muted)}
+
+/* Map */
+.map-container{width:100%;height:220px;background:linear-gradient(135deg,#0d1a2d 0%,#132438 50%,#0f1f2e 100%);position:relative;overflow:hidden}
+.map-container::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.02) 39px,rgba(255,255,255,0.02) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.02) 39px,rgba(255,255,255,0.02) 40px)}
+.map-route{position:absolute;top:50%;left:15%;right:15%;height:3px;background:linear-gradient(90deg,var(--ll-green),var(--ll-blue),var(--ll-red));border-radius:2px;transform:translateY(-50%)}
+.map-route::before{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:inherit;filter:blur(8px);opacity:0.5;transform:translateY(-50%)}
+.map-pin{position:absolute;top:50%;transform:translate(-50%,-100%);font-size:28px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4))}
+.map-pin.from{left:15%;animation:pinBounce 2s infinite}
+.map-pin.driver{left:62%;animation:driverMove 4s ease-in-out infinite alternate}
+.map-pin.to{left:85%}
+@keyframes pinBounce{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,-110%)}}
+@keyframes driverMove{0%{left:58%}100%{left:66%}}
+.map-label{position:absolute;bottom:12px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px}
+.map-label.from-label{left:10%;background:var(--ll-green-soft);color:var(--ll-green)}
+.map-label.to-label{right:8%;background:var(--ll-red-soft);color:var(--ll-red)}
+.map-eta{position:absolute;top:14px;right:14px;background:rgba(10,15,26,0.85);backdrop-filter:blur(10px);border:1px solid var(--ll-border);border-radius:var(--radius-md);padding:10px 14px;text-align:center}
+.map-eta-time{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--ll-white)}
+.map-eta-label{font-size:10px;color:var(--ll-muted);font-weight:600}
+.map-miles{position:absolute;top:14px;left:14px;background:rgba(10,15,26,0.85);backdrop-filter:blur(10px);border:1px solid var(--ll-border);border-radius:var(--radius-md);padding:10px 14px;text-align:center}
+.map-miles-val{font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-blue)}
+.map-miles-label{font-size:10px;color:var(--ll-muted);font-weight:600}
+
+/* Status Banner */
+.status-banner{margin:0 20px;margin-top:-20px;position:relative;z-index:10;background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px 18px;display:flex;align-items:center;justify-content:space-between}
+.status-left{display:flex;align-items:center;gap:10px}
+.status-dot{width:12px;height:12px;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px currentColor}50%{opacity:0.6;box-shadow:0 0 16px currentColor}}
+.status-dot.transit{background:var(--ll-blue);color:var(--ll-blue)}
+.status-dot.collecting{background:var(--ll-amber);color:var(--ll-amber)}
+.status-dot.delivered{background:var(--ll-green);color:var(--ll-green)}
+.status-text h3{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white)}
+.status-text p{font-size:11px;color:var(--ll-muted)}
+.status-price{font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--ll-green)}
+
+/* Route Card */
+.content{padding:16px 20px}
+.route-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:12px}
+.route-full{display:flex;gap:14px}
+.route-dots{display:flex;flex-direction:column;align-items:center;padding:4px 0}
+.r-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.r-dot.from{background:var(--ll-green);box-shadow:0 0 8px var(--ll-green-glow)}
+.r-dot.to{background:var(--ll-red);box-shadow:0 0 8px var(--ll-red-soft)}
+.r-line{width:2px;flex:1;min-height:40px;background:repeating-linear-gradient(180deg,var(--ll-border) 0px,var(--ll-border) 4px,transparent 4px,transparent 8px)}
+.route-info{flex:1}
+.route-point{margin-bottom:12px}
+.route-point:last-child{margin-bottom:0}
+.route-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.route-label.pickup{color:var(--ll-green)}
+.route-label.delivery{color:var(--ll-red)}
+.route-addr{font-size:14px;font-weight:700;color:var(--ll-white)}
+.route-sub{font-size:11px;color:var(--ll-muted);margin-top:1px}
+.route-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--ll-border)}
+.r-tag{padding:4px 10px;background:rgba(255,255,255,0.04);border-radius:var(--radius-full);font-size:11px;color:var(--ll-muted);font-weight:500;display:flex;align-items:center;gap:4px}
+
+/* Timeline */
+.timeline{margin-bottom:12px}
+.timeline-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white);margin-bottom:14px}
+.tl-item{display:flex;gap:12px;position:relative;padding-bottom:16px}
+.tl-item:last-child{padding-bottom:0}
+.tl-line-col{display:flex;flex-direction:column;align-items:center;width:24px;flex-shrink:0}
+.tl-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;z-index:1}
+.tl-dot.done{background:var(--ll-green);color:var(--ll-black)}
+.tl-dot.current{background:var(--ll-green-glow);border:2px solid var(--ll-green);color:var(--ll-green);animation:pulse 2s infinite}
+.tl-dot.upcoming{background:var(--ll-card);border:2px solid var(--ll-border);color:var(--ll-muted)}
+.tl-connector{width:2px;flex:1;min-height:8px}
+.tl-connector.done{background:var(--ll-green)}
+.tl-connector.pending{background:var(--ll-border)}
+.tl-content{flex:1;padding-top:2px}
+.tl-title{font-size:13px;font-weight:700;color:var(--ll-white)}
+.tl-item.done-item .tl-title{color:var(--ll-green)}
+.tl-item.current-item .tl-title{color:var(--ll-green)}
+.tl-item.upcoming-item .tl-title{color:var(--ll-muted)}
+.tl-time{font-size:10px;color:var(--ll-muted);margin-top:1px}
+.tl-detail{font-size:11px;color:var(--ll-muted);margin-top:4px;line-height:1.5}
+
+/* Photo Evidence */
+.tl-photos{display:flex;gap:6px;margin-top:8px}
+.tl-photo{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--ll-card);border:1px solid var(--ll-border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.2s}
+.tl-photo:hover{border-color:var(--ll-green);transform:scale(1.05)}
+
+/* Driver Card */
+.driver-card{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.driver-av{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0}
+.driver-info{flex:1}
+.driver-name{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--ll-white)}
+.driver-meta{font-size:11px;color:var(--ll-muted);margin-top:2px}
+.driver-rating{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--ll-amber);font-weight:700;margin-top:3px}
+.driver-actions{display:flex;gap:6px}
+.d-action{width:40px;height:40px;border-radius:12px;border:1px solid var(--ll-border);background:var(--ll-card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:all 0.2s}
+.d-action:hover{border-color:var(--ll-green);background:var(--ll-card-hover)}
+.d-action.call{border-color:rgba(34,197,94,0.3);background:var(--ll-green-soft)}
+
+/* Action Button */
+.action-section{margin-bottom:12px}
+.main-action{width:100%;padding:16px;border-radius:var(--radius-lg);font-size:16px;font-weight:700;font-family:var(--font-body);cursor:pointer;border:none;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px}
+.main-action.green{background:var(--ll-green);color:var(--ll-black)}
+.main-action.green:hover{background:#4ade80;box-shadow:0 8px 30px rgba(34,197,94,0.3);transform:translateY(-1px)}
+.main-action.blue{background:var(--ll-blue);color:#fff}
+.main-action.blue:hover{background:#60a5fa;box-shadow:0 8px 30px rgba(59,130,246,0.3)}
+.main-action.amber{background:var(--ll-amber);color:var(--ll-black)}
+.main-action.amber:hover{background:#fbbf24;box-shadow:0 8px 30px rgba(245,158,11,0.3)}
+
+.secondary-actions{display:flex;gap:8px;margin-top:8px}
+.sec-action{flex:1;padding:12px;border-radius:var(--radius-md);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;border:1px solid var(--ll-border);background:var(--ll-card);color:var(--ll-text);transition:all 0.2s;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px}
+.sec-action:hover{border-color:var(--ll-muted);background:var(--ll-card-hover)}
+
+/* Escrow Status */
+.escrow-status{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px;margin-bottom:12px}
+.escrow-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.escrow-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);display:flex;align-items:center;gap:6px}
+.escrow-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full)}
+.escrow-badge.locked{background:var(--ll-green-glow);color:var(--ll-green)}
+.escrow-badge.pending{background:var(--ll-amber-soft);color:var(--ll-amber)}
+.escrow-row{display:flex;justify-content:space-between;padding:6px 0}
+.escrow-label{font-size:12px;color:var(--ll-muted)}
+.escrow-val{font-size:12px;font-weight:700;color:var(--ll-text)}
+.escrow-val.green{color:var(--ll-green)}
+
+/* POD Section */
+.pod-section{background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:16px;margin-bottom:12px}
+.pod-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pod-sig-area{width:100%;height:120px;border:2px dashed var(--ll-border);border-radius:var(--radius-lg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s;background:rgba(255,255,255,0.01)}
+.pod-sig-area:hover{border-color:var(--ll-green);background:var(--ll-green-soft)}
+.pod-sig-area.signed{border-color:var(--ll-green);border-style:solid;background:var(--ll-green-soft)}
+.pod-sig-icon{font-size:28px;margin-bottom:6px}
+.pod-sig-text{font-size:12px;color:var(--ll-muted);font-weight:600}
+.pod-sig-area.signed .pod-sig-text{color:var(--ll-green)}
+.pod-name{margin-top:10px}
+.pod-name input{width:100%;padding:10px 14px;background:var(--ll-card-hover);border:1px solid var(--ll-border);border-radius:var(--radius-md);color:var(--ll-white);font-size:13px;font-family:var(--font-body);outline:none}
+.pod-name input:focus{border-color:var(--ll-green)}
+
+/* Waiting Time */
+.waiting-card{background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-lg);padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.waiting-icon{font-size:28px}
+.waiting-info h4{font-size:13px;font-weight:700;color:var(--ll-amber)}
+.waiting-info p{font-size:11px;color:var(--ll-muted);margin-top:2px}
+.waiting-timer{font-family:var(--font-display);font-size:24px;font-weight:900;color:var(--ll-amber);margin-left:auto}
+
+/* Cancel hint */
+.cancel-hint{text-align:center;padding:12px;margin-bottom:20px}
+.cancel-link{font-size:12px;color:var(--ll-muted);cursor:pointer;transition:color 0.2s;background:none;border:none;font-family:var(--font-body)}
+.cancel-link:hover{color:var(--ll-red)}
+
+/* Animations */
+.fade-in{animation:fadeIn 0.5s ease both}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.s1{animation-delay:.05s}.s2{animation-delay:.1s}.s3{animation-delay:.15s}
+.s4{animation-delay:.2s}.s5{animation-delay:.25s}.s6{animation-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <button class="header-back" onclick="alert('Back to My Jobs')">← Back</button>
+    <h1 class="header-title">Job #LL-1087</h1>
+    <div class="header-actions">
+      <div class="h-btn" onclick="alert('Share tracking link')">🔗</div>
+      <div class="h-btn" onclick="alert('More options')">⋯</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="map-container fade-in">
+  <div class="map-route"></div>
+  <div class="map-pin from">📍</div>
+  <div class="map-pin driver">🚐</div>
+  <div class="map-pin to">🏁</div>
+  <div class="map-label from-label">Leeds LS1</div>
+  <div class="map-label to-label">London EC1</div>
+  <div class="map-eta">
+    <div class="map-eta-time">14:32</div>
+    <div class="map-eta-label">ETA</div>
+  </div>
+  <div class="map-miles">
+    <div class="map-miles-val">73 mi</div>
+    <div class="map-miles-label">Remaining</div>
+  </div>
+</div>
+
+<!-- STATUS BANNER -->
+<div class="status-banner fade-in s1">
+  <div class="status-left">
+    <div class="status-dot transit"></div>
+    <div class="status-text">
+      <h3>In Transit</h3>
+      <p>Driver is 73 miles from delivery</p>
+    </div>
+  </div>
+  <div class="status-price">£185</div>
+</div>
+
+<div class="content">
+
+  <!-- DRIVER CARD -->
+  <div class="driver-card fade-in s2">
+    <div class="driver-av" style="background:linear-gradient(135deg,#16a34a,#059669)">JM</div>
+    <div class="driver-info">
+      <div class="driver-name">James Mitchell</div>
+      <div class="driver-meta">LWB Sprinter • Reliable Tier</div>
+      <div class="driver-rating">⭐ 4.9 • 98% on-time • 247 jobs</div>
+    </div>
+    <div class="driver-actions">
+      <div class="d-action call" onclick="alert('Calling via Shield...\n\nYour number is hidden.\nCall is recorded for disputes.')">📞</div>
+      <div class="d-action" onclick="alert('Open chat with James')">💬</div>
+    </div>
+  </div>
+
+  <!-- WAITING TIME (visible at pickup) -->
+  <div class="waiting-card fade-in s2" id="waitingCard" style="display:none">
+    <div class="waiting-icon">⏳</div>
+    <div class="waiting-info">
+      <h4>Waiting at Pickup</h4>
+      <p>Free waiting: 30 min • Then £0.50/min</p>
+    </div>
+    <div class="waiting-timer" id="waitTimer">12:45</div>
+  </div>
+
+  <!-- ROUTE CARD -->
+  <div class="route-card fade-in s3">
+    <div class="route-full">
+      <div class="route-dots">
+        <div class="r-dot from"></div>
+        <div class="r-line"></div>
+        <div class="r-dot to"></div>
+      </div>
+      <div class="route-info">
+        <div class="route-point">
+          <div class="route-label pickup">Pickup</div>
+          <div class="route-addr">Yorkshire Print, Leeds</div>
+          <div class="route-sub">Unit 4 Riverside, LS1 4AP • Mike Thomas</div>
+        </div>
+        <div class="route-point">
+          <div class="route-label delivery">Delivery</div>
+          <div class="route-addr">TechHub, London</div>
+          <div class="route-sub">42 Old Street, EC1 2AD • Sarah Chen</div>
+        </div>
+      </div>
+    </div>
+    <div class="route-tags">
+      <span class="r-tag">🚐 LWB Van</span>
+      <span class="r-tag">📦 3 pallets</span>
+      <span class="r-tag">📏 195 mi</span>
+      <span class="r-tag">📄 POD Required</span>
+      <span class="r-tag">⚡ Instant Pay</span>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline fade-in s4">
+    <div class="timeline-title">Live Timeline</div>
+
+    <!-- Step 1: Accepted -->
+    <div class="tl-item done-item">
+      <div class="tl-line-col">
+        <div class="tl-dot done">✓</div>
+        <div class="tl-connector done"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Job Accepted</div>
+        <div class="tl-time">Today 08:12 • Accepted in 45 seconds</div>
+      </div>
+    </div>
+
+    <!-- Step 2: En Route to Pickup -->
+    <div class="tl-item done-item">
+      <div class="tl-line-col">
+        <div class="tl-dot done">✓</div>
+        <div class="tl-connector done"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">En Route to Pickup</div>
+        <div class="tl-time">Today 08:14 • Arrived at 08:32</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Collecting -->
+    <div class="tl-item done-item">
+      <div class="tl-line-col">
+        <div class="tl-dot done">✓</div>
+        <div class="tl-connector done"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Collected at Pickup</div>
+        <div class="tl-time">Today 08:45 • Loading took 13 min</div>
+        <div class="tl-detail">Goods verified & loaded. Collection photos taken.</div>
+        <div class="tl-photos">
+          <div class="tl-photo" onclick="alert('View collection photo 1')">📷</div>
+          <div class="tl-photo" onclick="alert('View collection photo 2')">📷</div>
+          <div class="tl-photo" onclick="alert('View collection photo 3')">📷</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: In Transit (CURRENT) -->
+    <div class="tl-item current-item">
+      <div class="tl-line-col">
+        <div class="tl-dot current">4</div>
+        <div class="tl-connector pending"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">In Transit → London EC1</div>
+        <div class="tl-time">Left 08:48 • ETA 14:32</div>
+        <div class="tl-detail">Driver last updated 2 min ago • M1 southbound near Leicester</div>
+      </div>
+    </div>
+
+    <!-- Step 5: Arrived at Delivery -->
+    <div class="tl-item upcoming-item">
+      <div class="tl-line-col">
+        <div class="tl-dot upcoming">5</div>
+        <div class="tl-connector pending"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Arrive at Delivery</div>
+        <div class="tl-time">Estimated ~14:32</div>
+      </div>
+    </div>
+
+    <!-- Step 6: Delivered -->
+    <div class="tl-item upcoming-item">
+      <div class="tl-line-col">
+        <div class="tl-dot upcoming">6</div>
+        <div class="tl-connector pending"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Delivered — POD & Photos</div>
+        <div class="tl-time">Pending</div>
+      </div>
+    </div>
+
+    <!-- Step 7: Invoice -->
+    <div class="tl-item upcoming-item">
+      <div class="tl-line-col">
+        <div class="tl-dot upcoming">7</div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-title">Invoice Generated & Payment</div>
+        <div class="tl-time">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POD SECTION (shown when at delivery) -->
+  <div class="pod-section fade-in s5" id="podSection" style="display:none">
+    <div class="pod-title">✍️ Proof of Delivery</div>
+    <div class="pod-sig-area" id="sigArea" onclick="signPOD()">
+      <div class="pod-sig-icon">✍️</div>
+      <div class="pod-sig-text" id="sigText">Tap to capture signature</div>
+    </div>
+    <div class="pod-name">
+      <input type="text" placeholder="Recipient name (print)" id="podName">
+    </div>
+    <div class="tl-photos" style="margin-top:12px">
+      <div class="tl-photo" onclick="alert('Take delivery photo 1')">📸</div>
+      <div class="tl-photo" onclick="alert('Take delivery photo 2')">📸</div>
+      <div class="tl-photo" onclick="alert('Take delivery photo 3')">+</div>
+    </div>
+  </div>
+
+  <!-- ESCROW STATUS -->
+  <div class="escrow-status fade-in s5">
+    <div class="escrow-header">
+      <div class="escrow-title">🛡️ Payment Status</div>
+      <div class="escrow-badge locked" id="escrowBadge">Escrow Locked</div>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Job Price</span>
+      <span class="escrow-val">£185.00</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Commission (4%)</span>
+      <span class="escrow-val">£7.40</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">In Escrow</span>
+      <span class="escrow-val green">£192.40</span>
+    </div>
+    <div class="escrow-row">
+      <span class="escrow-label">Payment Terms</span>
+      <span class="escrow-val">⚡ Instant on approval</span>
+    </div>
+  </div>
+
+  <!-- ACTION BUTTON (changes per stage) -->
+  <div class="action-section fade-in s6" id="actionSection">
+    <button class="main-action blue" id="mainAction" onclick="advanceStage()">
+      📍 View Live on Map
+    </button>
+    <div class="secondary-actions">
+      <button class="sec-action" onclick="alert('Report an issue with this job')">⚠️ Report Issue</button>
+      <button class="sec-action" onclick="alert('Share tracking link\n\nhttps://app.loadlink.co.uk/track/LL-1087')">🔗 Share Link</button>
+    </div>
+  </div>
+
+  <div class="cancel-hint">
+    <button class="cancel-link" onclick="alert('Cancel Job\n\nAre you sure? Cancellation terms apply based on current stage.')">Need to cancel this job?</button>
+  </div>
+
+</div>
+
+<script>
+let stage = 3; // 0=accepted, 1=en_route, 2=collecting, 3=in_transit, 4=arrived, 5=delivered, 6=invoiced
+
+function advanceStage() {
+  stage++;
+  if (stage > 6) stage = 6;
+  updateUI();
+}
+
+function updateUI() {
+  const mainBtn = document.getElementById('mainAction');
+  const waitCard = document.getElementById('waitingCard');
+  const podSec = document.getElementById('podSection');
+  
+  switch(stage) {
+    case 4: // Arrived at delivery
+      mainBtn.className = 'main-action amber';
+      mainBtn.innerHTML = '📦 Confirm Arrival at Delivery';
+      waitCard.style.display = 'none';
+      break;
+    case 5: // Delivered - POD
+      mainBtn.className = 'main-action green';
+      mainBtn.innerHTML = '✍️ Complete POD & Confirm Delivery';
+      podSec.style.display = 'block';
+      break;
+    case 6: // Invoiced
+      mainBtn.className = 'main-action green';
+      mainBtn.innerHTML = '✅ Generate Invoice';
+      document.getElementById('escrowBadge').textContent = 'Releasing...';
+      document.getElementById('escrowBadge').className = 'escrow-badge pending';
+      break;
+  }
+  
+  // Update timeline
+  const items = document.querySelectorAll('.tl-item');
+  items.forEach((item, i) => {
+    const dot = item.querySelector('.tl-dot');
+    const conn = item.querySelector('.tl-connector');
+    
+    if (i < stage) {
+      item.className = 'tl-item done-item';
+      dot.className = 'tl-dot done';
+      dot.textContent = '✓';
+      if (conn) conn.className = 'tl-connector done';
+    } else if (i === stage) {
+      item.className = 'tl-item current-item';
+      dot.className = 'tl-dot current';
+      dot.textContent = (i + 1).toString();
+      if (conn) conn.className = 'tl-connector pending';
+    } else {
+      item.className = 'tl-item upcoming-item';
+      dot.className = 'tl-dot upcoming';
+      dot.textContent = (i + 1).toString();
+      if (conn) conn.className = 'tl-connector pending';
+    }
+  });
+}
+
+function signPOD() {
+  const area = document.getElementById('sigArea');
+  const text = document.getElementById('sigText');
+  area.classList.add('signed');
+  text.textContent = '✅ Signature Captured';
+  document.getElementById('podName').value = 'Sarah Chen';
+}
+
+// Simulate waiting timer
+let waitMin = 12, waitSec = 45;
+setInterval(() => {
+  waitSec++;
+  if (waitSec >= 60) { waitSec = 0; waitMin++; }
+  const el = document.getElementById('waitTimer');
+  if (el) el.textContent = waitMin + ':' + String(waitSec).padStart(2, '0');
+}, 1000);
+</script>
+
+</body>
+</html>
