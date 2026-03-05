@@ -378,7 +378,8 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
         <div class="form-group" style="flex:1"><label class="form-label">Delivery City</label><input class="form-input" id="pjDelCity" placeholder="London"></div>
         <div class="form-group" style="flex:1"><label class="form-label">Postcode</label><input class="form-input" id="pjDelPost" placeholder="EC1 2AD"></div>
       </div>
-      <button class="auth-btn" onclick="postJobStep(2)">Next → Cargo Details</button>
+      <div id="distancePreview" style="display:none;background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:10px;text-align:center;font-size:12px;color:var(--ll-green);margin-bottom:12px"></div>
+      <button class="auth-btn" onclick="calcDistAndNext()">Next → Cargo Details</button>
     </div>
 
     <!-- Step 2: Cargo -->
@@ -488,6 +489,36 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
       <button class="jd-btn decline" onclick="closeCounterModal()" style="flex:1">Cancel</button>
       <button class="jd-btn accept" onclick="submitCounter()" style="flex:2">Send Offer →</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ RATING MODAL ============ -->
+<div class="modal-overlay" id="ratingModal">
+  <div class="modal">
+    <div class="modal-title">⭐ Rate this job</div>
+    <div id="ratingTarget" style="font-size:14px;color:var(--ll-muted);margin-bottom:16px"></div>
+    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px" id="ratingStars">
+      <div class="star-sel" onclick="setRating(1)" style="font-size:32px;cursor:pointer">⭐</div>
+      <div class="star-sel" onclick="setRating(2)" style="font-size:32px;cursor:pointer">⭐</div>
+      <div class="star-sel" onclick="setRating(3)" style="font-size:32px;cursor:pointer">⭐</div>
+      <div class="star-sel" onclick="setRating(4)" style="font-size:32px;cursor:pointer">⭐</div>
+      <div class="star-sel" onclick="setRating(5)" style="font-size:32px;cursor:pointer">⭐</div>
+    </div>
+    <div style="text-align:center;font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--ll-white);margin-bottom:12px" id="ratingValue">Tap a star</div>
+    <div class="form-group"><label class="form-label">Comment (optional)</label><input class="form-input" id="ratingComment" placeholder="Great delivery, on time!"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="jd-btn decline" onclick="document.getElementById('ratingModal').classList.remove('open')" style="flex:1">Skip</button>
+      <button class="jd-btn accept" onclick="submitRating()" style="flex:2">Submit Review →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ INVOICE MODAL ============ -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-title">🧾 Invoice</div>
+    <div id="invoiceContent"></div>
+    <button class="auth-btn" onclick="document.getElementById('invoiceModal').classList.remove('open')" style="margin-top:16px">Close</button>
   </div>
 </div>
 
@@ -905,8 +936,15 @@ async function openJob(id) {
     html += '</div>';
   }
 
-  // === PRICE CARD ===
-  html += '<div class="jd-price-card"><div class="jd-price">£' + (job.price||0) + '</div><div class="jd-ppm">£' + ppm + '/mi • ' + (job.payment_terms||'7_day').replace(/_/g,' ') + ' terms</div></div>';
+  // === PRICE CARD with Commission ===
+  const comm = (job.price * 0.04).toFixed(2);
+  const driverPay = (job.price - comm).toFixed(2);
+  html += '<div class="jd-price-card"><div class="jd-price">£' + (job.price||0) + '</div><div class="jd-ppm">£' + ppm + '/mi • ' + (job.payment_terms||'7_day').replace(/_/g,' ') + ' terms</div>';
+  html += '<div style="display:flex;justify-content:center;gap:16px;margin-top:12px;font-size:11px">';
+  html += '<div style="text-align:center"><div style="color:var(--ll-green);font-weight:700">£' + driverPay + '</div><div style="color:var(--ll-muted)">Driver gets</div></div>';
+  html += '<div style="text-align:center"><div style="color:var(--ll-amber);font-weight:700">£' + comm + '</div><div style="color:var(--ll-muted)">Commission 4%</div></div>';
+  html += '<div style="text-align:center"><div style="color:var(--ll-blue);font-weight:700">🛡️</div><div style="color:var(--ll-muted)">' + (job.status === 'completed' ? 'Released' : 'In Escrow') + '</div></div>';
+  html += '</div></div>';
 
   // === ROUTE ===
   html += '<div class="jd-route-card"><div class="jd-point"><div class="jd-dot pickup"></div><div><div class="jd-addr">' + (job.pickup_address||'') + '</div><div class="jd-city">' + (job.pickup_city||'') + ' ' + (job.pickup_postcode||'') + '</div></div></div>';
@@ -964,7 +1002,10 @@ async function openJob(id) {
       html += '<button class="auth-btn" onclick="updateJobStatus(\'' + id + '\',\'completed\')" style="margin-top:12px">✅ Confirm & Release Payment</button>';
     }
     if (job.status === 'completed') {
+      const driverName = otherName || 'Driver';
       html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🎉</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Job Complete!</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">Payment of £' + job.price + ' has been released</div></div>';
+      html += '<div style="display:flex;gap:8px;margin-top:12px"><button class="jd-btn accept" onclick="showInvoice(' + JSON.stringify(job).replace(/"/g,'&quot;') + ',&quot;' + driverName + '&quot;,&quot;' + (currentProfile.company_name||currentProfile.full_name) + '&quot;)" style="flex:1;background:var(--ll-card);color:var(--ll-amber);border:1px solid rgba(245,158,11,0.3)">🧾 View Invoice</button>';
+      html += '<button class="jd-btn accept" onclick="openRatingModal(\'' + id + '\',\'' + job.driver_id + '\',\'' + driverName.replace(/'/g,"\\'") + '\')" style="flex:1">⭐ Rate Driver</button></div>';
     }
   }
 
@@ -978,9 +1019,11 @@ async function openJob(id) {
     }
   }
 
-  // Completed for driver
   if (isDriver && isMyJob && job.status === 'completed') {
-    html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🎉</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Job Complete! Payment incoming.</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">£' + job.price + ' will be added to your wallet</div></div>';
+    const bizName = otherName || 'Business';
+    html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🎉</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Job Complete! £' + driverPay + ' earned.</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">Payment added to your wallet</div></div>';
+    html += '<div style="display:flex;gap:8px;margin-top:12px"><button class="jd-btn accept" onclick="showInvoice(' + JSON.stringify(job).replace(/"/g,'&quot;') + ',&quot;' + (currentProfile.full_name||'Driver') + '&quot;,&quot;' + bizName + '&quot;)" style="flex:1;background:var(--ll-card);color:var(--ll-amber);border:1px solid rgba(245,158,11,0.3)">🧾 View Invoice</button>';
+    html += '<button class="jd-btn accept" onclick="openRatingModal(\'' + id + '\',\'' + job.business_id + '\',\'' + bizName.replace(/'/g,"\\'") + '\')" style="flex:1">⭐ Rate Business</button></div>';
   }
 
   document.getElementById('jobDetailContent').innerHTML = html;
@@ -1048,18 +1091,7 @@ async function acceptBid(bidId, driverId, jobId) {
   openJob(jobId);
 }
 
-async function updateJobStatus(jobId, newStatus) {
-  const updates = { status: newStatus };
-  if (newStatus === 'collected') updates.actual_pickup = new Date().toISOString();
-  if (newStatus === 'delivered') updates.actual_delivery = new Date().toISOString();
-  await sb.from('jobs').update(updates).eq('id', jobId);
-  if (newStatus === 'completed') {
-    await sb.from('profiles').update({ total_jobs: (currentProfile.total_jobs||0) + 1 }).eq('id', currentUser.id);
-    currentProfile.total_jobs = (currentProfile.total_jobs||0) + 1;
-  }
-  toast('Status updated: ' + newStatus.replace(/_/g,' ') + ' ✅');
-  openJob(jobId);
-}
+// updateJobStatus moved to enhanced section below
 
 // ====== POST JOB ======
 function postJobStep(step) {
@@ -1228,6 +1260,201 @@ async function loadWallet() {
     (wallet.bank_connected ? '🏦 Bank account connected' : '⚠️ Connect a bank account to withdraw funds') + '</div>';
 
   document.getElementById('walletContent').innerHTML = html;
+}
+
+// ====== UK POSTCODE DISTANCE ESTIMATOR ======
+const UK_POSTCODES = {
+  'AB':{'lat':57.15,'lng':-2.11},'AL':{'lat':51.75,'lng':-0.34},'B':{'lat':52.48,'lng':-1.9},
+  'BA':{'lat':51.38,'lng':-2.36},'BB':{'lat':53.76,'lng':-2.47},'BD':{'lat':53.79,'lng':-1.75},
+  'BH':{'lat':50.72,'lng':-1.88},'BL':{'lat':53.58,'lng':-2.43},'BN':{'lat':50.83,'lng':-0.14},
+  'BR':{'lat':51.41,'lng':0.01},'BS':{'lat':51.45,'lng':-2.58},'BT':{'lat':54.6,'lng':-5.93},
+  'CA':{'lat':54.89,'lng':-2.93},'CB':{'lat':52.2,'lng':0.12},'CF':{'lat':51.48,'lng':-3.18},
+  'CH':{'lat':53.19,'lng':-2.89},'CM':{'lat':51.73,'lng':0.47},'CO':{'lat':51.89,'lng':0.9},
+  'CR':{'lat':51.37,'lng':-0.1},'CT':{'lat':51.28,'lng':1.08},'CV':{'lat':52.41,'lng':-1.51},
+  'CW':{'lat':53.1,'lng':-2.44},'DA':{'lat':51.45,'lng':0.21},'DD':{'lat':56.46,'lng':-2.97},
+  'DE':{'lat':52.92,'lng':-1.47},'DH':{'lat':54.78,'lng':-1.57},'DL':{'lat':54.52,'lng':-1.55},
+  'DN':{'lat':53.52,'lng':-1.13},'DT':{'lat':50.71,'lng':-2.44},'DY':{'lat':52.51,'lng':-2.08},
+  'E':{'lat':51.55,'lng':-0.06},'EC':{'lat':51.51,'lng':-0.09},'EH':{'lat':55.95,'lng':-3.19},
+  'EN':{'lat':51.65,'lng':-0.08},'EX':{'lat':50.72,'lng':-3.53},'FK':{'lat':56.12,'lng':-3.94},
+  'FY':{'lat':53.81,'lng':-3.05},'G':{'lat':55.86,'lng':-4.25},'GL':{'lat':51.86,'lng':-2.24},
+  'GU':{'lat':51.24,'lng':-0.77},'HA':{'lat':51.58,'lng':-0.33},'HD':{'lat':53.65,'lng':-1.78},
+  'HG':{'lat':54.0,'lng':-1.54},'HP':{'lat':51.75,'lng':-0.74},'HR':{'lat':52.06,'lng':-2.72},
+  'HU':{'lat':53.74,'lng':-0.33},'HX':{'lat':53.73,'lng':-1.86},'IG':{'lat':51.56,'lng':0.07},
+  'IP':{'lat':52.06,'lng':1.15},'KA':{'lat':55.46,'lng':-4.63},'KT':{'lat':51.38,'lng':-0.3},
+  'L':{'lat':53.41,'lng':-2.98},'LA':{'lat':54.05,'lng':-2.8},'LE':{'lat':52.63,'lng':-1.13},
+  'LL':{'lat':53.12,'lng':-3.83},'LN':{'lat':53.23,'lng':-0.54},'LS':{'lat':53.8,'lng':-1.55},
+  'LU':{'lat':51.88,'lng':-0.42},'M':{'lat':53.48,'lng':-2.24},'ME':{'lat':51.37,'lng':0.52},
+  'MK':{'lat':52.04,'lng':-0.76},'N':{'lat':51.57,'lng':-0.1},'NE':{'lat':54.98,'lng':-1.61},
+  'NG':{'lat':52.95,'lng':-1.15},'NN':{'lat':52.24,'lng':-0.9},'NP':{'lat':51.59,'lng':-2.99},
+  'NR':{'lat':52.63,'lng':1.3},'NW':{'lat':51.55,'lng':-0.16},'OL':{'lat':53.54,'lng':-2.1},
+  'OX':{'lat':51.75,'lng':-1.26},'PE':{'lat':52.57,'lng':-0.24},'PL':{'lat':50.37,'lng':-4.14},
+  'PO':{'lat':50.8,'lng':-1.09},'PR':{'lat':53.76,'lng':-2.7},'RG':{'lat':51.45,'lng':-0.98},
+  'RH':{'lat':51.17,'lng':-0.19},'RM':{'lat':51.57,'lng':0.18},'S':{'lat':53.38,'lng':-1.47},
+  'SA':{'lat':51.62,'lng':-3.94},'SE':{'lat':51.49,'lng':-0.06},'SG':{'lat':51.9,'lng':-0.2},
+  'SK':{'lat':53.39,'lng':-2.16},'SL':{'lat':51.51,'lng':-0.59},'SM':{'lat':51.36,'lng':-0.17},
+  'SN':{'lat':51.56,'lng':-1.78},'SO':{'lat':50.9,'lng':-1.4},'SP':{'lat':51.07,'lng':-1.79},
+  'SR':{'lat':54.91,'lng':-1.38},'SS':{'lat':51.54,'lng':0.71},'ST':{'lat':53.0,'lng':-2.18},
+  'SW':{'lat':51.46,'lng':-0.17},'SY':{'lat':52.71,'lng':-2.75},'TA':{'lat':51.02,'lng':-3.1},
+  'TF':{'lat':52.68,'lng':-2.49},'TN':{'lat':51.13,'lng':0.27},'TQ':{'lat':50.46,'lng':-3.53},
+  'TR':{'lat':50.26,'lng':-5.05},'TS':{'lat':54.57,'lng':-1.23},'TW':{'lat':51.45,'lng':-0.34},
+  'UB':{'lat':51.55,'lng':-0.43},'W':{'lat':51.51,'lng':-0.18},'WA':{'lat':53.39,'lng':-2.59},
+  'WC':{'lat':51.52,'lng':-0.12},'WD':{'lat':51.66,'lng':-0.39},'WF':{'lat':53.68,'lng':-1.49},
+  'WN':{'lat':53.55,'lng':-2.63},'WR':{'lat':52.19,'lng':-2.22},'WS':{'lat':52.58,'lng':-1.98},
+  'WV':{'lat':52.59,'lng':-2.13},'YO':{'lat':53.96,'lng':-1.08}
+};
+
+function estimateDistance(pc1, pc2) {
+  if (!pc1 || !pc2) return null;
+  const area1 = pc1.replace(/\s/g,'').replace(/[0-9].*/,'').toUpperCase();
+  const area2 = pc2.replace(/\s/g,'').replace(/[0-9].*/,'').toUpperCase();
+  const p1 = UK_POSTCODES[area1];
+  const p2 = UK_POSTCODES[area2];
+  if (!p1 || !p2) return null;
+  const R = 3959;
+  const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+  const dLng = (p2.lng - p1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(p1.lat*Math.PI/180)*Math.cos(p2.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const straight = R * c;
+  return Math.round(straight * 1.3); // road factor
+}
+
+function calcDistAndNext() {
+  const pc1 = document.getElementById('pjPickPost').value;
+  const pc2 = document.getElementById('pjDelPost').value;
+  const dist = estimateDistance(pc1, pc2);
+  if (dist) {
+    document.getElementById('pjDist').value = dist;
+    document.getElementById('distancePreview').style.display = 'block';
+    document.getElementById('distancePreview').textContent = '📍 Estimated distance: ' + dist + ' miles (from postcodes)';
+  }
+  postJobStep(2);
+}
+
+// ====== RATING SYSTEM ======
+let currentRating = 0;
+let ratingJobId = null;
+let ratingUserId = null;
+
+function setRating(n) {
+  currentRating = n;
+  const stars = document.querySelectorAll('.star-sel');
+  stars.forEach((s, i) => { s.style.opacity = i < n ? '1' : '0.3'; });
+  const labels = ['','😞 Poor','😐 Fair','🙂 Good','😊 Great','🤩 Excellent!'];
+  document.getElementById('ratingValue').textContent = n + '/5 — ' + labels[n];
+}
+
+function openRatingModal(jobId, userId, name) {
+  ratingJobId = jobId;
+  ratingUserId = userId;
+  currentRating = 0;
+  document.querySelectorAll('.star-sel').forEach(s => s.style.opacity = '0.3');
+  document.getElementById('ratingValue').textContent = 'Tap a star';
+  document.getElementById('ratingComment').value = '';
+  document.getElementById('ratingTarget').textContent = 'Rate: ' + name;
+  document.getElementById('ratingModal').classList.add('open');
+}
+
+async function submitRating() {
+  if (currentRating === 0) return toast('Please select a rating', 'error');
+  const isDriverReview = currentProfile.role === 'business' || (currentProfile.role === 'both' && ratingUserId !== currentUser.id);
+  await sb.from('reviews').insert({
+    job_id: ratingJobId,
+    reviewer_id: currentUser.id,
+    reviewee_id: ratingUserId,
+    rating: currentRating,
+    comment: document.getElementById('ratingComment').value || null,
+    is_driver_review: isDriverReview
+  });
+  // Update reviewee's average rating
+  const { data: reviews } = await sb.from('reviews').select('rating').eq('reviewee_id', ratingUserId);
+  if (reviews && reviews.length > 0) {
+    const avg = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+    await sb.from('profiles').update({ rating: parseFloat(avg) }).eq('id', ratingUserId);
+  }
+  document.getElementById('ratingModal').classList.remove('open');
+  toast('Review submitted! ⭐');
+  openJob(ratingJobId);
+}
+
+// ====== INVOICE ======
+function showInvoice(job, driverName, businessName) {
+  const comm = (job.price * 0.04).toFixed(2);
+  const driverPay = (job.price - comm).toFixed(2);
+  const now = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  let html = '<div style="text-align:center;margin-bottom:16px"><div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--ll-green)">Load<span style="color:var(--ll-white)">Links</span></div><div style="font-size:11px;color:var(--ll-muted)">Invoice</div></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:16px"><div><div style="font-size:10px;color:var(--ll-muted)">FROM</div><div style="font-size:13px;font-weight:700;color:var(--ll-white)">' + driverName + '</div></div><div style="text-align:right"><div style="font-size:10px;color:var(--ll-muted)">TO</div><div style="font-size:13px;font-weight:700;color:var(--ll-white)">' + businessName + '</div></div></div>';
+  html += '<div style="background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-md);padding:12px;margin-bottom:12px">';
+  html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ll-border)"><span style="font-size:12px;color:var(--ll-muted)">Route</span><span style="font-size:12px;color:var(--ll-white)">' + (job.pickup_city||'') + ' → ' + (job.delivery_city||'') + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ll-border)"><span style="font-size:12px;color:var(--ll-muted)">Distance</span><span style="font-size:12px;color:var(--ll-white)">' + (job.distance_miles||'—') + ' mi</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ll-border)"><span style="font-size:12px;color:var(--ll-muted)">Vehicle</span><span style="font-size:12px;color:var(--ll-white)">' + (job.vehicle_type||'').replace(/_/g,' ') + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ll-border)"><span style="font-size:12px;color:var(--ll-muted)">Delivery Fee</span><span style="font-size:12px;font-weight:700;color:var(--ll-white)">£' + job.price + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--ll-border)"><span style="font-size:12px;color:var(--ll-muted)">Commission (4%)</span><span style="font-size:12px;color:var(--ll-red)">-£' + comm + '</span></div>';
+  html += '<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:13px;font-weight:700;color:var(--ll-green)">Driver Receives</span><span style="font-family:var(--font-display);font-size:18px;font-weight:800;color:var(--ll-green)">£' + driverPay + '</span></div>';
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ll-muted)"><span>Date: ' + now + '</span><span>Terms: ' + (job.payment_terms||'').replace(/_/g,' ') + '</span></div>';
+  html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:10px;font-size:11px;color:var(--ll-green);text-align:center;margin-top:12px">🛡️ Payment protected by LoadLinks Escrow</div>';
+  document.getElementById('invoiceContent').innerHTML = html;
+  document.getElementById('invoiceModal').classList.add('open');
+}
+
+// ====== ENHANCED JOB COMPLETION ======
+async function updateJobStatus(jobId, newStatus) {
+  const updates = { status: newStatus };
+  if (newStatus === 'collected') updates.actual_pickup = new Date().toISOString();
+  if (newStatus === 'delivered') updates.actual_delivery = new Date().toISOString();
+  await sb.from('jobs').update(updates).eq('id', jobId);
+
+  if (newStatus === 'completed') {
+    // Update driver job count
+    const { data: job } = await sb.from('jobs').select('*').eq('id', jobId).single();
+    if (job) {
+      const comm = parseFloat((job.price * 0.04).toFixed(2));
+      const driverPay = parseFloat((job.price - comm).toFixed(2));
+
+      // Update driver wallet
+      if (job.driver_id) {
+        const { data: dWallet } = await sb.from('wallets').select('*').eq('user_id', job.driver_id).single();
+        if (dWallet) {
+          await sb.from('wallets').update({
+            balance: (dWallet.balance||0) + driverPay,
+            total_earned: (dWallet.total_earned||0) + driverPay
+          }).eq('user_id', job.driver_id);
+        }
+        await sb.from('profiles').update({ total_jobs: (currentProfile.total_jobs||0) + 1 }).eq('id', job.driver_id);
+      }
+
+      // Update business wallet
+      if (job.business_id) {
+        const { data: bWallet } = await sb.from('wallets').select('*').eq('user_id', job.business_id).single();
+        if (bWallet) {
+          await sb.from('wallets').update({
+            total_spent: (bWallet.total_spent||0) + job.price
+          }).eq('user_id', job.business_id);
+        }
+      }
+
+      // Update local profile
+      if (currentUser.id === job.driver_id) {
+        currentProfile.total_jobs = (currentProfile.total_jobs||0) + 1;
+      }
+
+      // Get other party name for rating
+      const otherId = currentUser.id === job.driver_id ? job.business_id : job.driver_id;
+      if (otherId) {
+        const { data: other } = await sb.from('profiles').select('full_name,company_name,role').eq('id', otherId).single();
+        const otherName = other?.role === 'business' ? (other?.company_name || other?.full_name) : (other?.full_name || 'User');
+        toast('Job completed! 🎉 Payment of £' + driverPay + ' released.');
+        openJob(jobId);
+        setTimeout(() => openRatingModal(jobId, otherId, otherName), 1000);
+        return;
+      }
+    }
+  }
+
+  const statusMsg = { collected:'📦 Goods collected!', in_transit:'🚐 On the way!', delivered:'📍 Delivered!', completed:'🎉 Job complete!' };
+  toast(statusMsg[newStatus] || 'Status updated ✅');
+  openJob(jobId);
 }
 
 // ====== INIT ======
