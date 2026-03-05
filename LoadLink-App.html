@@ -247,17 +247,22 @@ body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-
     <div class="auth-form" id="signupForm" style="display:none">
       <div class="form-group">
         <label class="form-label">I am a...</label>
-        <div class="role-select">
-          <div class="role-btn selected" onclick="selectRole('driver',this)">
+        <div class="role-select" style="flex-wrap:wrap">
+          <div class="role-btn selected" onclick="selectRole('driver',this)" style="flex:1;min-width:120px">
             <div class="role-btn-icon">🚐</div>
             <div class="role-btn-label">Driver</div>
             <div class="role-btn-desc">Find & deliver loads</div>
           </div>
-          <div class="role-btn" onclick="selectRole('business',this)">
+          <div class="role-btn" onclick="selectRole('business',this)" style="flex:1;min-width:120px">
             <div class="role-btn-icon">🏢</div>
             <div class="role-btn-label">Business</div>
             <div class="role-btn-desc">Post & manage jobs</div>
           </div>
+        </div>
+        <div class="role-btn" onclick="selectRole('both',this)" style="margin-top:8px;width:100%">
+          <div class="role-btn-icon">🚐🏢</div>
+          <div class="role-btn-label">Driver + Business</div>
+          <div class="role-btn-desc">Do both — deliver loads and post jobs</div>
         </div>
       </div>
       <div class="form-group">
@@ -529,7 +534,7 @@ function selectRole(role, el) {
   selectedRole = role;
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
-  document.getElementById('companyField').style.display = role === 'business' ? 'block' : 'none';
+  document.getElementById('companyField').style.display = (role === 'business' || role === 'both') ? 'block' : 'none';
 }
 
 async function login() {
@@ -563,7 +568,7 @@ async function signup() {
         full_name: name,
         role: selectedRole,
         city: city,
-        company_name: selectedRole === 'business' ? company : null
+        company_name: ['business','both'].includes(selectedRole) ? company : null
       }
     }
   });
@@ -578,7 +583,7 @@ async function signup() {
       full_name: name,
       role: selectedRole,
       city: city,
-      company_name: selectedRole === 'business' ? company : null,
+      company_name: ['business','both'].includes(selectedRole) ? company : null,
       trust_score: 50,
       rating: 5.0,
       total_jobs: 0,
@@ -682,19 +687,26 @@ function nav(target) {
 // ====== DASHBOARD ======
 function renderDashboard() {
   const p = currentProfile;
-  const isDriver = p.role === 'driver';
+  const isDriver = p.role === 'driver' || p.role === 'both';
+  const isBusiness = p.role === 'business' || p.role === 'both';
+  const isBoth = p.role === 'both';
+  
   document.getElementById('welcomeName').textContent = 'Hey, ' + (p.full_name || 'there') + '!';
-  document.getElementById('welcomeRole').textContent = isDriver ? '🚐 Driver • ' + (p.city || '') : '🏢 ' + (p.company_name || 'Business') + ' • ' + (p.city || '');
-  document.getElementById('welcomeStats').innerHTML = isDriver ?
+  
+  let roleLabel = '';
+  if (isBoth) roleLabel = '🚐🏢 Driver + Business • ' + (p.city || '');
+  else if (p.role === 'driver') roleLabel = '🚐 Driver • ' + (p.city || '');
+  else roleLabel = '🏢 ' + (p.company_name || 'Business') + ' • ' + (p.city || '');
+  document.getElementById('welcomeRole').textContent = roleLabel;
+  
+  document.getElementById('welcomeStats').innerHTML = 
     '<div class="w-stat"><div class="w-stat-val">' + (p.total_jobs||0) + '</div><div class="w-stat-label">Jobs</div></div>' +
     '<div class="w-stat"><div class="w-stat-val">' + (p.rating||5.0) + '⭐</div><div class="w-stat-label">Rating</div></div>' +
     '<div class="w-stat"><div class="w-stat-val">' + (p.ontime_pct||100) + '%</div><div class="w-stat-label">On-Time</div></div>' +
-    '<div class="w-stat"><div class="w-stat-val">' + (p.tier||'New') + '</div><div class="w-stat-label">Tier</div></div>' :
-    '<div class="w-stat"><div class="w-stat-val">' + (p.total_jobs||0) + '</div><div class="w-stat-label">Jobs Posted</div></div>' +
-    '<div class="w-stat"><div class="w-stat-val">' + (p.rating||5.0) + '⭐</div><div class="w-stat-label">Rating</div></div>' +
-    '<div class="w-stat"><div class="w-stat-val">' + (p.trust_score||50) + '</div><div class="w-stat-label">Trust</div></div>';
+    (isDriver ? '<div class="w-stat"><div class="w-stat-val">' + (p.tier||'free') + '</div><div class="w-stat-label">Tier</div></div>' :
+    '<div class="w-stat"><div class="w-stat-val">' + (p.trust_score||50) + '</div><div class="w-stat-label">Trust</div></div>');
 
-  // Go Live (drivers only)
+  // Go Live (drivers and both)
   document.getElementById('goLiveCard').style.display = isDriver ? 'flex' : 'none';
   if (isDriver) {
     const live = p.is_live;
@@ -702,27 +714,39 @@ function renderDashboard() {
     document.getElementById('goLiveStatus').textContent = live ? "You're Live! 🟢" : "You're Offline";
   }
 
-  // Quick Actions
-  const qa = isDriver ? [
-    {icon:'📦',label:'Load Board',action:"nav('jobs')"},
-    {icon:'💰',label:'Wallet',action:"nav('wallet')"},
-    {icon:'💬',label:'Messages',action:"nav('msg')"},
-    {icon:'⚙️',label:'Settings',action:"alert('Settings coming soon')"}
-  ] : [
-    {icon:'➕',label:'Post Job',action:"nav('postjob')"},
-    {icon:'📋',label:'My Jobs',action:"nav('jobs')"},
-    {icon:'💰',label:'Payments',action:"nav('wallet')"},
-    {icon:'💬',label:'Messages',action:"nav('msg')"}
-  ];
+  // Quick Actions — both gets everything
+  let qa;
+  if (isBoth) {
+    qa = [
+      {icon:'📦',label:'Load Board',action:"nav('jobs')"},
+      {icon:'➕',label:'Post Job',action:"nav('postjob')"},
+      {icon:'💰',label:'Wallet',action:"nav('wallet')"},
+      {icon:'💬',label:'Messages',action:"nav('msg')"}
+    ];
+  } else if (p.role === 'driver') {
+    qa = [
+      {icon:'📦',label:'Load Board',action:"nav('jobs')"},
+      {icon:'💰',label:'Wallet',action:"nav('wallet')"},
+      {icon:'💬',label:'Messages',action:"nav('msg')"},
+      {icon:'⚙️',label:'Settings',action:"alert('Settings coming soon')"}
+    ];
+  } else {
+    qa = [
+      {icon:'➕',label:'Post Job',action:"nav('postjob')"},
+      {icon:'📋',label:'My Jobs',action:"nav('jobs')"},
+      {icon:'💰',label:'Payments',action:"nav('wallet')"},
+      {icon:'💬',label:'Messages',action:"nav('msg')"}
+    ];
+  }
   document.getElementById('quickActions').innerHTML = qa.map(q =>
     '<div class="q-btn" onclick="' + q.action + '"><div class="q-icon">' + q.icon + '</div><div class="q-label">' + q.label + '</div></div>'
   ).join('');
 
   // Screen titles
   document.getElementById('jobsScreenTitle').textContent = isDriver ? 'Load Board' : 'My Jobs';
-  document.getElementById('postJobHeaderBtn').style.display = isDriver ? 'none' : 'block';
+  document.getElementById('postJobHeaderBtn').style.display = isBusiness ? 'block' : 'none';
   document.getElementById('navJobsLabel').textContent = isDriver ? 'Jobs' : 'My Jobs';
-  document.getElementById('jobsSectionTitle').textContent = isDriver ? 'Available Jobs' : 'Your Recent Jobs';
+  document.getElementById('jobsSectionTitle').textContent = isBoth ? 'Your Jobs & Available Loads' : (isDriver ? 'Available Jobs' : 'Your Recent Jobs');
 }
 
 async function toggleGoLive() {
@@ -736,53 +760,70 @@ async function toggleGoLive() {
 
 // ====== JOBS ======
 async function loadDashJobs() {
-  const isDriver = currentProfile.role === 'driver';
-  let query;
+  const isDriver = currentProfile.role === 'driver' || currentProfile.role === 'both';
+  const isBusiness = currentProfile.role === 'business' || currentProfile.role === 'both';
+  let html = '';
+  
   if (isDriver) {
-    // Show driver's active jobs + new available jobs
+    // Show driver's active jobs
     const { data: myJobs } = await sb.from('jobs').select('*').eq('driver_id', currentUser.id).in('status', ['assigned','collected','in_transit','delivered']).order('created_at', { ascending: false }).limit(3);
-    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false }).limit(3);
-    let html = '';
     if (myJobs && myJobs.length > 0) {
       html += '<div style="font-size:12px;font-weight:700;color:var(--ll-green);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🚐 Your Active Jobs</div>';
       html += myJobs.map(j => jobCardHTML(j)).join('');
     }
+  }
+  
+  if (isBusiness) {
+    // Show business's posted jobs
+    const { data: postedJobs } = await sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(3);
+    if (postedJobs && postedJobs.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-blue);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📋 Jobs You Posted</div>';
+      html += postedJobs.map(j => jobCardHTML(j)).join('');
+    }
+  }
+  
+  if (isDriver) {
+    // Show available jobs to pick up
+    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').neq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(3);
     if (available && available.length > 0) {
       html += '<div style="font-size:12px;font-weight:700;color:var(--ll-muted);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📦 Available Jobs</div>';
       html += available.map(j => jobCardHTML(j)).join('');
     }
-    document.getElementById('dashJobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs yet</div><div class="empty-desc">New jobs will appear here</div></div>';
-    return;
-  } else {
-    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(5);
   }
-  const { data: jobs } = await query;
-  document.getElementById('dashJobsList').innerHTML = (jobs && jobs.length > 0) ?
-    jobs.map(j => jobCardHTML(j)).join('') :
-    '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No jobs yet</div><div class="empty-desc">Post your first job to get started</div></div>';
+  
+  document.getElementById('dashJobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs yet</div><div class="empty-desc">' + (isBusiness ? 'Post your first job to get started' : 'New jobs will appear here') + '</div></div>';
 }
 
 async function loadJobs() {
-  const isDriver = currentProfile.role === 'driver';
+  const isDriver = currentProfile.role === 'driver' || currentProfile.role === 'both';
+  const isBusiness = currentProfile.role === 'business' || currentProfile.role === 'both';
   let html = '';
+  
   if (isDriver) {
     const { data: myJobs } = await sb.from('jobs').select('*').eq('driver_id', currentUser.id).in('status', ['assigned','collected','in_transit','delivered']).order('created_at', { ascending: false });
-    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false });
     if (myJobs && myJobs.length > 0) {
       html += '<div style="font-size:12px;font-weight:700;color:var(--ll-green);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🚐 Your Active Jobs</div>';
       html += myJobs.map(j => jobCardHTML(j)).join('');
     }
+  }
+  
+  if (isBusiness) {
+    const { data: postedJobs } = await sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false });
+    if (postedJobs && postedJobs.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-blue);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📋 Jobs You Posted</div>';
+      html += postedJobs.map(j => jobCardHTML(j)).join('');
+    }
+  }
+  
+  if (isDriver) {
+    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').neq('business_id', currentUser.id).order('created_at', { ascending: false });
     if (available && available.length > 0) {
       html += '<div style="font-size:12px;font-weight:700;color:var(--ll-muted);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📦 Available Jobs</div>';
       html += available.map(j => jobCardHTML(j)).join('');
     }
-    document.getElementById('jobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs available</div><div class="empty-desc">Check back soon for new loads</div></div>';
-  } else {
-    const { data: jobs } = await sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false });
-    document.getElementById('jobsList').innerHTML = (jobs && jobs.length > 0) ?
-      jobs.map(j => jobCardHTML(j)).join('') :
-      '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs posted</div><div class="empty-desc">Post your first job to find a driver</div></div>';
   }
+  
+  document.getElementById('jobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs yet</div><div class="empty-desc">Check back soon</div></div>';
 }
 
 function jobCardHTML(j) {
@@ -803,7 +844,7 @@ async function openJob(id) {
   currentJobId = id;
   const { data: job } = await sb.from('jobs').select('*').eq('id', id).single();
   if (!job) return;
-  const isDriver = currentProfile.role === 'driver';
+  const isDriver = currentProfile.role === 'driver' || currentProfile.role === 'both';
   const isOwner = job.business_id === currentUser.id;
   const isMyJob = job.driver_id === currentUser.id;
   const ppm = job.distance_miles > 0 ? (job.price / job.distance_miles).toFixed(2) : '—';
@@ -1172,7 +1213,7 @@ document.getElementById('msgInput')?.addEventListener('keydown', function(e) {
 // ====== WALLET ======
 async function loadWallet() {
   const { data: wallet } = await sb.from('wallets').select('*').eq('user_id', currentUser.id).single();
-  const isDriver = currentProfile.role === 'driver';
+  const isDriver = currentProfile.role === 'driver' || currentProfile.role === 'both';
   if (!wallet) {
     document.getElementById('walletContent').innerHTML = '<div class="empty"><div class="empty-icon">💰</div><div class="empty-title">Wallet not set up</div><div class="empty-desc">Your wallet will be created when you complete your first job</div></div>';
     return;
