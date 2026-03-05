@@ -583,8 +583,8 @@ async function signup() {
       rating: 5.0,
       total_jobs: 0,
       ontime_pct: 100,
-      verification_level: 'new',
-      tier: 'new',
+      verification_level: 'bronze',
+      tier: 'free',
       is_live: false,
       bypass_strikes: 0,
       is_suspended: false
@@ -739,28 +739,50 @@ async function loadDashJobs() {
   const isDriver = currentProfile.role === 'driver';
   let query;
   if (isDriver) {
-    query = sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false }).limit(3);
+    // Show driver's active jobs + new available jobs
+    const { data: myJobs } = await sb.from('jobs').select('*').eq('driver_id', currentUser.id).in('status', ['assigned','collected','in_transit','delivered']).order('created_at', { ascending: false }).limit(3);
+    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false }).limit(3);
+    let html = '';
+    if (myJobs && myJobs.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-green);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🚐 Your Active Jobs</div>';
+      html += myJobs.map(j => jobCardHTML(j)).join('');
+    }
+    if (available && available.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-muted);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📦 Available Jobs</div>';
+      html += available.map(j => jobCardHTML(j)).join('');
+    }
+    document.getElementById('dashJobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs yet</div><div class="empty-desc">New jobs will appear here</div></div>';
+    return;
   } else {
-    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(3);
+    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false }).limit(5);
   }
   const { data: jobs } = await query;
   document.getElementById('dashJobsList').innerHTML = (jobs && jobs.length > 0) ?
     jobs.map(j => jobCardHTML(j)).join('') :
-    '<div class="empty"><div class="empty-icon">' + (isDriver ? '📦' : '📋') + '</div><div class="empty-title">No jobs yet</div><div class="empty-desc">' + (isDriver ? 'New jobs will appear here' : 'Post your first job to get started') + '</div></div>';
+    '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No jobs yet</div><div class="empty-desc">Post your first job to get started</div></div>';
 }
 
 async function loadJobs() {
   const isDriver = currentProfile.role === 'driver';
-  let query;
+  let html = '';
   if (isDriver) {
-    query = sb.from('jobs').select('*').in('status', ['posted', 'assigned']).order('created_at', { ascending: false });
+    const { data: myJobs } = await sb.from('jobs').select('*').eq('driver_id', currentUser.id).in('status', ['assigned','collected','in_transit','delivered']).order('created_at', { ascending: false });
+    const { data: available } = await sb.from('jobs').select('*').eq('status', 'posted').order('created_at', { ascending: false });
+    if (myJobs && myJobs.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-green);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🚐 Your Active Jobs</div>';
+      html += myJobs.map(j => jobCardHTML(j)).join('');
+    }
+    if (available && available.length > 0) {
+      html += '<div style="font-size:12px;font-weight:700;color:var(--ll-muted);margin:12px 0 8px;text-transform:uppercase;letter-spacing:1px">📦 Available Jobs</div>';
+      html += available.map(j => jobCardHTML(j)).join('');
+    }
+    document.getElementById('jobsList').innerHTML = html || '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs available</div><div class="empty-desc">Check back soon for new loads</div></div>';
   } else {
-    query = sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false });
+    const { data: jobs } = await sb.from('jobs').select('*').eq('business_id', currentUser.id).order('created_at', { ascending: false });
+    document.getElementById('jobsList').innerHTML = (jobs && jobs.length > 0) ?
+      jobs.map(j => jobCardHTML(j)).join('') :
+      '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs posted</div><div class="empty-desc">Post your first job to find a driver</div></div>';
   }
-  const { data: jobs } = await query;
-  document.getElementById('jobsList').innerHTML = (jobs && jobs.length > 0) ?
-    jobs.map(j => jobCardHTML(j)).join('') :
-    '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No jobs available</div><div class="empty-desc">Check back soon for new loads</div></div>';
 }
 
 function jobCardHTML(j) {
@@ -783,18 +805,74 @@ async function openJob(id) {
   if (!job) return;
   const isDriver = currentProfile.role === 'driver';
   const isOwner = job.business_id === currentUser.id;
+  const isMyJob = job.driver_id === currentUser.id;
   const ppm = job.distance_miles > 0 ? (job.price / job.distance_miles).toFixed(2) : '—';
 
   // Get bids
   const { data: bids } = await sb.from('bids').select('*').eq('job_id', id).order('created_at', { ascending: false });
   const myBid = bids ? bids.find(b => b.driver_id === currentUser.id) : null;
 
-  let html = '<div class="jd-price-card"><div class="jd-price">£' + (job.price||0) + '</div><div class="jd-ppm">£' + ppm + '/mi • ' + (job.payment_terms||'7_day').replace(/_/g,' ') + ' terms</div></div>';
+  // Get other party info for chat
+  let otherUserId = isDriver ? job.business_id : job.driver_id;
+  let otherName = '';
+  if (otherUserId) {
+    const { data: other } = await sb.from('profiles').select('full_name,company_name,role').eq('id', otherUserId).single();
+    otherName = other?.role === 'business' ? (other?.company_name || other?.full_name) : (other?.full_name || 'User');
+  }
 
+  let html = '';
+
+  // === STATUS TIMELINE ===
+  if (job.status !== 'posted') {
+    const steps = [
+      { key: 'posted', label: 'Job Posted', icon: '📋' },
+      { key: 'assigned', label: 'Driver Assigned', icon: '✅' },
+      { key: 'collected', label: 'Collected', icon: '📦' },
+      { key: 'in_transit', label: 'In Transit', icon: '🚐' },
+      { key: 'delivered', label: 'Delivered', icon: '📍' },
+      { key: 'completed', label: 'Completed', icon: '🎉' }
+    ];
+    const statusOrder = ['posted','assigned','collected','in_transit','delivered','completed'];
+    const currentIdx = statusOrder.indexOf(job.status);
+
+    html += '<div style="background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-xl);padding:18px;margin-bottom:16px">';
+    html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:14px">📍 Job Progress</div>';
+    
+    // Progress bar
+    const pct = Math.round((currentIdx / (steps.length - 1)) * 100);
+    html += '<div style="height:6px;background:var(--ll-border);border-radius:3px;margin-bottom:16px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--ll-green);border-radius:3px;transition:width 0.5s"></div></div>';
+
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i];
+      const done = i <= currentIdx;
+      const isCurrent = i === currentIdx;
+      const dotColor = done ? 'var(--ll-green)' : 'var(--ll-border)';
+      const textColor = done ? 'var(--ll-white)' : 'var(--ll-muted)';
+      const weight = isCurrent ? '700' : '400';
+      
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0">';
+      html += '<div style="width:28px;height:28px;border-radius:50%;background:' + (done ? 'var(--ll-green-glow)' : 'transparent') + ';border:2px solid ' + dotColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">' + (done ? '✓' : (i+1)) + '</div>';
+      html += '<div style="flex:1"><div style="font-size:12px;font-weight:' + weight + ';color:' + textColor + '">' + s.icon + ' ' + s.label + '</div>';
+      
+      // Show timestamps
+      if (s.key === 'collected' && job.actual_pickup) html += '<div style="font-size:10px;color:var(--ll-muted)">' + new Date(job.actual_pickup).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div>';
+      if (s.key === 'delivered' && job.actual_delivery) html += '<div style="font-size:10px;color:var(--ll-muted)">' + new Date(job.actual_delivery).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div>';
+      if (isCurrent) html += '<div style="font-size:10px;color:var(--ll-green);font-weight:600">← Current</div>';
+      
+      html += '</div></div>';
+    }
+    html += '</div>';
+  }
+
+  // === PRICE CARD ===
+  html += '<div class="jd-price-card"><div class="jd-price">£' + (job.price||0) + '</div><div class="jd-ppm">£' + ppm + '/mi • ' + (job.payment_terms||'7_day').replace(/_/g,' ') + ' terms</div></div>';
+
+  // === ROUTE ===
   html += '<div class="jd-route-card"><div class="jd-point"><div class="jd-dot pickup"></div><div><div class="jd-addr">' + (job.pickup_address||'') + '</div><div class="jd-city">' + (job.pickup_city||'') + ' ' + (job.pickup_postcode||'') + '</div></div></div>';
   html += '<div class="jd-line" style="margin-left:5px"></div>';
   html += '<div class="jd-point"><div class="jd-dot delivery"></div><div><div class="jd-addr">' + (job.delivery_address||'') + '</div><div class="jd-city">' + (job.delivery_city||'') + ' ' + (job.delivery_postcode||'') + '</div></div></div></div>';
 
+  // === INFO GRID ===
   html += '<div class="jd-info-grid">' +
     '<div class="jd-info"><div class="jd-info-val">' + (job.distance_miles||'—') + ' mi</div><div class="jd-info-label">Distance</div></div>' +
     '<div class="jd-info"><div class="jd-info-val">' + (job.vehicle_type||'—').replace(/_/g,' ') + '</div><div class="jd-info-label">Vehicle</div></div>' +
@@ -803,7 +881,12 @@ async function openJob(id) {
 
   if (job.description) html += '<div style="background:var(--ll-card);border:1px solid var(--ll-border);border-radius:var(--radius-lg);padding:14px;margin-bottom:16px;font-size:13px;color:var(--ll-text)">' + job.description + '</div>';
 
-  // Actions for drivers
+  // === CHAT BUTTON (if job is assigned to someone) ===
+  if (otherUserId && job.status !== 'posted') {
+    html += '<button class="jd-btn accept" onclick="startJobChat(\'' + otherUserId + '\',\'' + id + '\',\'' + otherName.replace(/'/g,"\\'") + '\')" style="margin-bottom:12px;background:var(--ll-blue-soft);color:var(--ll-blue);border:1px solid rgba(59,130,246,0.3)">💬 Message ' + otherName + '</button>';
+  }
+
+  // === DRIVER ACTIONS — Accept/Counter ===
   if (isDriver && job.status === 'posted') {
     if (myBid) {
       html += '<div style="background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-md);padding:14px;text-align:center;font-size:13px;color:var(--ll-amber)">You sent an offer of <strong>£' + myBid.amount + '</strong> — ' + myBid.status + '</div>';
@@ -812,7 +895,7 @@ async function openJob(id) {
     }
   }
 
-  // Actions for business - status updates
+  // === BUSINESS VIEW — Offers ===
   if (isOwner) {
     if (bids && bids.length > 0) {
       html += '<div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--ll-white);margin-bottom:10px">📩 Offers (' + bids.length + ')</div>';
@@ -825,20 +908,38 @@ async function openJob(id) {
           '</div></div>';
       }
     }
-    // Status progression
+    // Business waiting states
     if (job.status === 'assigned') {
-      html += '<div style="text-align:center;padding:16px;font-size:13px;color:var(--ll-amber)">⏳ Waiting for driver to collect</div>';
+      html += '<div style="background:var(--ll-amber-soft);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">⏳</div><div style="font-size:14px;font-weight:700;color:var(--ll-amber)">Waiting for driver to collect</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">You\'ll be notified when the driver picks up</div></div>';
+    }
+    if (job.status === 'collected') {
+      html += '<div style="background:var(--ll-blue-soft);border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">📦</div><div style="font-size:14px;font-weight:700;color:var(--ll-blue)">Driver has collected your goods</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">They\'ll start transit shortly</div></div>';
+    }
+    if (job.status === 'in_transit') {
+      html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🚐</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Your delivery is on the way!</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">Driver is en route to delivery address</div></div>';
+    }
+    if (job.status === 'delivered') {
+      html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">✅</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Delivered!</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">Confirm delivery to release payment</div></div>';
+      html += '<button class="auth-btn" onclick="updateJobStatus(\'' + id + '\',\'completed\')" style="margin-top:12px">✅ Confirm & Release Payment</button>';
+    }
+    if (job.status === 'completed') {
+      html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🎉</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Job Complete!</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">Payment of £' + job.price + ' has been released</div></div>';
     }
   }
 
-  // Driver status progression
-  if (isDriver && job.driver_id === currentUser.id) {
-    const statuses = ['assigned','collected','in_transit','delivered'];
+  // === DRIVER STATUS BUTTONS ===
+  if (isDriver && isMyJob && !['posted','completed','cancelled'].includes(job.status)) {
     const nextStatus = { assigned:'collected', collected:'in_transit', in_transit:'delivered', delivered:'completed' };
-    const nextLabel = { assigned:'Mark Collected', collected:'Start Transit', in_transit:'Mark Delivered', delivered:'Complete Job' };
+    const nextLabel = { assigned:'📦 Mark Collected — I have the goods', collected:'🚐 Start Transit — On my way', in_transit:'📍 Mark Delivered — Goods dropped off', delivered:'🎉 Complete Job' };
+    const nextColor = { assigned:'var(--ll-amber)', collected:'var(--ll-blue)', in_transit:'var(--ll-green)', delivered:'var(--ll-green)' };
     if (nextStatus[job.status]) {
-      html += '<button class="auth-btn" onclick="updateJobStatus(\'' + id + '\',\'' + nextStatus[job.status] + '\')" style="margin-top:16px">📍 ' + nextLabel[job.status] + '</button>';
+      html += '<button class="auth-btn" onclick="updateJobStatus(\'' + id + '\',\'' + nextStatus[job.status] + '\')" style="margin-top:16px;background:' + nextColor[job.status] + '">' + nextLabel[job.status] + '</button>';
     }
+  }
+
+  // Completed for driver
+  if (isDriver && isMyJob && job.status === 'completed') {
+    html += '<div style="background:var(--ll-green-soft);border:1px solid rgba(34,197,94,0.15);border-radius:var(--radius-md);padding:16px;text-align:center;margin-top:12px"><div style="font-size:24px;margin-bottom:8px">🎉</div><div style="font-size:14px;font-weight:700;color:var(--ll-green)">Job Complete! Payment incoming.</div><div style="font-size:11px;color:var(--ll-muted);margin-top:4px">£' + job.price + ' will be added to your wallet</div></div>';
   }
 
   document.getElementById('jobDetailContent').innerHTML = html;
@@ -848,8 +949,28 @@ async function openJob(id) {
 async function acceptJob() {
   const { error } = await sb.from('jobs').update({ driver_id: currentUser.id, status: 'assigned' }).eq('id', currentJobId);
   if (error) return toast('Error: ' + error.message, 'error');
+  // Send auto-message to business
+  const { data: job } = await sb.from('jobs').select('business_id').eq('id', currentJobId).single();
+  if (job) {
+    await sb.from('messages').insert({
+      sender_id: currentUser.id, receiver_id: job.business_id, job_id: currentJobId,
+      content: '✅ I\'ve accepted this job! I\'ll be in touch about collection.', is_read: false, is_blocked: false, bypass_detected: false
+    });
+  }
   toast('Job accepted! 🎉');
   openJob(currentJobId);
+}
+
+function startJobChat(userId, jobId, name) {
+  currentChatUserId = userId;
+  currentChatJobId = jobId;
+  document.getElementById('chatViewName').textContent = name;
+  document.getElementById('msgListContent').style.display = 'none';
+  document.getElementById('chatViewContent').style.display = 'block';
+  showScreen('msgScreen');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[2].classList.add('active');
+  loadMessages();
 }
 
 function openCounterModal() {
